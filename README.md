@@ -63,6 +63,10 @@ Regenerate a table without model inference:
 /disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/pilot_qwen25vl3b --copy-to paper/generated_results_table.tex
 ```
 
+## Verified 100-sample pilot
+
+The completed Qwen pilot contains 800 prediction rows (100 samples times eight conditions). Strict false-claim acceptance ASR is 58% for causal typography, 19% for naive typography, and 25% for the plaque-style scene-coherent baseline. The consistency wrapper reduces naive ASR to 0% but leaves causal ASR at 58%; renderer-bbox masking reduces both to 0%. Clean object accuracy under the largest-area proxy is 27%. All structured outputs parse successfully. These values are recomputed from `runs/pilot_qwen25vl3b/predictions.jsonl`; the paper stores only the small aggregate evidence file.
+
 ## Configuration
 
 YAML files control seed, sample count, local model path, image pixel budget, attacks, defenses, and output location. Generation is greedy (`do_sample=False`). `configs/smoke.yaml` uses two samples; the pilot config uses 100.
@@ -75,7 +79,8 @@ YAML files control seed, sample count, local model path, image pixel budget, att
 4. The consistency wrapper is a lexical proxy inspired by the scene-text consistency idea, not SAGE code or a reproduction of any anonymous manuscript.
 5. OCR masking currently uses the renderer's known bounding box and therefore represents an oracle localization upper bound.
 6. The scene-coherent baseline changes typography and placement but is not a public SceneTAP implementation.
-7. A 300--500 image run needs a larger benchmark and should add independent models, seeds, human naturalness/world-violation ratings, and confidence intervals.
+7. The 300-image expansion uses the verified COCO validation mirror; broader claims still need independent models, seeds, human naturalness/world-violation ratings, and confidence intervals.
+8. The shared server environment emits a torchvision binary-extension warning due to a version mismatch. This pipeline uses PIL rather than `torchvision.io`, and the smoke/pilot runs complete, but an isolated environment should resolve the mismatch before broader reuse.
 
 ## Public sources only
 
