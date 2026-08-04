@@ -1,0 +1,6 @@
+source_log: runs/main_qwen25vl3b_n300/predictions.jsonl
+output_root: runs/rapidocr_masks_n300
+expected_samples: 300
+attacks: [naive, causal]
+score_threshold: 0.5
+mask_margin_px: 2
