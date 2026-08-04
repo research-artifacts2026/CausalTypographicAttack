@@ -63,6 +63,12 @@ Regenerate a table without model inference:
 /disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/pilot_qwen25vl3b --copy-to paper/generated_results_table.tex
 ```
 
+Check within-run uniqueness and cross-run image overlap:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/check_manifests.py runs/pilot_qwen25vl3b/sample_manifest.json runs/main_qwen25vl3b_n300/sample_manifest.json
+```
+
 ## Verified 100-sample pilot
 
 The completed Qwen pilot contains 800 prediction rows (100 samples times eight conditions). Strict false-claim acceptance ASR is 58% for causal typography, 19% for naive typography, and 25% for the plaque-style scene-coherent baseline. The consistency wrapper reduces naive ASR to 0% but leaves causal ASR at 58%; renderer-bbox masking reduces both to 0%. Clean object accuracy under the largest-area proxy is 27%. All structured outputs parse successfully. These values are recomputed from `runs/pilot_qwen25vl3b/predictions.jsonl`; the paper stores only the small aggregate evidence file.
