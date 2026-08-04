@@ -1,0 +1,19 @@
+seed: 43
+num_samples: 300
+dataset_name: coco_val2017
+dataset_root: data/coco2017
+output_root: runs/main_qwen25vl3b_n300
+model:
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  min_pixels: 200704
+  max_pixels: 602112
+experiment:
+  attacks: [none, naive, scene_coherent, causal]
+  defended_attacks: [naive, causal]
+  defenses: [consistency, ocr_mask]
+  resume: true
+  run_scene_extraction: true
+  run_quality_judge: true

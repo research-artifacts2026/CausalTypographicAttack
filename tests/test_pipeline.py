@@ -1,4 +1,5 @@
 from cta.generation import AttackTextGenerator, extract_json
+from cta.data import load_dataset
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
 
 
@@ -24,3 +25,12 @@ def test_summary_claim_asr():
     result = summarize(rows)[0]
     assert result["false_claim_acceptance_asr"] == 1.0
     assert result["naturalness_1to5"] == 4.0
+
+
+def test_unknown_dataset_rejected():
+    try:
+        load_dataset("unknown", ".", 1, 1)
+    except ValueError as exc:
+        assert "Unsupported dataset" in str(exc)
+    else:
+        raise AssertionError("unknown dataset was accepted")

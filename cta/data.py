@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import random
 import urllib.request
 import zipfile
@@ -11,6 +12,8 @@ from .constants import COCO80
 
 
 COCO128_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0/coco128.zip"
+COCO_VAL_URL = "https://images.cocodataset.org/zips/val2017.zip"
+COCO_ANN_URL = "https://images.cocodataset.org/annotations/annotations_trainval2017.zip"
 
 
 @dataclass(frozen=True)
@@ -90,3 +93,63 @@ def load_coco128(root: str | Path, n: int, seed: int) -> list[Sample]:
         raise ValueError(f"Requested {n} samples but only found {len(candidates)} labelled images")
     return candidates[:n]
 
+
+def download_coco_val2017(root: Path) -> None:
+    image_dir = root / "val2017"
+    ann_path = root / "annotations" / "instances_val2017.json"
+    if image_dir.exists() and ann_path.exists():
+        return
+    root.mkdir(parents=True, exist_ok=True)
+    for url, name in ((COCO_VAL_URL, "val2017.zip"), (COCO_ANN_URL, "annotations_trainval2017.zip")):
+        archive = root / name
+        if not archive.exists():
+            urllib.request.urlretrieve(url, archive)
+        with zipfile.ZipFile(archive) as zf:
+            zf.extractall(root)
+    if not image_dir.exists() or not ann_path.exists():
+        raise RuntimeError("COCO val2017 download/extraction is incomplete")
+
+
+def load_coco_val2017(root: str | Path, n: int, seed: int) -> list[Sample]:
+    root = Path(root)
+    download_coco_val2017(root)
+    payload = json.loads((root / "annotations" / "instances_val2017.json").read_text())
+    images = {int(i["id"]): i for i in payload["images"]}
+    categories = {int(c["id"]): str(c["name"]) for c in payload["categories"]}
+    grouped: dict[int, list[dict]] = {}
+    for ann in payload["annotations"]:
+        if ann.get("iscrowd", 0):
+            continue
+        grouped.setdefault(int(ann["image_id"]), []).append(ann)
+    ids = sorted(set(images) & set(grouped))
+    rng = random.Random(seed)
+    rng.shuffle(ids)
+    candidates: list[Sample] = []
+    for image_id in ids:
+        info = images[image_id]
+        anns = grouped[image_id]
+        target = max(anns, key=lambda a: float(a.get("area", a["bbox"][2] * a["bbox"][3])))
+        class_id = int(target["category_id"])
+        image_path = root / "val2017" / info["file_name"]
+        if not image_path.exists() or class_id not in categories:
+            continue
+        normalized_area = float(target.get("area", target["bbox"][2] * target["bbox"][3])) / (float(info["width"]) * float(info["height"]))
+        labels = sorted({categories[int(a["category_id"])] for a in anns if int(a["category_id"]) in categories})
+        candidates.append(Sample(
+            sample_id=f"coco-{image_id:012d}", image_path=str(image_path.resolve()),
+            target_label=categories[class_id], target_class_id=class_id,
+            target_area=normalized_area, labels=labels, source_sha256=sha256_file(image_path),
+        ))
+        if len(candidates) >= n:
+            break
+    if len(candidates) < n:
+        raise ValueError(f"Requested {n} COCO val2017 samples but found {len(candidates)}")
+    return candidates
+
+
+def load_dataset(name: str, root: str | Path, n: int, seed: int) -> list[Sample]:
+    if name == "coco128":
+        return load_coco128(root, n, seed)
+    if name == "coco_val2017":
+        return load_coco_val2017(root, n, seed)
+    raise ValueError(f"Unsupported dataset: {name}")
