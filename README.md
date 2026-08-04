@@ -72,7 +72,7 @@ Regenerate the paper's qualitative grid, bootstrap statistics, result chart, and
   --pilot-log runs/pilot_qwen25vl3b/predictions.jsonl \
   --pilot-image-root runs/pilot_qwen25vl3b/images \
   --transfer-log runs/transfer_qwen25vl7b_n300/predictions.jsonl \
-  --ocr-log runs/rapidocr_qwen25vl3b_n300/predictions.jsonl \
+  --ocr-log runs/rapidocr_defense_qwen25vl3b_n300/predictions.jsonl \
   --ocr-conditions runs/rapidocr_masks_n300/conditions.jsonl \
   --paper-dir paper
 ```
@@ -110,6 +110,12 @@ The completed Qwen pilot contains 800 prediction rows (100 samples times eight c
 ## Verified 300-sample expansion
 
 The non-overlapping COCO validation expansion contains 2,400 prediction rows. Strict ASR is 65.33% for causal typography, 19.67% for naive typography, and 25.33% for the plaque baseline. The paired CTA-minus-naive gap is 45.67 percentage points with a percentile 95% bootstrap interval of [39.33, 52.00]. The consistency wrapper leaves causal ASR at 65.33% while reducing naive ASR to 0%; renderer-bbox masking reduces both to 0%. Clean object accuracy is 33.67%. Manifest auditing confirms 300 unique IDs/hashes and zero image-hash overlap with the pilot. The source of record is `runs/main_qwen25vl3b_n300/predictions.jsonl` with `summary.json` and `provenance.json` in the same directory.
+
+## Verified scale replay and practical OCR defense
+
+The Qwen2.5-VL-7B inference-only replay contains 1,200 rows over the exact same raw rendered inputs. Clean object accuracy is 36.33%; strict ASR is 11.00% for naive typography, 20.33% for the scene-coherent plaque, and 0.00% for CTA. CTA grounded transcription is 100.00%, so the larger checkpoint reads and rejects every impossible claim in this benchmark. This is evidence of scale sensitivity, not cross-family transfer.
+
+RapidOCR 3.9.2 detects at least half of the overlay content tokens on all 600 naive/CTA images. Mean token recall is 100.00% for naive and 99.43% for CTA; mean rectangular-mask area upper bounds are 4.53% and 14.84%. Re-evaluating those masks on the 3B checkpoint produces 0.00% strict ASR for both attacks. CTA object accuracy is 32.33%, compared with 31.33% under the renderer-box oracle. These results apply to the current high-contrast renderer and do not imply robustness to stylized or physical text.
 
 ## Configuration
 
