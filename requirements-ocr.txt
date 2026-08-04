@@ -1,0 +1,5 @@
+# Optional deployable OCR-mask defense.  Core model dependencies remain in
+# requirements.txt so the OCR runtime can be isolated when binary packages
+# conflict with an existing LVLM environment.
+rapidocr==3.9.2
+onnxruntime>=1.19,<2
