@@ -73,6 +73,10 @@ Check within-run uniqueness and cross-run image overlap:
 
 The completed Qwen pilot contains 800 prediction rows (100 samples times eight conditions). Strict false-claim acceptance ASR is 58% for causal typography, 19% for naive typography, and 25% for the plaque-style scene-coherent baseline. The consistency wrapper reduces naive ASR to 0% but leaves causal ASR at 58%; renderer-bbox masking reduces both to 0%. Clean object accuracy under the largest-area proxy is 27%. All structured outputs parse successfully. These values are recomputed from `runs/pilot_qwen25vl3b/predictions.jsonl`; the paper stores only the small aggregate evidence file.
 
+## Verified 300-sample expansion
+
+The non-overlapping COCO validation expansion contains 2,400 prediction rows. Strict ASR is 65.33% for causal typography, 19.67% for naive typography, and 25.33% for the plaque baseline. The consistency wrapper leaves causal ASR at 65.33% while reducing naive ASR to 0%; renderer-bbox masking reduces both to 0%. Clean object accuracy is 33.67%. Manifest auditing confirms 300 unique IDs/hashes and zero image-hash overlap with the pilot. The source of record is `runs/main_qwen25vl3b_n300/predictions.jsonl` with `summary.json` and `provenance.json` in the same directory.
+
 ## Configuration
 
 YAML files control seed, sample count, local model path, image pixel budget, attacks, defenses, and output location. Generation is greedy (`do_sample=False`). `configs/smoke.yaml` uses two samples; the pilot config uses 100.
