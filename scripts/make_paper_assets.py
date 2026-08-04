@@ -463,14 +463,14 @@ def make_breakdown_plot(analysis: dict[str, Any], output_base: Path) -> None:
     plt.rcParams.update({"font.size": 8, "pdf.fonttype": 42, "axes.spines.top": False, "axes.spines.right": False})
     fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.45), gridspec_kw={"wspace": 0.34})
     categories = list(analysis["causal_categories"])
-    short = {"biology": "Biology", "energy conservation": "Energy\nconservation", "energy/transport": "Energy /\ntransport", "mechanics": "Mechanics", "thermodynamics/decay": "Thermo. /\ndecay"}
+    short = {"biology": "Biology", "energy conservation": "Energy cons.", "energy/transport": "Energy/trans.", "mechanics": "Mechanics", "thermodynamics/decay": "Thermo./decay"}
     values = [100 * analysis["causal_categories"][name]["strict_asr"]["mean"] for name in categories]
     errors = np.asarray([
         [value - 100 * analysis["causal_categories"][name]["strict_asr"]["ci_low"] for value, name in zip(values, categories)],
         [100 * analysis["causal_categories"][name]["strict_asr"]["ci_high"] - value for value, name in zip(values, categories)],
     ])
     bars = axes[0].bar(range(len(categories)), values, color=OKABE_ITO["causal"], yerr=errors, capsize=2)
-    axes[0].set_xticks(range(len(categories)), [short.get(name, name) for name in categories])
+    axes[0].set_xticks(range(len(categories)), [short.get(name, name) for name in categories], rotation=18, ha="right")
     axes[0].set_ylabel("Strict ASR (%)")
     axes[0].set_title("(a) Reality-violation family")
     axes[0].set_ylim(0, 110)
@@ -564,6 +564,46 @@ def compute_ocr_table(main_rows: list[dict[str, Any]], ocr_rows: list[dict[str, 
     return rows_out
 
 
+def make_ocr_defense_example(main_rows: list[dict[str, Any]], ocr_rows: list[dict[str, Any]], output: Path) -> None:
+    """Show one deterministic raw-success / practical-defense-success case."""
+    raw = {row["sample_id"]: row for row in _cell(main_rows, "causal", "none")}
+    oracle = {row["sample_id"]: row for row in _cell(main_rows, "causal", "ocr_mask")}
+    practical = {row["sample_id"]: row for row in _cell(ocr_rows, "causal", "rapidocr_mask")}
+    selected_id = next((
+        sid for sid in sorted(set(raw) & set(oracle) & set(practical))
+        if raw[sid]["attack_success"] and not practical[sid]["attack_success"]
+        and practical[sid]["defense_metadata"].get("overlay_detected_at_0.5_recall")
+        and not oracle[sid]["attack_success"]
+    ), None)
+    if selected_id is None:
+        raise ValueError("no deterministic RapidOCR defense example satisfies the selection rule")
+    panels = [
+        ("(a) No defense", raw[selected_id], "Attack accepted"),
+        ("(b) RapidOCR mask", practical[selected_id], "Detected boxes only"),
+        ("(c) Oracle mask", oracle[selected_id], "Known render box"),
+    ]
+    panel_w, panel_h, gap, margin = 610, 570, 18, 18
+    canvas = Image.new("RGB", (3*panel_w+2*gap+2*margin, panel_h+2*margin), "white")
+    draw = ImageDraw.Draw(canvas); title_font=fit_font(25, True); body_font=fit_font(18)
+    for idx, (title, row, subtitle) in enumerate(panels):
+        x0=margin+idx*(panel_w+gap); y0=margin
+        outline = "#B33A2B" if row["attack_success"] else "#196F3D"
+        draw.rounded_rectangle((x0,y0,x0+panel_w,y0+panel_h), radius=9, fill="#FAFAFA", outline=outline, width=4)
+        draw.text((x0+14,y0+10), title, font=title_font, fill="#111111")
+        draw.text((x0+14,y0+43), subtitle, font=body_font, fill="#444444")
+        image = Image.open(row["image_path"]).convert("RGB"); image.thumbnail((panel_w-20, 405), Image.Resampling.LANCZOS)
+        canvas.paste(image, (x0+(panel_w-image.width)//2, y0+72+(405-image.height)//2))
+        verdict = f"Judgment: {row['parsed']['claim']} | strict success: {'yes' if row['attack_success'] else 'no'}"
+        draw.text((x0+14,y0+490), verdict, font=body_font, fill=outline)
+        if row["defense"] == "rapidocr_mask":
+            meta=row["defense_metadata"]
+            detail=f"OCR recall {100*meta['overlay_token_recall']:.0f}% | masked area <= {100*meta['masked_area_upper_bound_fraction']:.1f}%"
+        else:
+            detail=f"Object: {row['parsed']['object']}"
+        draw.text((x0+14,y0+520), detail, font=body_font, fill="#333333")
+    output.parent.mkdir(parents=True, exist_ok=True); canvas.save(output, dpi=(300,300), optimize=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--main-log", type=Path, required=True)
@@ -603,6 +643,7 @@ def main() -> None:
         ocr_rows = read_jsonl(args.ocr_log)
         expanded["deployable_ocr_defense"] = compute_ocr_table(main_rows, ocr_rows, args.paper_dir / "generated_ocr_defense_table.tex")
         expanded["deployable_ocr_source"] = {"path": str(args.ocr_log), "sha256": sha256(args.ocr_log)}
+        make_ocr_defense_example(main_rows, ocr_rows, figures / "ocr_defense_example.png")
     if args.ocr_conditions:
         detection_rows = read_jsonl(args.ocr_conditions)
         expanded["rapidocr_detection"] = {
