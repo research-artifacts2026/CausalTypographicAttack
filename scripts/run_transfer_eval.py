@@ -15,12 +15,15 @@ import json
 import os
 import platform
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 from tqdm import tqdm
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
 from cta.model import Qwen25VLAdapter, TASK_PROMPT
