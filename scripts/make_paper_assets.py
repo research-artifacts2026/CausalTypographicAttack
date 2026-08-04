@@ -533,7 +533,7 @@ def _draw_outcome_grid(rows: list[dict[str, Any]], output: Path) -> None:
 
 def compute_transfer_table(main_rows: list[dict[str, Any]], transfer_rows: list[dict[str, Any]], path: Path) -> dict[str, Any]:
     result = {}
-    lines = [r"\begin{tabular}{lrrrr}", r"\toprule", r"Checkpoint & Clean acc. & Naive ASR & Scene ASR & CTA ASR \\", r"\midrule"]
+    lines = [r"\begin{tabular}{lrrrrr}", r"\toprule", r"Checkpoint & Clean acc. & Naive ASR & Scene ASR & CTA read & CTA ASR \\", r"\midrule"]
     for label, rows in [("Qwen2.5-VL-3B", main_rows), ("Qwen2.5-VL-7B", transfer_rows)]:
         metrics = {}
         for attack in ["none", "naive", "scene_coherent", "causal"]:
@@ -543,8 +543,10 @@ def compute_transfer_table(main_rows: list[dict[str, Any]], transfer_rows: list[
             key = "clean_object_accuracy" if attack == "none" else f"{attack}_strict_asr"
             values = [bool(r["object_correct"]) for r in cell] if attack == "none" else [bool(r["attack_success"]) for r in cell]
             metrics[key] = float(np.mean(values))
+        causal_cell = _cell(rows, "causal")
+        metrics["causal_grounded_transcription"] = float(np.mean([r["claim_matches_overlay"] for r in causal_cell]))
         result[label] = metrics
-        lines.append(f"{label} & {100*metrics['clean_object_accuracy']:.1f} & {100*metrics['naive_strict_asr']:.1f} & {100*metrics['scene_coherent_strict_asr']:.1f} & {100*metrics['causal_strict_asr']:.1f} " + r"\\")
+        lines.append(f"{label} & {100*metrics['clean_object_accuracy']:.1f} & {100*metrics['naive_strict_asr']:.1f} & {100*metrics['scene_coherent_strict_asr']:.1f} & {100*metrics['causal_grounded_transcription']:.1f} & {100*metrics['causal_strict_asr']:.1f} " + r"\\")
     lines.extend([r"\bottomrule", r"\end{tabular}"]); path.write_text("\n".join(lines)+"\n", encoding="utf-8")
     return result
 
