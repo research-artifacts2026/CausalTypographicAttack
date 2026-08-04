@@ -1,6 +1,6 @@
 # Causal Typographic Attack / Reality Violation Attack
 
-This repository implements a first, fully logged pilot for testing whether an LVLM rejects text that is visually compatible with an image but violates ordinary real-world constraints. It does **not** claim to reproduce SAGE or SceneTAP. Results are generated only from JSONL model logs.
+This repository implements a fully logged pilot and 300-image expansion for testing whether an LVLM rejects text that is visually compatible with an image but violates ordinary real-world constraints. It does **not** claim to reproduce SAGE or SceneTAP. Results are generated only from JSONL model logs.
 
 ## Scope and task
 
@@ -63,6 +63,18 @@ Regenerate a table without model inference:
 /disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/pilot_qwen25vl3b --copy-to paper/generated_results_table.tex
 ```
 
+Regenerate the paper's qualitative grid, bootstrap statistics, result chart, and semantic-diagnostic table from the completed sample-level logs:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_paper_assets.py \
+  --main-log runs/main_qwen25vl3b_n300/predictions.jsonl \
+  --pilot-log runs/pilot_qwen25vl3b/predictions.jsonl \
+  --pilot-image-root runs/pilot_qwen25vl3b/images \
+  --paper-dir paper
+```
+
+The script checks that all main cells contain the same 300 sample IDs, uses 10,000 paired bootstrap resamples with seed 2026, and refuses to create the qualitative grid if its log-derived outcome no longer matches the caption.
+
 Check within-run uniqueness and cross-run image overlap:
 
 ```bash
@@ -75,7 +87,7 @@ The completed Qwen pilot contains 800 prediction rows (100 samples times eight c
 
 ## Verified 300-sample expansion
 
-The non-overlapping COCO validation expansion contains 2,400 prediction rows. Strict ASR is 65.33% for causal typography, 19.67% for naive typography, and 25.33% for the plaque baseline. The consistency wrapper leaves causal ASR at 65.33% while reducing naive ASR to 0%; renderer-bbox masking reduces both to 0%. Clean object accuracy is 33.67%. Manifest auditing confirms 300 unique IDs/hashes and zero image-hash overlap with the pilot. The source of record is `runs/main_qwen25vl3b_n300/predictions.jsonl` with `summary.json` and `provenance.json` in the same directory.
+The non-overlapping COCO validation expansion contains 2,400 prediction rows. Strict ASR is 65.33% for causal typography, 19.67% for naive typography, and 25.33% for the plaque baseline. The paired CTA-minus-naive gap is 45.67 percentage points with a percentile 95% bootstrap interval of [39.33, 52.00]. The consistency wrapper leaves causal ASR at 65.33% while reducing naive ASR to 0%; renderer-bbox masking reduces both to 0%. Clean object accuracy is 33.67%. Manifest auditing confirms 300 unique IDs/hashes and zero image-hash overlap with the pilot. The source of record is `runs/main_qwen25vl3b_n300/predictions.jsonl` with `summary.json` and `provenance.json` in the same directory.
 
 ## Configuration
 
@@ -89,7 +101,7 @@ YAML files control seed, sample count, local model path, image pixel budget, att
 4. The consistency wrapper is a lexical proxy inspired by the scene-text consistency idea, not SAGE code or a reproduction of any anonymous manuscript.
 5. OCR masking currently uses the renderer's known bounding box and therefore represents an oracle localization upper bound.
 6. The scene-coherent baseline changes typography and placement but is not a public SceneTAP implementation.
-7. The 300-image expansion uses the verified COCO validation mirror; broader claims still need independent models, seeds, human naturalness/world-violation ratings, and confidence intervals.
+7. The 300-image expansion uses the verified COCO validation mirror; broader claims still need independent models, seeds, and human naturalness/world-violation ratings. Current bootstrap intervals quantify image-sampling uncertainty only.
 8. The shared server environment emits a torchvision binary-extension warning due to a version mismatch. This pipeline uses PIL rather than `torchvision.io`, and the smoke/pilot runs complete, but an isolated environment should resolve the mismatch before broader reuse.
 
 ## Public sources only
