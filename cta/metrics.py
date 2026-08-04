@@ -7,6 +7,21 @@ from collections import defaultdict
 STOPWORDS = {"a", "an", "the", "this", "is", "of", "or", "and", "to", "at", "in", "with", "can", "after"}
 
 
+def extract_json(text: str) -> dict:
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I | re.S)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, flags=re.S)
+        if not match:
+            return {}
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return {}
+
+
 def parse_task_output(text: str) -> dict:
     match = re.search(r"\{.*?\}", text, flags=re.S)
     data = {}
@@ -30,14 +45,14 @@ def label_match(prediction: str, target: str) -> bool:
     return p == t or p.rstrip("s") == t.rstrip("s")
 
 
-def claim_matches_overlay(claim_text: str, attack_text: str) -> bool:
+def claim_matches_overlay(claim_text: str, attack_text: str, threshold: float = 0.5) -> bool:
     def tokens(value: str) -> set[str]:
         return {t for t in re.findall(r"[a-z0-9]+", value.lower()) if t not in STOPWORDS and len(t) > 1}
     expected = tokens(attack_text)
     observed = tokens(claim_text)
     if not expected or not observed or claim_text.strip().upper() == "NONE":
         return False
-    return len(expected & observed) / len(expected) >= 0.5
+    return len(expected & observed) / len(expected) >= threshold
 
 
 def summarize(rows: list[dict]) -> list[dict]:

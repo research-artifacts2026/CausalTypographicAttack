@@ -36,6 +36,26 @@ export CUDA_VISIBLE_DEVICES=0
 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/pilot_qwen25vl3b.yaml
 ```
 
+## Recommended ablations and extensions
+
+Once baseline and main figures are in place, run these controlled ablations:
+
+```bash
+# Overlay-match threshold ablation (replace 0.5 with 0.6)
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/pilot_qwen25vl3b_ratio60.yaml
+
+# Cross-fold COCO-2017-HF split ablation (same model, same sample count, disjoint images)
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300_primary.yaml
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300_secondary.yaml
+
+# Build an apples-to-apples 2x300 comparison table after both folds finish
+/disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_primary --copy-to paper/generated_primary_results.tex
+/disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_secondary --copy-to paper/generated_secondary_results.tex
+```
+
+`overlay_match_ratio` is now a config-level ablation control (`0.5` by default).  
+`dataset.split` (`primary` / `secondary`) creates two disjoint COCO-2017-HF splits via deterministic even/odd partitioning.
+
 The runner is resumable at condition granularity. Re-running the same command skips completed `(sample, attack, defense)` keys.
 
 After validating the 100-sample pilot, run the non-duplicated 300-image COCO val2017 configuration:

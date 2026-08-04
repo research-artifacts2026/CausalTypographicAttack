@@ -38,6 +38,40 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def _apply_sample_filters(
+    candidates: list[Sample],
+    n: int,
+    include_sample_ids: set[str] | None,
+    exclude_sample_ids: set[str] | None,
+) -> list[Sample]:
+    if include_sample_ids:
+        candidates = [s for s in candidates if s.sample_id in include_sample_ids]
+    if exclude_sample_ids:
+        candidates = [s for s in candidates if s.sample_id not in exclude_sample_ids]
+    if len(candidates) < n:
+        raise ValueError(f"Requested {n} samples but only found {len(candidates)} after filtering")
+    return candidates[:n]
+
+
+def _split_ids(all_ids: list[int], dataset_split: str | None) -> list[int]:
+    if dataset_split == "primary":
+        return all_ids[::2]
+    if dataset_split == "secondary":
+        return all_ids[1::2]
+    return all_ids
+
+
+def _unique_preserve_order(values: list[int]) -> list[int]:
+    seen: set[int] = set()
+    out: list[int] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        out.append(value)
+    return out
+
+
 def download_coco128(root: Path) -> None:
     image_dir = root / "images" / "train2017"
     if image_dir.exists() and len(list(image_dir.glob("*.jpg"))) >= 100:
@@ -52,7 +86,13 @@ def download_coco128(root: Path) -> None:
         raise RuntimeError(f"COCO128 extraction did not create {image_dir}")
 
 
-def load_coco128(root: str | Path, n: int, seed: int) -> list[Sample]:
+def load_coco128(
+    root: str | Path,
+    n: int,
+    seed: int,
+    include_sample_ids: set[str] | None = None,
+    exclude_sample_ids: set[str] | None = None,
+) -> list[Sample]:
     root = Path(root)
     download_coco128(root)
     image_dir = root / "images" / "train2017"
@@ -89,9 +129,7 @@ def load_coco128(root: str | Path, n: int, seed: int) -> list[Sample]:
         )
     rng = random.Random(seed)
     rng.shuffle(candidates)
-    if len(candidates) < n:
-        raise ValueError(f"Requested {n} samples but only found {len(candidates)} labelled images")
-    return candidates[:n]
+    return _apply_sample_filters(candidates, n, include_sample_ids, exclude_sample_ids)
 
 
 def download_coco_val2017(root: Path) -> None:
@@ -110,7 +148,14 @@ def download_coco_val2017(root: Path) -> None:
         raise RuntimeError("COCO val2017 download/extraction is incomplete")
 
 
-def load_coco_val2017(root: str | Path, n: int, seed: int) -> list[Sample]:
+def load_coco_val2017(
+    root: str | Path,
+    n: int,
+    seed: int,
+    include_sample_ids: set[str] | None = None,
+    exclude_sample_ids: set[str] | None = None,
+    dataset_split: str | None = None,
+) -> list[Sample]:
     root = Path(root)
     download_coco_val2017(root)
     payload = json.loads((root / "annotations" / "instances_val2017.json").read_text())
@@ -124,6 +169,7 @@ def load_coco_val2017(root: str | Path, n: int, seed: int) -> list[Sample]:
     ids = sorted(set(images) & set(grouped))
     rng = random.Random(seed)
     rng.shuffle(ids)
+    ids = _split_ids(ids, dataset_split)
     candidates: list[Sample] = []
     for image_id in ids:
         info = images[image_id]
@@ -140,11 +186,7 @@ def load_coco_val2017(root: str | Path, n: int, seed: int) -> list[Sample]:
             target_label=categories[class_id], target_class_id=class_id,
             target_area=normalized_area, labels=labels, source_sha256=sha256_file(image_path),
         ))
-        if len(candidates) >= n:
-            break
-    if len(candidates) < n:
-        raise ValueError(f"Requested {n} COCO val2017 samples but found {len(candidates)}")
-    return candidates
+    return _apply_sample_filters(candidates, n, include_sample_ids, exclude_sample_ids)
 
 
 def download_coco_val2017_hf(root: Path) -> None:
@@ -159,7 +201,14 @@ def download_coco_val2017_hf(root: Path) -> None:
     )
 
 
-def load_coco_val2017_hf(root: str | Path, n: int, seed: int) -> list[Sample]:
+def load_coco_val2017_hf(
+    root: str | Path,
+    n: int,
+    seed: int,
+    include_sample_ids: set[str] | None = None,
+    exclude_sample_ids: set[str] | None = None,
+    dataset_split: str | None = None,
+) -> list[Sample]:
     import pyarrow.parquet as pq
 
     root = Path(root)
@@ -170,10 +219,12 @@ def load_coco_val2017_hf(root: str | Path, n: int, seed: int) -> list[Sample]:
         all_ids.extend(int(x) for x in pq.read_table(shard, columns=["image_id"])["image_id"].to_pylist())
     rng = random.Random(seed)
     rng.shuffle(all_ids)
-    candidate_ids = all_ids[: min(len(all_ids), n + 100)]
-    selected = set(candidate_ids)
+    all_ids = _unique_preserve_order(all_ids)
+    split_ids = _split_ids(all_ids, dataset_split)
+    candidate_ids = split_ids[: min(len(split_ids), n + 100)]
     if len(candidate_ids) < n:
         raise ValueError(f"Requested {n} samples but mirror exposes {len(candidate_ids)}")
+    selected = set(candidate_ids)
     extracted = root / "extracted"
     extracted.mkdir(parents=True, exist_ok=True)
     found: dict[int, Sample] = {}
@@ -201,17 +252,33 @@ def load_coco_val2017_hf(root: str | Path, n: int, seed: int) -> list[Sample]:
                     target_label=str(ann["category_name"][best]), target_class_id=int(ann["category_id"][best]),
                     target_area=area, labels=labels, source_sha256=hashlib.sha256(image_bytes).hexdigest(),
                 )
-    ordered = [found[i] for i in candidate_ids if i in found][:n]
-    if len(ordered) < n:
-        raise ValueError(f"Selected {n} mirrored COCO rows but only materialized {len(ordered)} valid samples")
-    return ordered
+    ordered = [found[i] for i in candidate_ids if i in found]
+    return _apply_sample_filters(ordered, n, include_sample_ids, exclude_sample_ids)
 
 
-def load_dataset(name: str, root: str | Path, n: int, seed: int) -> list[Sample]:
+def load_dataset(
+    name: str,
+    root: str | Path,
+    n: int,
+    seed: int,
+    include_sample_ids: set[str] | None = None,
+    exclude_sample_ids: set[str] | None = None,
+    dataset_split: str | None = None,
+) -> list[Sample]:
     if name == "coco128":
-        return load_coco128(root, n, seed)
+        return load_coco128(root, n, seed, include_sample_ids=include_sample_ids, exclude_sample_ids=exclude_sample_ids)
     if name == "coco_val2017":
-        return load_coco_val2017(root, n, seed)
+        return load_coco_val2017(
+            root, n, seed,
+            include_sample_ids=include_sample_ids,
+            exclude_sample_ids=exclude_sample_ids,
+            dataset_split=dataset_split,
+        )
     if name == "coco_val2017_hf":
-        return load_coco_val2017_hf(root, n, seed)
+        return load_coco_val2017_hf(
+            root, n, seed,
+            include_sample_ids=include_sample_ids,
+            exclude_sample_ids=exclude_sample_ids,
+            dataset_split=dataset_split,
+        )
     raise ValueError(f"Unsupported dataset: {name}")
