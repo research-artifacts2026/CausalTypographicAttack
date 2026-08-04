@@ -43,7 +43,7 @@ After validating the 100-sample pilot, run the non-duplicated 300-image COCO val
 CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300.yaml
 ```
 
-The first call downloads the public COCO val2017 images and instance annotations. Increase `num_samples` to 500 with a new `output_root` for a larger run; do not repeat COCO128 images to inflate sample count.
+Pre-download with `scripts/download_data.py --dataset coco_val2017`, or let the first experiment call download the public COCO val2017 images and instance annotations. Increase `num_samples` to 500 with a new `output_root` for a larger run; do not repeat COCO128 images to inflate sample count.
 
 ## Outputs
 
