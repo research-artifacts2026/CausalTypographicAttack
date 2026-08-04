@@ -31,7 +31,7 @@ The tested Python executable is `/disk2/fangxinyue/.venv/bin/python`. To install
 cd /disk2/fangxinyue/causal_typographic_attack
 export CUDA_VISIBLE_DEVICES=0
 /disk2/fangxinyue/.venv/bin/python scripts/download_data.py
-/disk2/fangxinyue/.venv/bin/python -m pytest -q
+/disk2/fangxinyue/.venv/bin/python -m pytest tests -q
 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/smoke.yaml
 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/pilot_qwen25vl3b.yaml
 ```
