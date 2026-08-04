@@ -147,9 +147,71 @@ def load_coco_val2017(root: str | Path, n: int, seed: int) -> list[Sample]:
     return candidates
 
 
+def download_coco_val2017_hf(root: Path) -> None:
+    shards = sorted((root / "data").glob("validation-*.parquet"))
+    if len(shards) >= 2:
+        return
+    from huggingface_hub import snapshot_download
+    root.mkdir(parents=True, exist_ok=True)
+    snapshot_download(
+        repo_id="BrandonLSX/coco-2017", repo_type="dataset",
+        allow_patterns=["data/validation-*.parquet"], local_dir=str(root),
+    )
+
+
+def load_coco_val2017_hf(root: str | Path, n: int, seed: int) -> list[Sample]:
+    import pyarrow.parquet as pq
+
+    root = Path(root)
+    download_coco_val2017_hf(root)
+    shards = sorted((root / "data").glob("validation-*.parquet"))
+    all_ids: list[int] = []
+    for shard in shards:
+        all_ids.extend(int(x) for x in pq.read_table(shard, columns=["image_id"])["image_id"].to_pylist())
+    rng = random.Random(seed)
+    rng.shuffle(all_ids)
+    candidate_ids = all_ids[: min(len(all_ids), n + 100)]
+    selected = set(candidate_ids)
+    if len(candidate_ids) < n:
+        raise ValueError(f"Requested {n} samples but mirror exposes {len(candidate_ids)}")
+    extracted = root / "extracted"
+    extracted.mkdir(parents=True, exist_ok=True)
+    found: dict[int, Sample] = {}
+    columns = ["image", "image_id", "file_name", "width", "height", "annotations"]
+    for shard in shards:
+        parquet = pq.ParquetFile(shard)
+        for batch in parquet.iter_batches(batch_size=32, columns=columns):
+            for row in batch.to_pylist():
+                image_id = int(row["image_id"])
+                if image_id not in selected:
+                    continue
+                ann = row["annotations"]
+                valid = [i for i, crowd in enumerate(ann["iscrowd"]) if int(crowd) == 0]
+                if not valid:
+                    continue
+                best = max(valid, key=lambda i: float(ann["area"][i]))
+                image_path = extracted / row["file_name"]
+                image_bytes = row["image"]["bytes"]
+                if not image_path.exists():
+                    image_path.write_bytes(image_bytes)
+                labels = sorted({str(ann["category_name"][i]) for i in valid})
+                area = float(ann["area"][best]) / (float(row["width"]) * float(row["height"]))
+                found[image_id] = Sample(
+                    sample_id=f"coco-{image_id:012d}", image_path=str(image_path.resolve()),
+                    target_label=str(ann["category_name"][best]), target_class_id=int(ann["category_id"][best]),
+                    target_area=area, labels=labels, source_sha256=hashlib.sha256(image_bytes).hexdigest(),
+                )
+    ordered = [found[i] for i in candidate_ids if i in found][:n]
+    if len(ordered) < n:
+        raise ValueError(f"Selected {n} mirrored COCO rows but only materialized {len(ordered)} valid samples")
+    return ordered
+
+
 def load_dataset(name: str, root: str | Path, n: int, seed: int) -> list[Sample]:
     if name == "coco128":
         return load_coco128(root, n, seed)
     if name == "coco_val2017":
         return load_coco_val2017(root, n, seed)
+    if name == "coco_val2017_hf":
+        return load_coco_val2017_hf(root, n, seed)
     raise ValueError(f"Unsupported dataset: {name}")
