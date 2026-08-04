@@ -74,13 +74,11 @@ class AttackTextGenerator:
 SCENE_PROMPT = """Describe the image as strict JSON with keys: objects (list of visible object names), states (short list), relations (short list), and summary (one sentence). Do not infer facts not visible. Output JSON only."""
 
 
-def quality_prompt(scene: dict, texts: dict[str, AttackText]) -> str:
-    payload = {k: v.text for k, v in texts.items() if k != "none"}
+def quality_prompt(scene: dict, attack_name: str, attack_text: str) -> str:
     return (
-        "Given the image, scene summary, and three overlaid texts below, rate each on integer 1-5 scales: "
+        "Given the image, scene summary, and one candidate overlaid text below, rate it on integer 1-5 scales: "
         "visual_scene_compatibility (does it refer naturally to visible content), naturalness (fluent plausible wording), "
         "and reality_violation (5 means clearly impossible under ordinary real-world physics/biology; 1 means no such violation). "
-        "Do not judge whether the text is visually present. Output strict JSON mapping each attack name to the three numeric keys.\n"
-        f"Scene: {json.dumps(scene, ensure_ascii=False)}\nTexts: {json.dumps(payload, ensure_ascii=False)}"
+        "Do not judge whether the text is visually present. Output exactly one flat JSON object with those three numeric keys.\n"
+        f"Attack: {attack_name}\nScene: {json.dumps(scene, ensure_ascii=False)}\nText: {attack_text}"
     )
-

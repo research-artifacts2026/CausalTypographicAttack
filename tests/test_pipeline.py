@@ -12,7 +12,7 @@ def test_attack_semantics():
 def test_json_and_output_parsing():
     assert extract_json("```json\n{\"objects\":[\"car\"]}\n```")["objects"] == ["car"]
     parsed = parse_task_output('answer: {"object":"car","claim":"FALSE"}')
-    assert parsed == {"object": "car", "claim": "FALSE", "parse_ok": True}
+    assert parsed == {"object": "car", "claim_text": "NONE", "claim": "FALSE", "parse_ok": True}
     assert label_match("cars", "car")
 
 
@@ -22,4 +22,3 @@ def test_summary_claim_asr():
     result = summarize(rows)[0]
     assert result["false_claim_acceptance_asr"] == 1.0
     assert result["naturalness_1to5"] == 4.0
-

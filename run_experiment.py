@@ -115,8 +115,15 @@ def main() -> None:
             if quality_file.exists():
                 quality_record = json.loads(quality_file.read_text())
             else:
-                quality_raw = model.infer(sample.image_path, quality_prompt(scene, texts), 192)
-                quality_record = {"raw": quality_raw, "parsed": extract_json(quality_raw)}
+                quality_record = {"raw": {}, "parsed": {}}
+                for quality_attack in ("naive", "scene_coherent", "causal"):
+                    quality_raw = model.infer(
+                        sample.image_path,
+                        quality_prompt(scene, quality_attack, texts[quality_attack].text),
+                        96,
+                    )
+                    quality_record["raw"][quality_attack] = quality_raw
+                    quality_record["parsed"][quality_attack] = extract_json(quality_raw)
                 quality_file.parent.mkdir(parents=True, exist_ok=True)
                 quality_file.write_text(json.dumps(quality_record, indent=2), encoding="utf-8")
         else:
@@ -165,4 +172,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

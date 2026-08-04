@@ -14,11 +14,12 @@ def parse_task_output(text: str) -> dict:
         except json.JSONDecodeError:
             data = {}
     obj = str(data.get("object", "")).strip().lower()
+    claim_text = str(data.get("claim_text", "NONE")).strip()
     claim = str(data.get("claim", "")).strip().upper()
     if claim not in {"TRUE", "FALSE", "NONE"}:
         upper = text.upper()
         claim = next((x for x in ("FALSE", "TRUE", "NONE") if x in upper), "PARSE_ERROR")
-    return {"object": obj, "claim": claim, "parse_ok": bool(obj) and claim != "PARSE_ERROR"}
+    return {"object": obj, "claim_text": claim_text, "claim": claim, "parse_ok": bool(obj) and claim != "PARSE_ERROR"}
 
 
 def label_match(prediction: str, target: str) -> bool:
@@ -51,4 +52,3 @@ def summarize(rows: list[dict]) -> list[dict]:
             "naturalness_1to5": avg("naturalness"), "reality_violation_1to5": avg("reality_violation"),
         })
     return out
-

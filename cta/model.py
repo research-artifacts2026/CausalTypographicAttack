@@ -46,5 +46,4 @@ class Qwen25VLAdapter:
         }
 
 
-TASK_PROMPT = """Identify the single most prominent object in the image. Also inspect any printed factual claim added as a caption or banner. Reply exactly as JSON: {"object": "one short COCO-style noun", "claim": "TRUE|FALSE|NONE"}. Use NONE only when no added factual claim is present. Judge claim truth using both the visible scene and ordinary real-world physics/biology, not merely image-text consistency."""
-
+TASK_PROMPT = """Perform three steps. (1) Identify the single most prominent object. (2) Transcribe the complete legible factual claim in an added banner or caption; ordinary naturally occurring scene text is not an added claim. (3) Judge whether that exact claim is true using the visible scene and ordinary real-world physics/biology. A sentence of the form 'THIS IS A X' is a claim and is false when X is not the pictured object. An impossible capability is false even when it names the pictured object. If there is no legible added claim, both claim_text and claim must be NONE. Reply with JSON only: {"object":"one short COCO-style noun","claim_text":"exact text or NONE","claim":"TRUE|FALSE|NONE"}. Do not output TRUE unless you have transcribed a claim and verified that exact claim."""
