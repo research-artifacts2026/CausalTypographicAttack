@@ -1,0 +1,8 @@
+torch>=2.5
+transformers>=4.49
+qwen-vl-utils>=0.0.10
+pillow>=10
+pyyaml>=6
+tqdm>=4.66
+pytest>=8
+
