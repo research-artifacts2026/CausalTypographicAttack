@@ -88,9 +88,12 @@ def main() -> None:
             continue
         image = Image.open(source["image_path"]).convert("RGB")
         result = engine(source["image_path"])
-        raw_boxes = list(result.boxes or [])
-        raw_texts = list(result.txts or [])
-        raw_scores = list(result.scores or [])
+        # RapidOCR returns NumPy arrays for detections.  Testing an array in a
+        # boolean context is ambiguous, so normalize each optional field
+        # explicitly before converting it to a Python list.
+        raw_boxes = [] if result.boxes is None else list(result.boxes)
+        raw_texts = [] if result.txts is None else list(result.txts)
+        raw_scores = [] if result.scores is None else list(result.scores)
         kept = []
         for box, text, score in zip(raw_boxes, raw_texts, raw_scores):
             if float(score) < score_threshold:
