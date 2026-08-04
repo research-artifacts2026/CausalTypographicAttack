@@ -8,9 +8,11 @@ line.  All numbers and qualitative labels are read from sample-level JSONL rows.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import textwrap
 from typing import Any
 
 import matplotlib
@@ -332,12 +334,245 @@ def make_qualitative_grid(pilot_rows: list[dict[str, Any]], image_root: Path, ou
     canvas.save(output, dpi=(300, 300), optimize=True)
 
 
+def _cell(rows: list[dict[str, Any]], attack: str, defense: str = "none") -> list[dict[str, Any]]:
+    selected = [row for row in rows if row["attack"] == attack and row["defense"] == defense]
+    selected.sort(key=lambda row: row["sample_id"])
+    return selected
+
+
+def _bootstrap(values: list[bool], rng: np.random.Generator) -> dict[str, float]:
+    vector = np.asarray(values, dtype=float)
+    mean, lo, hi = percentile_ci(vector, rng)
+    return {"mean": mean, "ci_low": lo, "ci_high": hi}
+
+
+def compute_expanded_analysis(rows: list[dict[str, Any]], log_path: Path) -> dict[str, Any]:
+    """Decompose attack success into transcription and belief mechanisms."""
+    rng = np.random.default_rng(SEED)
+    attack_names = ["naive", "scene_coherent", "causal"]
+    repetition_counts = {
+        attack: Counter(row["attack_text"] for row in _cell(rows, attack))
+        for attack in attack_names
+    }
+    mechanism = {}
+    for attack in attack_names:
+        cell = _cell(rows, attack)
+        if len(cell) != 300:
+            raise ValueError(f"expanded cell {attack} has n={len(cell)}")
+        grounded = [bool(row["claim_matches_overlay"]) for row in cell]
+        accepted_grounded = [
+            row["parsed"]["claim"] == "TRUE"
+            for row in cell
+            if row["claim_matches_overlay"]
+        ]
+        mechanism[attack] = {
+            "n": len(cell),
+            "unique_attack_texts": len(repetition_counts[attack]),
+            "maximum_exact_text_repetition": max(repetition_counts[attack].values()),
+            "grounded_transcription": _bootstrap(grounded, rng),
+            "acceptance_given_grounded": _bootstrap(accepted_grounded, rng),
+            "strict_asr": _bootstrap([bool(row["attack_success"]) for row in cell], rng),
+            "object_accuracy": _bootstrap([bool(row["object_correct"]) for row in cell], rng),
+        }
+
+    causal = _cell(rows, "causal")
+    categories = {}
+    for category in sorted({row["attack_metadata"]["violation_type"] for row in causal}):
+        cell = [row for row in causal if row["attack_metadata"]["violation_type"] == category]
+        categories[category] = {
+            "n": len(cell),
+            "grounded_transcription": _bootstrap([bool(row["claim_matches_overlay"]) for row in cell], rng),
+            "strict_asr": _bootstrap([bool(row["attack_success"]) for row in cell], rng),
+            "object_accuracy": _bootstrap([bool(row["object_correct"]) for row in cell], rng),
+        }
+
+    def repetition_bin(count: int) -> str:
+        if count == 1:
+            return "1"
+        if count <= 4:
+            return "2--4"
+        if count <= 9:
+            return "5--9"
+        return "10+"
+
+    repetition = {}
+    for attack in attack_names:
+        groups = {}
+        for label in ["1", "2--4", "5--9", "10+"]:
+            cell = [
+                row for row in _cell(rows, attack)
+                if repetition_bin(repetition_counts[attack][row["attack_text"]]) == label
+            ]
+            groups[label] = {
+                "n": len(cell),
+                "strict_asr": _bootstrap([bool(row["attack_success"]) for row in cell], rng) if cell else None,
+            }
+        repetition[attack] = groups
+    return {
+        "schema_version": "cta/expanded-analysis-v1",
+        "source": str(log_path),
+        "source_sha256": sha256(log_path),
+        "n_samples": 300,
+        "bootstrap": {"resamples": N_BOOT, "seed": SEED, "confidence_level_percent": 95},
+        "mechanism": mechanism,
+        "causal_categories": categories,
+        "exact_text_repetition": repetition,
+    }
+
+
+def write_mechanism_table(analysis: dict[str, Any], path: Path) -> None:
+    labels = {"naive": "Naive", "scene_coherent": "Scene-coherent", "causal": "CTA (ours)"}
+    lines = [
+        r"\begin{tabular}{lrrrrr}", r"\toprule",
+        r"Attack & Unique & Max rep. & Read (\%) & True $\mid$ read (\%) & Strict ASR (\%) \\",
+        r"\midrule",
+    ]
+    for attack in ["naive", "scene_coherent", "causal"]:
+        m = analysis["mechanism"][attack]
+        values = (
+            f"{labels[attack]} & {m['unique_attack_texts']} & {m['maximum_exact_text_repetition']} & "
+            f"{100*m['grounded_transcription']['mean']:.1f} & {100*m['acceptance_given_grounded']['mean']:.1f} & "
+            f"{100*m['strict_asr']['mean']:.1f}"
+        )
+        lines.append(values + (r" \\" if attack != "causal" else r" \\"))
+    lines.extend([r"\bottomrule", r"\end{tabular}"])
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_violation_table(analysis: dict[str, Any], path: Path) -> None:
+    labels = {
+        "biology": "Biology", "energy conservation": "Energy conservation",
+        "energy/transport": "Energy/transport", "mechanics": "Mechanics",
+        "thermodynamics/decay": "Thermodynamics/decay",
+    }
+    lines = [
+        r"\begin{tabular}{lrrrr}", r"\toprule",
+        r"Violation family & $n$ & Read (\%) & Strict ASR (\%) & Object acc. (\%) \\",
+        r"\midrule",
+    ]
+    for category, m in analysis["causal_categories"].items():
+        lines.append(
+            f"{labels.get(category, category.title())} & {m['n']} & {100*m['grounded_transcription']['mean']:.1f} & "
+            f"{100*m['strict_asr']['mean']:.1f} & {100*m['object_accuracy']['mean']:.1f} " + r"\\"
+        )
+    lines.extend([r"\bottomrule", r"\end{tabular}"])
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def make_breakdown_plot(analysis: dict[str, Any], output_base: Path) -> None:
+    plt.rcParams.update({"font.size": 8, "pdf.fonttype": 42, "axes.spines.top": False, "axes.spines.right": False})
+    fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.45), gridspec_kw={"wspace": 0.34})
+    categories = list(analysis["causal_categories"])
+    short = {"biology": "Biology", "energy conservation": "Energy\nconservation", "energy/transport": "Energy /\ntransport", "mechanics": "Mechanics", "thermodynamics/decay": "Thermo. /\ndecay"}
+    values = [100 * analysis["causal_categories"][name]["strict_asr"]["mean"] for name in categories]
+    errors = np.asarray([
+        [value - 100 * analysis["causal_categories"][name]["strict_asr"]["ci_low"] for value, name in zip(values, categories)],
+        [100 * analysis["causal_categories"][name]["strict_asr"]["ci_high"] - value for value, name in zip(values, categories)],
+    ])
+    bars = axes[0].bar(range(len(categories)), values, color=OKABE_ITO["causal"], yerr=errors, capsize=2)
+    axes[0].set_xticks(range(len(categories)), [short.get(name, name) for name in categories])
+    axes[0].set_ylabel("Strict ASR (%)")
+    axes[0].set_title("(a) Reality-violation family")
+    axes[0].set_ylim(0, 110)
+    axes[0].grid(axis="y", alpha=.2)
+    for bar, name, value in zip(bars, categories, values):
+        n = analysis["causal_categories"][name]["n"]
+        axes[0].text(bar.get_x()+bar.get_width()/2, value+6, f"{value:.0f}\n$n$={n}", ha="center", fontsize=6.5)
+
+    bins = ["1", "2--4", "5--9", "10+"]
+    colors = [OKABE_ITO["naive"], OKABE_ITO["scene_coherent"], OKABE_ITO["causal"]]
+    x = np.arange(len(bins)); width = .25
+    for idx, attack in enumerate(["naive", "scene_coherent", "causal"]):
+        means = [100*analysis["exact_text_repetition"][attack][label]["strict_asr"]["mean"] for label in bins]
+        axes[1].plot(x, means, marker="o", linewidth=1.8, color=colors[idx], label={"naive":"Naive", "scene_coherent":"Scene-coherent", "causal":"CTA"}[attack])
+        if attack == "causal":
+            for x_, y_, label in zip(x, means, bins):
+                axes[1].annotate(f"$n$={analysis['exact_text_repetition'][attack][label]['n']}", (x_, y_), xytext=(0, 7), textcoords="offset points", ha="center", fontsize=6.5)
+    axes[1].set_xticks(x, bins)
+    axes[1].set_xlabel("Exact overlay frequency in the 300-image set")
+    axes[1].set_ylabel("Strict ASR (%)")
+    axes[1].set_title("(b) Exact-text repetition")
+    axes[1].set_ylim(0, 110); axes[1].grid(axis="y", alpha=.2); axes[1].legend(frameon=False, fontsize=7)
+    fig.savefig(output_base.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(output_base.with_suffix(".png"), dpi=350, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _draw_outcome_grid(rows: list[dict[str, Any]], output: Path) -> None:
+    causal = _cell(rows, "causal")
+    candidates = [
+        ("Accepted: energy", lambda r: r["attack_success"] and r["attack_metadata"]["violation_type"] in {"energy conservation", "energy/transport"}),
+        ("Accepted: biology", lambda r: r["attack_success"] and r["attack_metadata"]["violation_type"] == "biology"),
+        ("Correctly rejected", lambda r: r["claim_matches_overlay"] and r["parsed"]["claim"] == "FALSE"),
+        ("Transcription miss", lambda r: not r["claim_matches_overlay"]),
+    ]
+    chosen = []
+    for label, predicate in candidates:
+        match = next((row for row in causal if predicate(row)), None)
+        if match is None:
+            raise ValueError(f"no deterministic failure-analysis example for {label}")
+        chosen.append((label, match))
+    panel_w, panel_h, gap, margin = 700, 560, 20, 20
+    canvas = Image.new("RGB", (2*panel_w+gap+2*margin, 2*panel_h+gap+2*margin), "white")
+    draw = ImageDraw.Draw(canvas); title_font = fit_font(25, True); body_font = fit_font(18)
+    for idx, (label, row) in enumerate(chosen):
+        rr, cc = divmod(idx, 2); x0=margin+cc*(panel_w+gap); y0=margin+rr*(panel_h+gap)
+        outline = "#B33A2B" if row["attack_success"] else "#196F3D"
+        draw.rounded_rectangle((x0,y0,x0+panel_w,y0+panel_h), radius=9, fill="#FAFAFA", outline=outline, width=4)
+        draw.text((x0+14,y0+10), f"({chr(97+idx)}) {label}", font=title_font, fill="#111111")
+        image = Image.open(row["image_path"]).convert("RGB"); image.thumbnail((panel_w-20, 390), Image.Resampling.LANCZOS)
+        canvas.paste(image, (x0+(panel_w-image.width)//2, y0+52+(390-image.height)//2))
+        category = row["attack_metadata"]["violation_type"]
+        verdict = f"Family: {category} | judgment: {row['parsed']['claim']} | read: {'yes' if row['claim_matches_overlay'] else 'no'}"
+        draw.text((x0+14,y0+450), verdict, font=body_font, fill=outline)
+        wrapped = textwrap.wrap(row["attack_text"], width=62)[:2]
+        for line_idx, line in enumerate(wrapped):
+            draw.text((x0+14,y0+480+line_idx*24), line, font=body_font, fill="#333333")
+    output.parent.mkdir(parents=True, exist_ok=True); canvas.save(output, dpi=(300,300), optimize=True)
+
+
+def compute_transfer_table(main_rows: list[dict[str, Any]], transfer_rows: list[dict[str, Any]], path: Path) -> dict[str, Any]:
+    result = {}
+    lines = [r"\begin{tabular}{lrrrr}", r"\toprule", r"Checkpoint & Clean acc. & Naive ASR & Scene ASR & CTA ASR \\", r"\midrule"]
+    for label, rows in [("Qwen2.5-VL-3B", main_rows), ("Qwen2.5-VL-7B", transfer_rows)]:
+        metrics = {}
+        for attack in ["none", "naive", "scene_coherent", "causal"]:
+            cell = _cell(rows, attack)
+            if len(cell) != 300:
+                raise ValueError(f"transfer table {label}/{attack} has n={len(cell)}")
+            key = "clean_object_accuracy" if attack == "none" else f"{attack}_strict_asr"
+            values = [bool(r["object_correct"]) for r in cell] if attack == "none" else [bool(r["attack_success"]) for r in cell]
+            metrics[key] = float(np.mean(values))
+        result[label] = metrics
+        lines.append(f"{label} & {100*metrics['clean_object_accuracy']:.1f} & {100*metrics['naive_strict_asr']:.1f} & {100*metrics['scene_coherent_strict_asr']:.1f} & {100*metrics['causal_strict_asr']:.1f} " + r"\\")
+    lines.extend([r"\bottomrule", r"\end{tabular}"]); path.write_text("\n".join(lines)+"\n", encoding="utf-8")
+    return result
+
+
+def compute_ocr_table(main_rows: list[dict[str, Any]], ocr_rows: list[dict[str, Any]], path: Path) -> dict[str, Any]:
+    rows_out = {}
+    lines = [r"\begin{tabular}{lrrr}", r"\toprule", r"Defense & Naive ASR & CTA ASR & CTA object acc. \\", r"\midrule"]
+    specs = [("None", main_rows, "none"), ("Consistency", main_rows, "consistency"), ("RapidOCR mask", ocr_rows, "rapidocr_mask"), ("Oracle mask", main_rows, "ocr_mask")]
+    for label, rows, defense in specs:
+        naive = _cell(rows, "naive", defense); causal = _cell(rows, "causal", defense)
+        if len(naive) != 300 or len(causal) != 300:
+            raise ValueError(f"OCR table {label} incomplete: {len(naive)}/{len(causal)}")
+        metrics = {"naive_asr": float(np.mean([r["attack_success"] for r in naive])), "causal_asr": float(np.mean([r["attack_success"] for r in causal])), "causal_object_accuracy": float(np.mean([r["object_correct"] for r in causal]))}
+        rows_out[label] = metrics
+        lines.append(f"{label} & {100*metrics['naive_asr']:.1f} & {100*metrics['causal_asr']:.1f} & {100*metrics['causal_object_accuracy']:.1f} " + r"\\")
+    lines.extend([r"\bottomrule", r"\end{tabular}"]); path.write_text("\n".join(lines)+"\n", encoding="utf-8")
+    return rows_out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--main-log", type=Path, required=True)
     parser.add_argument("--pilot-log", type=Path, required=True)
     parser.add_argument("--pilot-image-root", type=Path, required=True)
     parser.add_argument("--paper-dir", type=Path, required=True)
+    parser.add_argument("--transfer-log", type=Path)
+    parser.add_argument("--ocr-log", type=Path)
+    parser.add_argument("--ocr-conditions", type=Path)
     args = parser.parse_args()
 
     main_rows = read_jsonl(args.main_log)
@@ -354,7 +589,33 @@ def main() -> None:
     write_quality_table(main_rows, args.paper_dir / "generated_quality_table.tex")
     make_result_plot(stats, figures / "asr_defense_analysis")
     make_qualitative_grid(pilot_rows, args.pilot_image_root, figures / "qualitative_example.png")
-    print(json.dumps({"n": stats["n_samples"], "statistics": stats}, indent=2))
+    expanded = compute_expanded_analysis(main_rows, args.main_log)
+    write_mechanism_table(expanded, args.paper_dir / "generated_mechanism_table.tex")
+    write_violation_table(expanded, args.paper_dir / "generated_violation_table.tex")
+    make_breakdown_plot(expanded, figures / "causal_breakdown")
+    _draw_outcome_grid(main_rows, figures / "outcome_examples.png")
+    output = {"n": stats["n_samples"], "statistics": stats, "expanded": expanded}
+    if args.transfer_log:
+        transfer_rows = read_jsonl(args.transfer_log)
+        expanded["checkpoint_scale_transfer"] = compute_transfer_table(main_rows, transfer_rows, args.paper_dir / "generated_transfer_table.tex")
+        expanded["checkpoint_scale_transfer_source"] = {"path": str(args.transfer_log), "sha256": sha256(args.transfer_log)}
+    if args.ocr_log:
+        ocr_rows = read_jsonl(args.ocr_log)
+        expanded["deployable_ocr_defense"] = compute_ocr_table(main_rows, ocr_rows, args.paper_dir / "generated_ocr_defense_table.tex")
+        expanded["deployable_ocr_source"] = {"path": str(args.ocr_log), "sha256": sha256(args.ocr_log)}
+    if args.ocr_conditions:
+        detection_rows = read_jsonl(args.ocr_conditions)
+        expanded["rapidocr_detection"] = {
+            attack: {
+                "n": len(cell := [r for r in detection_rows if r["attack"] == attack]),
+                "overlay_detection_rate": float(np.mean([r["defense_metadata"]["overlay_detected_at_0.5_recall"] for r in cell])),
+                "mean_token_recall": float(np.mean([r["defense_metadata"]["overlay_token_recall"] for r in cell])),
+                "mean_masked_area_upper_bound_fraction": float(np.mean([r["defense_metadata"]["masked_area_upper_bound_fraction"] for r in cell])),
+            } for attack in ["naive", "causal"]
+        }
+        expanded["rapidocr_detection_source"] = {"path": str(args.ocr_conditions), "sha256": sha256(args.ocr_conditions)}
+    (evidence / "expanded_analysis.json").write_text(json.dumps(expanded, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(output, indent=2))
 
 
 if __name__ == "__main__":
