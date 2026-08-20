@@ -299,18 +299,21 @@ def write_tables(output: Path, matched: dict, false_baselines: list[str], ablati
     }
     table = [
         "% AUTO-GENERATED from complete matched RVTA logs; do not edit",
-        "\\begin{tabular}{lrrrrrr}",
-        "Model & Naive & Scene & Old CTA & Area ctrl. & Evidence CTA & True utility \\\\",
+        "\\begin{tabular}{lrrrrrrrr}",
+        "Model & Clean acc. & Naive & Scene & Old CTA & Area ctrl. & Evidence CTA & Read & True utility \\\\",
         "\\hline",
     ]
     for model, result in matched["models"].items():
         conditions = result["conditions"]
         values = [100 * conditions[key]["strict_asr"] for key in false_baselines]
         evidence_asr = 100 * conditions[selected]["strict_asr"]
+        clean_accuracy = 100 * conditions["none"]["object_accuracy"]
+        grounded = 100 * conditions[selected]["grounded"]
         utility = 100 * conditions["rvta-benign-true-evidence"]["true_acceptance"]
         table.append(
-            f"{model} & {values[0]:.1f} & {values[1]:.1f} & {values[2]:.1f} & "
-            f"{values[3]:.1f} & {evidence_asr:.1f} & {utility:.1f} \\\\"
+            f"{model} & {clean_accuracy:.1f} & {values[0]:.1f} & {values[1]:.1f} & "
+            f"{values[2]:.1f} & {values[3]:.1f} & {evidence_asr:.1f} & {grounded:.1f} & "
+            f"{utility:.1f} \\\\"
         )
     table += ["\\end{tabular}", ""]
     (output / "generated_rvta_matched_table.tex").write_text("\n".join(table), encoding="utf-8")
@@ -334,8 +337,8 @@ def write_tables(output: Path, matched: dict, false_baselines: list[str], ablati
     if ablation:
         ablation_table = [
             "% AUTO-GENERATED from complete held-out factorial logs; do not edit",
-            "\\begin{tabular}{lllrr}",
-            "Model & Factor & Level & ASR & Area \\\\",
+            "\\begin{tabular}{lllrrr}",
+            "Model & Factor & Level & ASR & Read & Area \\\\",
             "\\hline",
         ]
         for model, result in ablation["models"].items():
@@ -344,12 +347,34 @@ def write_tables(output: Path, matched: dict, false_baselines: list[str], ablati
                 for level, estimate in result["factor_marginals"][factor].items():
                     ablation_table.append(
                         f"{model if first else ''} & {factor.title()} & {level.title()} & "
-                        f"{100*estimate['mean']:.1f} & {100*estimate['mean_overlay_area_fraction']:.1f} \\\\"
+                        f"{100*estimate['mean']:.1f} & {100*estimate['grounded']:.1f} & "
+                        f"{100*estimate['mean_overlay_area_fraction']:.1f} \\\\"
                     )
                     first = False
         ablation_table += ["\\end{tabular}", ""]
         (output / "generated_rvta_ablation_table.tex").write_text(
             "\n".join(ablation_table), encoding="utf-8"
+        )
+        contrast_labels = {
+            "telemetry_minus_direct": "Telemetry $-$ direct",
+            "compact_minus_large": "Compact $-$ large",
+        }
+        contrast_table = [
+            "% AUTO-GENERATED held-out paired factor contrasts; do not edit",
+            "\\begin{tabular}{llr}",
+            "Model & Contrast & $\\Delta$ ASR [95\\% CI] \\\\",
+            "\\hline",
+        ]
+        for model, result in ablation["models"].items():
+            for key in ("telemetry_minus_direct", "compact_minus_large"):
+                estimate = result["contrasts"][key]
+                contrast_table.append(
+                    f"{model} & {contrast_labels[key]} & {100*estimate['mean']:+.1f} "
+                    f"[{100*estimate['ci95'][0]:+.1f}, {100*estimate['ci95'][1]:+.1f}] \\\\"
+                )
+        contrast_table += ["\\end{tabular}", ""]
+        (output / "generated_rvta_ablation_contrasts_table.tex").write_text(
+            "\n".join(contrast_table), encoding="utf-8"
         )
 
 
