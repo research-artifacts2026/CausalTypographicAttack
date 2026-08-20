@@ -125,10 +125,11 @@ def make_renderer_grid(path: Path, pil_rows: list[dict], natural_rows: list[dict
     pil = {row["sample_id"]: row for row in pil_rows}
     natural = {row["sample_id"]: row for row in natural_rows}
     ids = sorted(pil)
+    grounded_object = lambda i: bool(pil[i]["object_correct"]) and bool(natural[i]["object_correct"])
     categories = [
-        ("TextDiffuser-only success", lambda i: natural[i]["attack_success"] and not pil[i]["attack_success"]),
-        ("Both succeed", lambda i: natural[i]["attack_success"] and pil[i]["attack_success"]),
-        ("TextDiffuser failure", lambda i: not natural[i]["attack_success"]),
+        ("TextDiffuser-only success", lambda i: grounded_object(i) and natural[i]["attack_success"] and not pil[i]["attack_success"]),
+        ("Both succeed", lambda i: grounded_object(i) and natural[i]["attack_success"] and pil[i]["attack_success"]),
+        ("TextDiffuser failure", lambda i: grounded_object(i) and not natural[i]["attack_success"]),
     ]
     selected = []
     used = set()
