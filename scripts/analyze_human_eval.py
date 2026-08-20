@@ -9,6 +9,7 @@ import json
 import random
 import statistics
 from collections import defaultdict
+from itertools import combinations
 from pathlib import Path
 
 from make_human_eval_pack import RATING_COLUMNS
@@ -27,10 +28,47 @@ def percentile(values: list[float], q: float) -> float:
     return values[lower] * (1 - weight) + values[upper] * weight
 
 
-def bootstrap_ci(values: list[float], seed: int, draws: int = 10000) -> tuple[float, float]:
+def clustered_bootstrap_ci(rows: list[dict], column: str, seed: int, draws: int = 10000) -> tuple[float, float]:
+    """Bootstrap matched image identifiers, retaining every annotator rating in each draw."""
     rng = random.Random(seed)
-    means = [statistics.fmean(rng.choice(values) for _ in values) for _ in range(draws)]
+    by_sample: dict[str, list[float]] = defaultdict(list)
+    for row in rows:
+        by_sample[row["sample_id"]].append(row[column])
+    sample_ids = sorted(by_sample)
+    means = []
+    for _ in range(draws):
+        sampled = [rng.choice(sample_ids) for _ in sample_ids]
+        means.append(statistics.fmean(value for sample_id in sampled for value in by_sample[sample_id]))
     return percentile(means, 0.025), percentile(means, 0.975)
+
+
+def paired_clustered_bootstrap_difference(
+    rows: list[dict], left: str, right: str, column: str, seed: int, draws: int = 10000,
+) -> dict:
+    """Return right-minus-left mean difference with an image-clustered percentile interval."""
+    by_method_sample: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    for row in rows:
+        by_method_sample[row["method"]][row["sample_id"]].append(row[column])
+    sample_ids = sorted(set(by_method_sample[left]) & set(by_method_sample[right]))
+    if not sample_ids:
+        raise ValueError(f"no matched sample ids for {left} versus {right}")
+    deltas = {
+        sample_id: statistics.fmean(by_method_sample[right][sample_id])
+        - statistics.fmean(by_method_sample[left][sample_id])
+        for sample_id in sample_ids
+    }
+    rng = random.Random(seed)
+    draws_values = [
+        statistics.fmean(deltas[rng.choice(sample_ids)] for _ in sample_ids)
+        for _ in range(draws)
+    ]
+    return {
+        "left": left,
+        "right": right,
+        "n_matched_images": len(sample_ids),
+        "mean_difference_right_minus_left": statistics.fmean(deltas.values()),
+        "ci95": [percentile(draws_values, 0.025), percentile(draws_values, 0.975)],
+    }
 
 
 def krippendorff_interval(item_values: dict[str, list[float]]) -> float | None:
@@ -94,16 +132,27 @@ def main() -> None:
 
     result = {"annotators": len(response_paths), "ratings_after_dedup": len(deduplicated),
               "duplicate_mean_absolute_difference": statistics.fmean(duplicate_mae) if duplicate_mae else None,
+              "inference": {"unit": "matched image identifier", "bootstrap_draws": 10000, "seed": args.seed},
               "methods": {}}
     for method in sorted({row["method"] for row in deduplicated}):
         method_rows = [row for row in deduplicated if row["method"] == method]
         result["methods"][method] = {}
         for metric_index, column in enumerate(RATING_COLUMNS):
             values = [row[column] for row in method_rows]
-            low, high = bootstrap_ci(values, args.seed + metric_index)
+            low, high = clustered_bootstrap_ci(method_rows, column, args.seed + metric_index)
             result["methods"][method][column] = {
                 "n_ratings": len(values), "mean": statistics.fmean(values), "ci95": [low, high],
             }
+    result["paired_differences"] = {}
+    methods = sorted(result["methods"])
+    for metric_index, column in enumerate(RATING_COLUMNS):
+        result["paired_differences"][column] = [
+            paired_clustered_bootstrap_difference(
+                deduplicated, left, right, column,
+                args.seed + 100 + 10 * metric_index + pair_index,
+            )
+            for pair_index, (left, right) in enumerate(combinations(methods, 2))
+        ]
     reliability = {}
     for column in RATING_COLUMNS:
         by_item = defaultdict(list)

@@ -1,0 +1,276 @@
+{
+  "schema_version": "cta/extended-evidence-v1",
+  "model_dataset": [
+    {
+      "dataset": "COCO",
+      "model": "Qwen2.5-VL-3B",
+      "source": "runs/main_qwen25vl3b_n300/predictions.jsonl",
+      "source_sha256": "b5c055a1edb8f9436d0c64030ae13f4b10b0cca3172476858dba4838070538a2",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.33666666666666667,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.2866666666666667,
+          "strict_asr": 0.19666666666666666,
+          "grounded_transcription": 0.8633333333333333
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.28,
+          "strict_asr": 0.25333333333333335,
+          "grounded_transcription": 0.6133333333333333
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.4666666666666667,
+          "strict_asr": 0.6533333333333333,
+          "grounded_transcription": 0.99
+        }
+      }
+    },
+    {
+      "dataset": "COCO",
+      "model": "Qwen2.5-VL-7B",
+      "source": "runs/transfer_qwen25vl7b_n300/predictions.jsonl",
+      "source_sha256": "05d22f5fdf84e6fb836c1e69579bd6897df0acfd0e3febc186e1f5df1b75ec23",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.36333333333333334,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.22333333333333333,
+          "strict_asr": 0.11,
+          "grounded_transcription": 1.0
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.3233333333333333,
+          "strict_asr": 0.20333333333333334,
+          "grounded_transcription": 0.97
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.5966666666666667,
+          "strict_asr": 0.0,
+          "grounded_transcription": 1.0
+        }
+      }
+    },
+    {
+      "dataset": "COCO",
+      "model": "LLaVA-OV-1.5-8B",
+      "source": "runs/transfer_llavaov15_8b_n300/predictions.jsonl",
+      "source_sha256": "51327255dbf3b1f5285046f2fd689eed69aaee2bd76f5363ec9d668282c1ace6",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.41333333333333333,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.22,
+          "strict_asr": 0.5133333333333333,
+          "grounded_transcription": 0.9966666666666667
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.38333333333333336,
+          "strict_asr": 0.25,
+          "grounded_transcription": 0.84
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.61,
+          "strict_asr": 0.0,
+          "grounded_transcription": 1.0
+        }
+      }
+    },
+    {
+      "dataset": "COCO",
+      "model": "InternVL2-8B",
+      "source": "runs/transfer_internvl2_8b_n300/predictions.jsonl",
+      "source_sha256": "c7243722ae6b626e514a32e2915268255af3e34bf1bdb3ecd59888394be7d149",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.37,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.2966666666666667,
+          "strict_asr": 0.02,
+          "grounded_transcription": 0.9933333333333333
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.3466666666666667,
+          "strict_asr": 0.056666666666666664,
+          "grounded_transcription": 0.9466666666666667
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.7266666666666667,
+          "strict_asr": 0.0,
+          "grounded_transcription": 1.0
+        }
+      }
+    },
+    {
+      "dataset": "VOC 2012",
+      "model": "Qwen2.5-VL-3B",
+      "source": "runs/voc2012_qwen25vl3b_n300/predictions.jsonl",
+      "source_sha256": "7fdf7d0c5ce619682fd23c095d7d87eb7cde00d3d2fd36aeef0512842b28db0e",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.47,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.47333333333333333,
+          "strict_asr": 0.18333333333333332,
+          "grounded_transcription": 0.88
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.44,
+          "strict_asr": 0.14,
+          "grounded_transcription": 0.54
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.6333333333333333,
+          "strict_asr": 0.6633333333333333,
+          "grounded_transcription": 0.99
+        }
+      }
+    },
+    {
+      "dataset": "VOC 2012",
+      "model": "Qwen2.5-VL-7B",
+      "source": "runs/transfer_qwen25vl7b_voc2012_n300/predictions.jsonl",
+      "source_sha256": "66c4200f037e1c25d6dffcd7598d6bc4dc4cb0ae13b9c6d0b0ad7f27add0facd",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.5966666666666667,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.44,
+          "strict_asr": 0.10333333333333333,
+          "grounded_transcription": 1.0
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.5433333333333333,
+          "strict_asr": 0.11333333333333333,
+          "grounded_transcription": 0.9866666666666667
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.7866666666666666,
+          "strict_asr": 0.0,
+          "grounded_transcription": 1.0
+        }
+      }
+    },
+    {
+      "dataset": "VOC 2012",
+      "model": "LLaVA-OV-1.5-8B",
+      "source": "runs/transfer_llavaov15_voc2012_n300/predictions.jsonl",
+      "source_sha256": "aae958e17a6333dfa9a4ae069b70a79d84d75c5528edb85333dbc6c14522169c",
+      "metrics": {
+        "none": {
+          "n": 300,
+          "object_accuracy": 0.6,
+          "strict_asr": null,
+          "grounded_transcription": null
+        },
+        "naive": {
+          "n": 300,
+          "object_accuracy": 0.37,
+          "strict_asr": 0.41,
+          "grounded_transcription": 0.9933333333333333
+        },
+        "scene_coherent": {
+          "n": 300,
+          "object_accuracy": 0.5633333333333334,
+          "strict_asr": 0.22,
+          "grounded_transcription": 0.82
+        },
+        "causal": {
+          "n": 300,
+          "object_accuracy": 0.7933333333333333,
+          "strict_asr": 0.0,
+          "grounded_transcription": 1.0
+        }
+      }
+    }
+  ],
+  "renderer": {
+    "PIL plaque": {
+      "n": 100,
+      "asr": 0.61,
+      "grounded": 0.98
+    },
+    "SceneTAP TextDiffuser": {
+      "n": 100,
+      "asr": 0.74,
+      "grounded": 0.95
+    }
+  },
+  "renderer_paired_textdiffuser_minus_pil": {
+    "mean": 0.13,
+    "ci95": [
+      0.03,
+      0.23
+    ],
+    "resamples": 10000,
+    "seed": 20260312
+  },
+  "renderer_sources": {
+    "compact_pil": {
+      "path": "runs/compact_pil_qwen25vl3b_n100/predictions.jsonl",
+      "sha256": "a5397acbe8f8cca59c2c24a28da5b77c623e6c5ce762ec94a0c79c9bbf109e2b"
+    },
+    "textdiffuser": {
+      "path": "runs/scenetap_textdiffuser_qwen25vl3b_n100/predictions.jsonl",
+      "sha256": "043368f1aad4f4fc8fc64396048b08cad1cc47842b0d6398f0b774b8399f07e6"
+    }
+  },
+  "renderer_grid": {
+    "selected": [
+      {
+        "category": "TextDiffuser-only success",
+        "sample_id": "coco-000000007108"
+      },
+      {
+        "category": "Both succeed",
+        "sample_id": "coco-000000000724"
+      },
+      {
+        "category": "TextDiffuser failure",
+        "sample_id": "coco-000000026926"
+      }
+    ]
+  }
+}

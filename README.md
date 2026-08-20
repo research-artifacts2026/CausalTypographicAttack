@@ -151,7 +151,7 @@ The blind package contains 100 matched images for four methods (naive, scene-coh
   --minimum-annotators 3
 ```
 
-The analyzer refuses to emit aggregate ratings when fewer than three valid response files are present. No human scores are currently claimed in the paper.
+The analyzer refuses to emit aggregate ratings when fewer than three complete independent response files are present. It removes hidden duplicates only after computing within-rater consistency, reports interval-scale Krippendorff's alpha, and uses 10,000 percentile bootstrap draws clustered by matched image identifier for method means and every paired method difference. No human scores are currently claimed in the paper; until all three response files exist, a human-results table must remain absent.
 
 ## Extended paper assets
 

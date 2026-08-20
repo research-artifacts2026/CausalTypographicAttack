@@ -101,10 +101,10 @@ def write_renderer_table(path: Path, pil: dict, natural: dict, paired: dict) -> 
         "\\begin{tabular}{lrrr}",
         "Renderer & $N$ & Grounded text & Strict CTA ASR \\\\",
         "\\hline",
-        f"PIL plaque & {pil['n']} & {tex_percent(pil['grounded'])} & {tex_percent(pil['asr'])} \\\\ ",
-        f"SceneTAP TextDiffuser & {natural['n']} & {tex_percent(natural['grounded'])} & {tex_percent(natural['asr'])} \\\\ ",
+        f"PIL plaque & {pil['n']} & {tex_percent(pil['grounded'])} & {tex_percent(pil['asr'])} \\\\",
+        f"SceneTAP TextDiffuser & {natural['n']} & {tex_percent(natural['grounded'])} & {tex_percent(natural['asr'])} \\\\",
         "\\hline",
-        f"Paired difference & {pil['n']} & -- & {100 * paired['mean']:+.1f} [{100 * paired['ci95'][0]:+.1f}, {100 * paired['ci95'][1]:+.1f}] \\\\ ",
+        f"Paired difference & {pil['n']} & -- & {100 * paired['mean']:+.1f} [{100 * paired['ci95'][0]:+.1f}, {100 * paired['ci95'][1]:+.1f}] \\\\",
         "\\end{tabular}", "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
