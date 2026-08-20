@@ -137,6 +137,24 @@ def test_rvta_controls_match_reference_geometry_and_truth(tmp_path):
     assert len(direct.rendered_sha256) == len(benign.rendered_sha256) == 64
 
 
+def test_rvta_controls_accept_legacy_attack_identifier(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (768, 512), "white").save(source)
+    reference = {
+        "attack": "v2-telemetry-plaque-compact",
+        "bbox": [10, 10, 379, 176],
+        "placement": "lowest-variance-top-left",
+    }
+    direct = render_area_matched_direct_control(
+        str(source), "car", reference, tmp_path / "direct.jpg",
+    )
+    benign = render_benign_true_evidence(
+        str(source), "car", reference, tmp_path / "benign.jpg",
+    )
+    assert direct.control_reference_policy == reference["attack"]
+    assert benign.control_reference_policy == reference["attack"]
+
+
 def test_summary_separates_false_asr_from_true_utility():
     false_row = {
         "attack": "false-card", "defense": "none", "object_correct": True,
