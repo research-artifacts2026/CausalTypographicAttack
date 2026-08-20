@@ -31,6 +31,12 @@ VOC20 = [
     "dining table", "dog", "horse", "motorcycle", "person", "potted plant", "sheep", "couch",
     "train", "tv",
 ]
+VOC_COLORS = [
+    (0, 0, 0), (128, 0, 0), (0, 128, 0), (128, 128, 0), (0, 0, 128),
+    (128, 0, 128), (0, 128, 128), (128, 128, 128), (64, 0, 0), (192, 0, 0),
+    (64, 128, 0), (192, 128, 0), (64, 0, 128), (192, 0, 128), (64, 128, 128),
+    (192, 128, 128), (0, 64, 0), (128, 64, 0), (0, 192, 0), (128, 192, 0), (0, 64, 128),
+]
 
 
 @dataclass(frozen=True)
@@ -400,6 +406,11 @@ def load_voc2012_segmentation_hf(
         image_bytes = _embedded_bytes(image_value)
         mask_bytes = _embedded_bytes(mask_value)
         mask = np.asarray(Image.open(io.BytesIO(mask_bytes)))
+        if mask.ndim == 3:
+            class_mask = np.zeros(mask.shape[:2], dtype=np.uint8)
+            for palette_index, color in enumerate(VOC_COLORS[1:], start=1):
+                class_mask[np.all(mask == color, axis=-1)] = palette_index
+            mask = class_mask
         class_ids, counts = np.unique(mask[(mask >= 1) & (mask <= 20)], return_counts=True)
         if len(class_ids) == 0:
             continue
@@ -416,6 +427,8 @@ def load_voc2012_segmentation_hf(
             target_area=float(counts[best_position]) / float(mask.size), labels=labels,
             source_sha256=hashlib.sha256(image_bytes).hexdigest(),
         ))
+        if not include_sample_ids and not exclude_sample_ids and len(candidates) >= n:
+            break
     return _apply_sample_filters(candidates, n, include_sample_ids, exclude_sample_ids)
 
 
