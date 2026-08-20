@@ -201,6 +201,22 @@ CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.
 
 The locked selection score is mean strict ASR across discovery models plus `0.10 * grounded transcription - 0.05 * overlay area`; policies below 75% grounded transcription are ineligible. The original CTA is evaluated but cannot win the v2 search. Every failed candidate remains in the discovery logs. A held-out test must be rendered with `--split test --policy-file ...`; do not report discovery ASR as a test result.
 
+After selection, render the disjoint 100-image frozen-policy test and evaluate its two conditions (original CTA and frozen v2) on four checkpoints:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+  --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
+  --output-root runs/cta_v2_test_n100 --split test --seed 20260820 \
+  --discovery-samples 20 --test-samples 100 \
+  --policy-file runs/cta_v2_discovery_stratified_n20/selected_policy.json
+
+# Use the model-specific PYTHONPATH overlays documented above for LLaVA and InternVL.
+/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen3_n100.yaml
+/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen7_n100.yaml
+/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_llava_n100.yaml
+/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_internvl_n100.yaml
+```
+
 Regenerate a table without model inference:
 
 ```bash

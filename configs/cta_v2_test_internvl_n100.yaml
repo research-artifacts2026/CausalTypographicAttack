@@ -1,0 +1,16 @@
+source_log: runs/cta_v2_test_n100/render_manifest.jsonl
+output_root: runs/cta_v2_test_internvl_n100
+expected_samples: 100
+overlay_match_ratio: 0.5
+model:
+  adapter: internvl2
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--OpenGVLab--InternVL2-8B/snapshots/6fb9ad6924f69424e57fab2ab061d707688f0296
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  image_size: 448
+  max_tiles: 6
+  use_flash_attn: false
+conditions:
+  attacks: ["*"]
+  defenses: [none]
