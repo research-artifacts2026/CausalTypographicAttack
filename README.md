@@ -236,6 +236,53 @@ Build the five-image smoke subset from the already frozen discovery policy, then
 
 Only after the smoke log is complete and its spend/behavior is reviewed, the frozen 100-image test can be run with `configs/cta_v2_test_gpt56sol_n100.yaml` (hard cap: 200 requests). Do not use GPT-5.6 outcomes to change the already frozen policy.
 
+### Verified CTA-v2 held-out results
+
+The discovery run is complete for all 25 conditions (24 evidence policies plus original CTA), 20 images, and two selection checkpoints: 1,000 logged model queries. The frozen global policy is `v2-telemetry-plaque-compact`. Discovery ASR is selection evidence only and must not be mixed with the held-out test.
+
+The COCO held-out test contains 200 complete rows per checkpoint (100 images times original/evidence CTA). Strict ASR is:
+
+| Model | Original CTA | Evidence CTA | Paired gain, 95% CI | Evidence grounded |
+|---|---:|---:|---:|---:|
+| Qwen2.5-VL-3B | 72% | 90% | +18 [+10, +27] | 99% |
+| Qwen2.5-VL-7B | 0% | 68% | +68 [+59, +77] | 100% |
+| LLaVA-OneVision-1.5-8B | 0% | 12% | +12 [+6, +19] | 100% |
+| InternVL2-8B | 0% | 24% | +24 [+16, +33] | 100% |
+
+The identical frozen policy was then applied without VOC-side search to 100 Pascal VOC images. Original/evidence CTA ASR is 72%/91%, 0%/81%, 0%/12%, and 0%/21% for the same four models; evidence grounded transcription ranges from 94% to 100%. The VOC parquet loader previously hashed the embedded pre-encoding bytes while inference consumed a materialized JPEG. `scripts/materialize_source_manifest.py` now preserves that upstream hash separately and records the exact file-byte hash used for rendering; all 300 legacy VOC rows showed the expected encoding-level mismatch and the derived manifest records both hashes.
+
+RapidOCR 3.9.2 detects at least half of the evidence-card content tokens on all 100 held-out COCO images. Its rectangular masks cover a 12.96% mean area upper bound and reduce evidence-CTA ASR from 68% to 0% on Qwen2.5-VL-7B and from 12% to 0% on LLaVA. The lexical consistency wrapper passes every evidence claim unchanged because it names the annotated visible referent, so ASR remains 68% and 12%. This defense result applies only to the current digital card renderer.
+
+Generate the validated paper assets from complete logs:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_strong_attack_assets.py \
+  --test-manifest runs/cta_v2_test_n100/render_manifest.jsonl \
+  --split-manifest runs/cta_v2_test_n100/split_manifest.json \
+  --selection runs/cta_v2_policy_selection_n20.json \
+  --model-log Qwen2.5-VL-3B=runs/cta_v2_test_qwen3_n100/predictions.jsonl \
+  --model-log Qwen2.5-VL-7B=runs/cta_v2_test_qwen7_n100/predictions.jsonl \
+  --model-log LLaVA-OV-1.5-8B=runs/cta_v2_test_llava_n100/predictions.jsonl \
+  --model-log InternVL2-8B=runs/cta_v2_test_internvl_n100/predictions.jsonl \
+  --output-dir paper_v2
+
+/disk2/fangxinyue/.venv/bin/python scripts/make_strong_extended_assets.py \
+  --primary-evidence paper_v2/strong_test_evidence.json \
+  --secondary-manifest runs/cta_v2_voc_test_n100/render_manifest.jsonl \
+  --secondary-model-log Qwen2.5-VL-3B=runs/cta_v2_voc_test_qwen3_n100/predictions.jsonl \
+  --secondary-model-log Qwen2.5-VL-7B=runs/cta_v2_voc_test_qwen7_n100/predictions.jsonl \
+  --secondary-model-log LLaVA-OV-1.5-8B=runs/cta_v2_voc_test_llava_n100/predictions.jsonl \
+  --secondary-model-log InternVL2-8B=runs/cta_v2_voc_test_internvl_n100/predictions.jsonl \
+  --defense-conditions runs/cta_v2_rapidocr_n100/conditions.jsonl \
+  --defense-model-log Qwen2.5-VL-7B=runs/cta_v2_rapidocr_qwen7_n100/predictions.jsonl \
+  --defense-model-log LLaVA-OV-1.5-8B=runs/cta_v2_rapidocr_llava_n100/predictions.jsonl \
+  --output-dir paper_v2
+```
+
+`paper_v2/strong_test_evidence.json` and `paper_v2/strong_extended_evidence.json` retain source-log paths and SHA-256 hashes. The table files and qualitative grid in the same directory are generated outputs and must not be hand-edited.
+
+The GPT-5.6 Sol adapter and query-budget tests are complete, but the server's current API credential was rejected during the five-image smoke test. No GPT-5.6 result row is reported or included in paper tables. Retry only after the environment credential is corrected; do not inspect, print, or commit it.
+
 Regenerate a table without model inference:
 
 ```bash
@@ -311,6 +358,8 @@ YAML files control seed, sample count, local model path, image pixel budget, att
 8. The shared server environment emits a torchvision binary-extension warning due to a version mismatch. This pipeline uses PIL rather than `torchvision.io`, and the smoke/pilot runs complete, but an isolated environment should resolve the mismatch before broader reuse.
 9. The natural-render comparison uses only SceneTAP's TextDiffuser component with deterministic fixed placement. It does not reproduce SceneTAP's multimodal content/placement planner and is not a photorealistic or physical-world study.
 10. The blinded human protocol is implemented, but three independent response files have not yet been collected; all current quality diagnostics remain model-generated until that collection is complete.
+11. Evidence CTA is a joint intervention on wording, authority cues, layout, and a modest area increase. Discovery factor marginals are useful diagnostics but are not independent held-out ablations.
+12. GPT-5.6 API evaluation remains absent because the configured server credential failed authentication; the adapter is tested, but no failed request is treated as an experimental result.
 
 ## Public sources only
 

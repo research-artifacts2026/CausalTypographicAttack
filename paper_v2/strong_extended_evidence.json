@@ -1,0 +1,89 @@
+{
+  "schema_version": "cta/strong-extended-evidence-v1",
+  "selected_policy_id": "v2-telemetry-plaque-compact",
+  "primary_evidence": "/disk2/fangxinyue/causal_typographic_attack/paper_v2/strong_test_evidence.json",
+  "primary_evidence_sha256": "efc628d4ce3d4e993dd73d6bc554b4a194f5a618ccf33a9f07b8fcb839029a6b",
+  "secondary_manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_voc_test_n100/render_manifest.jsonl",
+  "secondary_manifest_sha256": "cc198ec2c229654e280c6d82187112ad353ca6144bdf8b721b6d1d95ef949add",
+  "secondary_metrics": {
+    "Qwen2.5-VL-3B": {
+      "baseline_asr": 0.72,
+      "selected_asr": 0.91,
+      "selected_grounded": 0.94
+    },
+    "Qwen2.5-VL-7B": {
+      "baseline_asr": 0.0,
+      "selected_asr": 0.81,
+      "selected_grounded": 1.0
+    },
+    "LLaVA-OV-1.5-8B": {
+      "baseline_asr": 0.0,
+      "selected_asr": 0.12,
+      "selected_grounded": 1.0
+    },
+    "InternVL2-8B": {
+      "baseline_asr": 0.0,
+      "selected_asr": 0.21,
+      "selected_grounded": 1.0
+    }
+  },
+  "defense_metrics": {
+    "Qwen2.5-VL-7B": {
+      "raw_asr": 0.68,
+      "consistency_asr": 0.68,
+      "rapidocr_asr": 0.0,
+      "ocr_detection_rate": 1.0,
+      "mean_masked_area_upper_bound_fraction": 0.12956811533431248
+    },
+    "LLaVA-OV-1.5-8B": {
+      "raw_asr": 0.12,
+      "consistency_asr": 0.12,
+      "rapidocr_asr": 0.0,
+      "ocr_detection_rate": 1.0,
+      "mean_masked_area_upper_bound_fraction": 0.12956811533431248
+    }
+  },
+  "sources": [
+    {
+      "role": "secondary",
+      "model": "Qwen2.5-VL-3B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_voc_test_qwen3_n100/predictions.jsonl",
+      "sha256": "5df90c70b48730062247145603c3280e1caf4d782a2905decc6ed4f2d06c950c"
+    },
+    {
+      "role": "secondary",
+      "model": "Qwen2.5-VL-7B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_voc_test_qwen7_n100/predictions.jsonl",
+      "sha256": "012333b2413c459e7e1985225d67f5aedd8cac49e2462fa0dd3dff0089998844"
+    },
+    {
+      "role": "secondary",
+      "model": "LLaVA-OV-1.5-8B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_voc_test_llava_n100/predictions.jsonl",
+      "sha256": "3898557b0fe956ba0418badcdec0296f0c6a1d86e8c7649af6d4eae0e4102571"
+    },
+    {
+      "role": "secondary",
+      "model": "InternVL2-8B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_voc_test_internvl_n100/predictions.jsonl",
+      "sha256": "fa3387c7a4732e87067af689d7e957a26deef33fb9b554d89225b3a366215e34"
+    },
+    {
+      "role": "rapidocr",
+      "model": "Qwen2.5-VL-7B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_rapidocr_qwen7_n100/predictions.jsonl",
+      "sha256": "3523e2eddc0c3582ff29d575a5484247db0bc2cd6c53bde1d3c9b893df59c29c"
+    },
+    {
+      "role": "rapidocr",
+      "model": "LLaVA-OV-1.5-8B",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_rapidocr_llava_n100/predictions.jsonl",
+      "sha256": "576c3239d08af9033c36c1346c9c3b374c0fc568e87cfbb755afa00e69a047dd"
+    },
+    {
+      "role": "defense_conditions",
+      "path": "/disk2/fangxinyue/causal_typographic_attack/runs/cta_v2_rapidocr_n100/conditions.jsonl",
+      "sha256": "9ca634aef0c845a3d19dd08e68084cc259f3fe85bdf1b73573f79ba74f093d66"
+    }
+  ]
+}
