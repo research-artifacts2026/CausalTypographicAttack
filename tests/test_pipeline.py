@@ -13,6 +13,11 @@ from cta.strong_attack import (
     split_samples_stratified,
 )
 from cta.model import OpenAIResponsesAdapter
+from cta.rvta_bench import (
+    render_area_matched_direct_control,
+    render_benign_true_evidence,
+    validate_annotation_record,
+)
 
 
 def test_attack_semantics():
@@ -66,6 +71,21 @@ def test_registered_split_is_deterministic_and_disjoint():
     assert not (set(first["discovery"]) & set(first["test"]))
 
 
+def test_registered_ablation_split_is_disjoint():
+    samples = [
+        {"sample_id": f"car-{index:03d}", "target_label": "car"}
+        for index in range(40)
+    ] + [
+        {"sample_id": f"dog-{index:03d}", "target_label": "dog"}
+        for index in range(40)
+    ]
+    split = split_samples_stratified(samples, seed=19, discovery_n=10, test_n=20, ablation_n=30)
+    assert len(split["ablation"]) == 30
+    assert not (set(split["discovery"]) & set(split["test"]))
+    assert not (set(split["discovery"]) & set(split["ablation"]))
+    assert not (set(split["test"]) & set(split["ablation"]))
+
+
 def test_stratified_split_covers_available_families():
     samples = [
         {"sample_id": "car-1", "target_label": "car"},
@@ -94,6 +114,67 @@ def test_strong_renderer_records_geometry_and_hash(tmp_path):
     assert rendered.bbox[2] > rendered.bbox[0]
     assert 0 < rendered.overlay_area_fraction < 1
     assert len(rendered.rendered_sha256) == 64
+
+
+def test_rvta_controls_match_reference_geometry_and_truth(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (640, 480), (120, 150, 180)).save(source)
+    reference = {
+        "bbox": [10, 12, 390, 190],
+        "policy_id": "v2-telemetry-plaque-compact",
+        "placement": "lowest-variance-top-left",
+    }
+    direct = render_area_matched_direct_control(
+        str(source), "car", reference, tmp_path / "direct.jpg",
+    )
+    benign = render_benign_true_evidence(
+        str(source), "car", reference, tmp_path / "benign.jpg",
+    )
+    assert direct.bbox == benign.bbox == tuple(reference["bbox"])
+    assert direct.overlay_area_fraction == benign.overlay_area_fraction
+    assert direct.expected_claim == "FALSE"
+    assert benign.expected_claim == "TRUE"
+    assert len(direct.rendered_sha256) == len(benign.rendered_sha256) == 64
+
+
+def test_summary_separates_false_asr_from_true_utility():
+    false_row = {
+        "attack": "false-card", "defense": "none", "object_correct": True,
+        "parsed": {"claim": "TRUE", "parse_ok": True}, "quality": {},
+        "expected_claim": "FALSE", "attack_success": True,
+        "true_claim_acceptance": False, "claim_correct": False,
+        "claim_matches_overlay": True,
+    }
+    true_row = {
+        "attack": "true-card", "defense": "none", "object_correct": True,
+        "parsed": {"claim": "TRUE", "parse_ok": True}, "quality": {},
+        "expected_claim": "TRUE", "attack_success": False,
+        "true_claim_acceptance": True, "claim_correct": True,
+        "claim_matches_overlay": True,
+    }
+    result = {row["attack"]: row for row in summarize([false_row, true_row])}
+    assert result["false-card"]["false_claim_acceptance_asr"] == 1.0
+    assert result["false-card"]["true_claim_acceptance"] is None
+    assert result["true-card"]["false_claim_acceptance_asr"] is None
+    assert result["true-card"]["true_claim_acceptance"] == 1.0
+
+
+def test_rvta_annotation_schema_rejects_ambiguous_values():
+    valid = {
+        "item_id": "opaque-1", "sample_id": "sample-1", "annotator_id": "ann-1",
+        "referent_grounded": True, "visual_relation": "compatible",
+        "world_status": "impossible", "naturalness_1to5": 4,
+        "scene_fit_1to5": 4, "impossibility_1to5": 5,
+        "ambiguity_reason": None,
+    }
+    validate_annotation_record(valid)
+    invalid = dict(valid, world_status="unlikely")
+    try:
+        validate_annotation_record(invalid)
+    except ValueError as exc:
+        assert "world_status" in str(exc)
+    else:
+        raise AssertionError("invalid world status was accepted")
 
 
 def test_openai_adapter_uses_data_url_and_enforces_query_budget(tmp_path, monkeypatch):

@@ -60,22 +60,25 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--split", choices=("discovery", "test"), required=True)
+    parser.add_argument("--split", choices=("discovery", "test", "ablation"), required=True)
     parser.add_argument("--seed", type=int, default=20260820)
     parser.add_argument("--discovery-samples", type=int, default=12)
     parser.add_argument("--test-samples", type=int, default=100)
+    parser.add_argument("--ablation-samples", type=int, default=0)
     parser.add_argument("--policy-file", type=Path)
     args = parser.parse_args()
 
     source_manifest = args.source_manifest.resolve()
     samples = json.loads(source_manifest.read_text(encoding="utf-8"))
     by_id = {row["sample_id"]: row for row in samples}
-    splits = split_samples_stratified(samples, args.seed, args.discovery_samples, args.test_samples)
+    splits = split_samples_stratified(
+        samples, args.seed, args.discovery_samples, args.test_samples, args.ablation_samples,
+    )
     selected_ids = splits[args.split]
     output_root = args.output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
 
-    if args.split == "discovery":
+    if args.split in {"discovery", "ablation"}:
         policies = candidate_policies()
     else:
         if not args.policy_file:
@@ -130,6 +133,7 @@ def main() -> None:
         "source_manifest_sha256": sha256(source_manifest),
         "discovery_ids": splits["discovery"],
         "test_ids": splits["test"],
+        "ablation_ids": splits["ablation"],
         "active_split": args.split,
         "active_ids": selected_ids,
         "selection": "SHA-256 order within violation family, then deterministic family round-robin",

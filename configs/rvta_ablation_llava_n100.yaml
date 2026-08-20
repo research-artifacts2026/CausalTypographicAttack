@@ -1,0 +1,13 @@
+source_log: runs/rvta_ablation_coco_n100/render_manifest.jsonl
+output_root: runs/rvta_ablation_llava_n100
+expected_samples: 100
+overlay_match_ratio: 0.5
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/e137910552d616eb0f7305147ca054311a90c542
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+conditions:
+  attacks: ["*"]
+  defenses: [none]

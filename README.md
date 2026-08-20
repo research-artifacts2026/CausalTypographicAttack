@@ -217,6 +217,62 @@ After selection, render the disjoint 100-image frozen-policy test and evaluate i
 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_internvl_n100.yaml
 ```
 
+### RVTA-Bench matched controls and held-out factorial study
+
+The matched benchmark reuses the exact frozen 100-image COCO test and adds clean, naive, scene-aware, original CTA, frozen Evidence CTA, exact-area direct-claim, and benign true-evidence conditions. The direct control reuses each selected card's bounding box, placement, palette, and resized canvas; it removes telemetry/verification cues. Expected truth is stored independently from the attack identifier, so benign true acceptance is never counted as ASR.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_matched_manifest.py \
+  --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
+  --base-log runs/main_qwen25vl3b_n300/predictions.jsonl \
+  --strong-manifest runs/cta_v2_test_n100/render_manifest.jsonl \
+  --split-manifest runs/cta_v2_test_n100/split_manifest.json \
+  --output-root runs/rvta_matched_coco_n100
+
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_matched_qwen3_n100.yaml
+CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_matched_qwen7_n100.yaml
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_matched_llava_n100.yaml
+CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_matched_internvl_n100.yaml
+```
+
+The held-out factorial split takes the next 100 family-stratified identifiers after the registered discovery and test partitions. It renders all 24 original `3 claim x 4 artifact x 2 scale` policies. These identifiers cannot be used to change the frozen policy.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+  --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
+  --output-root runs/rvta_ablation_coco_n100 --split ablation --seed 20260820 \
+  --discovery-samples 20 --test-samples 100 --ablation-samples 100
+
+CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_ablation_qwen7_n100.yaml
+CUDA_VISIBLE_DEVICES=5 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/rvta_ablation_llava_n100.yaml
+```
+
+After every configured log is complete, generate evidence and LaTeX tables. The asset script refuses partial condition coverage or unfinished provenance.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_rvta_assets.py \
+  --matched-manifest runs/rvta_matched_coco_n100/render_manifest.jsonl \
+  --matched-model-log Qwen2.5-VL-3B=runs/rvta_matched_qwen3_n100/predictions.jsonl \
+  --matched-model-log Qwen2.5-VL-7B=runs/rvta_matched_qwen7_n100/predictions.jsonl \
+  --matched-model-log LLaVA-OV-1.5-8B=runs/rvta_matched_llava_n100/predictions.jsonl \
+  --matched-model-log InternVL2-8B=runs/rvta_matched_internvl_n100/predictions.jsonl \
+  --ablation-manifest runs/rvta_ablation_coco_n100/render_manifest.jsonl \
+  --ablation-model-log Qwen2.5-VL-7B=runs/rvta_ablation_qwen7_n100/predictions.jsonl \
+  --ablation-model-log LLaVA-OV-1.5-8B=runs/rvta_ablation_llava_n100/predictions.jsonl \
+  --output-dir paper_rvta
+```
+
+`dataset_cards/rvta_bench_v1.md` records the planned COCO/VOC/BDD100K/WHOOPS! slices and release boundary. BDD100K and WHOOPS! data are not currently present on this server, so the repository records them as pending rather than fabricating manifests or results. Human JSONL responses must pass `scripts/validate_rvta_annotations.py --minimum-annotators 3` before aggregation.
+
 ### GPT-5.6 Sol API evaluation
 
 The `openai_responses` adapter sends local images to the official Responses API as data URLs, uses `store: false`, and reads the credential only from `OPENAI_API_KEY`. It records the returned model identifier, response ID, status, and token usage, but never the credential. A positive `max_queries` value is mandatory and enforced before every request. API results apply to the exact API model/configuration and must not be described as a compromise of the ChatGPT product.

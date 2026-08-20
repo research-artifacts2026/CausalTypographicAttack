@@ -135,9 +135,11 @@ def split_sample_ids(sample_ids: list[str], seed: int, discovery_n: int, test_n:
     return {"discovery": ordered[:discovery_n], "test": ordered[discovery_n:discovery_n + test_n]}
 
 
-def split_samples_stratified(samples: list[dict], seed: int, discovery_n: int, test_n: int) -> dict[str, list[str]]:
+def split_samples_stratified(
+    samples: list[dict], seed: int, discovery_n: int, test_n: int, ablation_n: int = 0,
+) -> dict[str, list[str]]:
     """Hash-order within violation family, then deterministic round-robin across families."""
-    if discovery_n < 0 or test_n < 0:
+    if discovery_n < 0 or test_n < 0 or ablation_n < 0:
         raise ValueError("split sizes must be non-negative")
     grouped: dict[str, list[str]] = {}
     for sample in samples:
@@ -159,9 +161,15 @@ def split_samples_stratified(samples: list[dict], seed: int, discovery_n: int, t
                 progressed = True
         if not progressed:
             break
-    if discovery_n + test_n > len(ordered):
-        raise ValueError(f"requested {discovery_n + test_n} ids from only {len(ordered)} unique samples")
-    return {"discovery": ordered[:discovery_n], "test": ordered[discovery_n:discovery_n + test_n]}
+    requested = discovery_n + test_n + ablation_n
+    if requested > len(ordered):
+        raise ValueError(f"requested {requested} ids from only {len(ordered)} unique samples")
+    test_end = discovery_n + test_n
+    return {
+        "discovery": ordered[:discovery_n],
+        "test": ordered[discovery_n:test_end],
+        "ablation": ordered[test_end:test_end + ablation_n],
+    }
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:

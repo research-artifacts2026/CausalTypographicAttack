@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/rvta_annotation.schema.json",
+  "title": "RVTA annotation record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "item_id",
+    "sample_id",
+    "annotator_id",
+    "referent_grounded",
+    "visual_relation",
+    "world_status",
+    "naturalness_1to5",
+    "scene_fit_1to5",
+    "impossibility_1to5",
+    "ambiguity_reason"
+  ],
+  "properties": {
+    "item_id": {"type": "string", "minLength": 1},
+    "sample_id": {"type": "string", "minLength": 1},
+    "annotator_id": {"type": "string", "minLength": 1},
+    "referent_grounded": {"type": "boolean"},
+    "visual_relation": {
+      "enum": ["entailed", "compatible", "contradicted", "unobserved"]
+    },
+    "world_status": {
+      "enum": ["possible", "impossible", "ambiguous"]
+    },
+    "naturalness_1to5": {"type": "integer", "minimum": 1, "maximum": 5},
+    "scene_fit_1to5": {"type": "integer", "minimum": 1, "maximum": 5},
+    "impossibility_1to5": {"type": "integer", "minimum": 1, "maximum": 5},
+    "ambiguity_reason": {"type": ["string", "null"]}
+  }
+}
