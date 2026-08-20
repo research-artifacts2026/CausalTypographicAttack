@@ -1,6 +1,6 @@
 # Causal Typographic Attack / Reality Violation Attack
 
-This repository implements a fully logged pilot and 300-image expansion for testing whether an LVLM rejects text that is visually compatible with an image but violates ordinary real-world constraints. It does **not** claim to reproduce SAGE or SceneTAP. Results are generated only from JSONL model logs.
+This repository implements a fully logged pilot and 300-image expansion for testing whether an LVLM rejects text that is visually compatible with an image but violates ordinary real-world constraints. It also contains cross-architecture replay, a second-dataset evaluation, a matched PIL-versus-TextDiffuser rendering study, and a blinded human-rating package. It does **not** claim to reproduce SAGE or the full SceneTAP pipeline. Results are generated only from JSONL model logs.
 
 ## Scope and task
 
@@ -19,11 +19,12 @@ Compared conditions:
 ## Server-tested environment
 
 - Ubuntu server `NUS-RobustAI`
-- NVIDIA RTX A6000
-- Qwen2.5-VL-3B-Instruct, local Hugging Face snapshot
-- Python 3.10, PyTorch 2.5.1+cu121, Transformers 5.9.0
+- 8 x NVIDIA RTX A6000
+- Qwen2.5-VL-3B/7B-Instruct, LLaVA-OneVision-1.5-8B-Instruct, and InternVL2-8B local Hugging Face snapshots
+- COCO 2017 validation and Pascal VOC 2012 validation
+- Python 3.10 and PyTorch 2.5.1+cu121
 
-The tested Python executable is `/disk2/fangxinyue/.venv/bin/python`. To install independently, create a Python 3.10 environment and install `requirements.txt`. Model weights are not included.
+The tested Python executable is `/disk2/fangxinyue/.venv/bin/python`. Qwen uses the main environment (Transformers 5.9.0). LLaVA is loaded with the isolated compatibility overlay `/disk2/fangxinyue/cta_crossvl_env` (Transformers 4.57.1), and InternVL uses `/disk2/fangxinyue/cta_internvl_env` (Transformers 4.37.2). These overlays keep the common PyTorch/CUDA runtime while pinning model-specific tokenizer and processor dependencies. To install independently, create separate Python 3.10 environments and install the public model repositories' pinned dependencies. Model weights are not included.
 
 ## Run
 
@@ -77,6 +78,92 @@ Every run directory contains:
 - `predictions.jsonl`: append-only per-condition records including prompts' outputs, attack/defense metadata, latency, and timestamps.
 - `provenance.json`: config hash, code commit (when available), runtime/model information, metric definitions, start/end time.
 - `summary.json`, `summary.csv`, `results_table.tex`: deterministic aggregates generated from `predictions.jsonl`.
+
+## Cross-model and second-dataset evaluation
+
+The transfer runner consumes an already rendered source manifest. This keeps image pixels, overlay text, prompt, labels, and sample identifiers fixed across models; only the LVLM adapter changes. Pascal VOC targets are derived from the largest foreground semantic-segmentation region using the official VOC color palette rather than from model predictions.
+
+```bash
+# COCO, cross architecture
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/transfer_llavaov15_8b_n300.yaml
+CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/transfer_internvl2_8b_n300.yaml
+
+# Pascal VOC 2012, matched 300-image construction
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py \
+  --config configs/voc2012_qwen25vl3b_n300.yaml
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/transfer_llavaov15_voc2012_n300.yaml
+CUDA_VISIBLE_DEVICES=6 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/transfer_qwen25vl7b_voc2012_n300.yaml
+```
+
+`CUDA_VISIBLE_DEVICES` remaps the selected physical GPU to local `cuda:0`; the corresponding YAML files therefore intentionally use `device: cuda:0`.
+
+## SceneTAP component / natural-render comparison
+
+The public SceneTAP repository is installed separately at `/disk2/fangxinyue/scenetap`. Its full multimodal planner was not used because the configured external endpoint rejected image inputs. The registered renderer experiment instead uses SceneTAP's public TextDiffuser component with fixed candidate index 0 and no manual example selection. This is reported as a **SceneTAP TextDiffuser component** or **natural-render proxy**, never as a reproduction of full SceneTAP.
+
+Long causal captions were visibly truncated by this component, so the registered matched comparison uses compact, semantically equivalent claims for both PIL and TextDiffuser. The same 100 sample identifiers and strings are used in both arms.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/prepare_natural_render_source.py \
+  --source-run runs/main_qwen25vl3b_n300 --limit 100 --output runs/compact_source_n100
+
+# Render with the public TextDiffuser component.
+PYTHONPATH=/disk2/fangxinyue/scenetap_runtime:/disk2/fangxinyue/scenetap \
+  /disk2/fangxinyue/.venv/bin/python scripts/render_scenetap_textdiffuser.py \
+  --source runs/compact_source_n100/conditions.jsonl \
+  --output-root runs/scenetap_textdiffuser_n100 --candidate-index 0
+
+# Evaluate the two matched renderers.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py \
+  --config configs/compact_pil_qwen25vl3b_n100.yaml
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+  --config configs/textdiffuser_qwen25vl3b_n100.yaml
+```
+
+The completed 100-image Qwen2.5-VL-3B comparison gives 61.00% strict ASR for compact PIL and 74.00% for the TextDiffuser component. These values are from the completed logs and should be interpreted jointly with legibility/integration ratings; they do not establish physical-world robustness.
+
+## Independent human evaluation
+
+The blind package contains 100 matched images for four methods (naive, scene-coherent, compact PIL CTA, and TextDiffuser CTA). Each of three independent annotators receives all 400 randomized items plus a 10% duplicate set for within-rater reliability. Method names are hidden. Annotators score legibility, visual integration, scene fit, and claim impossibility on 1--5 scales using offline HTML forms, then export CSV files.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_human_eval_pack.py \
+  --output-root runs/human_eval_blind_n100
+
+# After three completed independent CSV files are placed in responses/:
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_human_eval.py \
+  --pack-root runs/human_eval_blind_n100 \
+  --minimum-annotators 3
+```
+
+The analyzer refuses to emit aggregate ratings when fewer than three valid response files are present. No human scores are currently claimed in the paper.
+
+## Extended paper assets
+
+After every registered log is complete, generate the cross-model/dataset table, paired renderer comparison, natural-render qualitative grid, confidence intervals, and machine-readable evidence in one validated step:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_extended_paper_assets.py \
+  --qwen-coco runs/main_qwen25vl3b_n300/predictions.jsonl \
+  --qwen7-coco runs/transfer_qwen25vl7b_n300/predictions.jsonl \
+  --llava-coco runs/transfer_llavaov15_8b_n300/predictions.jsonl \
+  --intern-coco runs/transfer_internvl2_8b_n300/predictions.jsonl \
+  --qwen-voc runs/voc2012_qwen25vl3b_n300/predictions.jsonl \
+  --qwen7-voc runs/transfer_qwen25vl7b_voc2012_n300/predictions.jsonl \
+  --llava-voc runs/transfer_llavaov15_voc2012_n300/predictions.jsonl \
+  --compact-pil runs/compact_pil_qwen25vl3b_n100/predictions.jsonl \
+  --textdiffuser runs/scenetap_textdiffuser_qwen25vl3b_n100/predictions.jsonl \
+  --output-dir paper_extended
+```
+
+The generator validates full sample/method coverage and exits instead of creating partial paper tables.
 
 Regenerate a table without model inference:
 
@@ -149,8 +236,10 @@ YAML files control seed, sample count, local model path, image pixel budget, att
 4. The consistency wrapper is a lexical proxy inspired by the scene-text consistency idea, not SAGE code or a reproduction of any anonymous manuscript.
 5. RapidOCR provides one practical localization experiment, but one OCR engine and high-contrast overlays do not establish robustness to stylized or physical text. Renderer-box masking remains an oracle upper bound.
 6. The scene-coherent baseline changes typography and placement but is not a public SceneTAP implementation.
-7. The 300-image expansion uses the verified COCO validation mirror. Qwen2.5-VL-7B tests checkpoint-scale transfer only; broader claims still need independent model families, seeds, and human naturalness/world-violation ratings. Current bootstrap intervals quantify image-sampling uncertainty only.
+7. The 300-image expansion uses the verified COCO validation mirror. Cross-architecture COCO replays and Pascal VOC experiments broaden coverage but remain 300-image diagnostic samples rather than standard benchmark evaluations. Current bootstrap intervals quantify image-sampling uncertainty only.
 8. The shared server environment emits a torchvision binary-extension warning due to a version mismatch. This pipeline uses PIL rather than `torchvision.io`, and the smoke/pilot runs complete, but an isolated environment should resolve the mismatch before broader reuse.
+9. The natural-render comparison uses only SceneTAP's TextDiffuser component with deterministic fixed placement. It does not reproduce SceneTAP's multimodal content/placement planner and is not a photorealistic or physical-world study.
+10. The blinded human protocol is implemented, but three independent response files have not yet been collected; all current quality diagnostics remain model-generated until that collection is complete.
 
 ## Public sources only
 
