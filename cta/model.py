@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import importlib.util
+import json
 from pathlib import Path
 
 import torch
+import transformers
 from PIL import Image
 from transformers import AutoModel, AutoModelForCausalLM, AutoProcessor, AutoTokenizer, Qwen2_5_VLForConditionalGeneration
 
@@ -94,6 +97,7 @@ class LlavaOneVision15Adapter:
             "model_config_exists": (Path(self.cfg["name_or_path"]) / "config.json").exists(),
             "torch_version": torch.__version__,
             "cuda_version": torch.version.cuda,
+            "transformers_version": transformers.__version__,
             "device": self.device,
             "generation": {"do_sample": False, "max_new_tokens": self.max_new_tokens},
         }
@@ -153,6 +157,23 @@ class InternVL2Adapter:
         self.tokenizer = AutoTokenizer.from_pretrained(
             cfg["name_or_path"], trust_remote_code=True, use_fast=False, local_files_only=True,
         )
+        self.tokenizer_loader = "AutoTokenizer"
+        if not hasattr(self.tokenizer, "convert_tokens_to_ids"):
+            model_root = Path(cfg["name_or_path"])
+            spec = importlib.util.spec_from_file_location(
+                "cta_internlm2_tokenizer", model_root / "tokenization_internlm2.py",
+            )
+            if spec is None or spec.loader is None:
+                raise RuntimeError("could not load the checkpoint's InternLM2 tokenizer module")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            tokenizer_cfg = json.loads((model_root / "tokenizer_config.json").read_text())
+            self.tokenizer = module.InternLM2Tokenizer(
+                vocab_file=str(model_root / "tokenizer.model"),
+                additional_special_tokens=tokenizer_cfg.get("additional_special_tokens", []),
+                model_max_length=int(tokenizer_cfg.get("model_max_length", 8192)),
+            )
+            self.tokenizer_loader = "checkpoint InternLM2Tokenizer compatibility fallback"
         self.model = AutoModel.from_pretrained(
             cfg["name_or_path"],
             torch_dtype=self.dtype,
@@ -177,7 +198,9 @@ class InternVL2Adapter:
             "model_config_exists": (Path(self.cfg["name_or_path"]) / "config.json").exists(),
             "torch_version": torch.__version__,
             "cuda_version": torch.version.cuda,
+            "transformers_version": transformers.__version__,
             "device": self.device,
+            "tokenizer_loader": self.tokenizer_loader,
             "preprocess": {"image_size": self.image_size, "max_tiles": self.max_tiles, "thumbnail": True},
             "generation": {"do_sample": False, "max_new_tokens": self.max_new_tokens},
         }
