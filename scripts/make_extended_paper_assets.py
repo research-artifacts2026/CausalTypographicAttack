@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 from pathlib import Path
@@ -12,6 +13,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ATTACKS = ["naive", "scene_coherent", "causal"]
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -178,6 +187,7 @@ def main() -> None:
     runs = []
     for dataset, model, path in specifications:
         runs.append({"dataset": dataset, "model": model, "source": str(path),
+                     "source_sha256": sha256_file(path),
                      "metrics": aggregate(validate_raw_run(path, 300))})
     pil_rows = validate_single_attack(args.compact_pil, "causal_compact", 100)
     natural_rows = validate_single_attack(args.textdiffuser, "causal_compact_textdiffuser", 100)
@@ -194,6 +204,10 @@ def main() -> None:
     grid = make_renderer_grid(output / "figures" / "natural_renderer_examples.png", pil_rows, natural_rows)
     evidence = {"schema_version": "cta/extended-evidence-v1", "model_dataset": runs,
                 "renderer": renderer, "renderer_paired_textdiffuser_minus_pil": paired,
+                "renderer_sources": {
+                    "compact_pil": {"path": str(args.compact_pil), "sha256": sha256_file(args.compact_pil)},
+                    "textdiffuser": {"path": str(args.textdiffuser), "sha256": sha256_file(args.textdiffuser)},
+                },
                 "renderer_grid": grid}
     (output / "extended_evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))
