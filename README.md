@@ -112,13 +112,18 @@ Long causal captions were visibly truncated by this component, so the registered
 
 ```bash
 /disk2/fangxinyue/.venv/bin/python scripts/prepare_natural_render_source.py \
-  --source-run runs/main_qwen25vl3b_n300 --limit 100 --output runs/compact_source_n100
+  --source-log runs/main_qwen25vl3b_n300/predictions.jsonl \
+  --limit 100 --output-root runs/natural_render_source_n100
 
 # Render with the public TextDiffuser component.
 PYTHONPATH=/disk2/fangxinyue/scenetap_runtime:/disk2/fangxinyue/scenetap \
   /disk2/fangxinyue/.venv/bin/python scripts/render_scenetap_textdiffuser.py \
-  --source runs/compact_source_n100/conditions.jsonl \
-  --output-root runs/scenetap_textdiffuser_n100 --candidate-index 0
+  --source-log runs/natural_render_source_n100/render_manifest.jsonl \
+  --output-root runs/scenetap_textdiffuser_n100 \
+  --scenetap-root /disk2/fangxinyue/scenetap \
+  --source-attack causal_compact \
+  --output-attack causal_compact_textdiffuser \
+  --candidate-index 0
 
 # Evaluate the two matched renderers.
 CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py \
@@ -135,6 +140,9 @@ The blind package contains 100 matched images for four methods (naive, scene-coh
 
 ```bash
 /disk2/fangxinyue/.venv/bin/python scripts/make_human_eval_pack.py \
+  --pil-log runs/main_qwen25vl3b_n300/predictions.jsonl \
+  --compact-pil-log runs/compact_pil_qwen25vl3b_n100/predictions.jsonl \
+  --textdiffuser-log runs/scenetap_textdiffuser_qwen25vl3b_n100/predictions.jsonl \
   --output-root runs/human_eval_blind_n100
 
 # After three completed independent CSV files are placed in responses/:
