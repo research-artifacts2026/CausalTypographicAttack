@@ -139,24 +139,31 @@ def make_renderer_grid(path: Path, pil_rows: list[dict], natural_rows: list[dict
         selected.append((label, sample_id)); used.add(sample_id)
     if len(selected) < 2:
         raise ValueError("insufficient distinct renderer outcome categories for a qualitative grid")
-    cell_w, image_h, header_h, footer_h = 420, 330, 42, 86
-    canvas = Image.new("RGB", (2 * cell_w, len(selected) * (header_h + image_h + footer_h)), "white")
+    cell_w, image_h, header_h, result_h, claim_h = 360, 220, 54, 48, 62
+    canvas = Image.new(
+        "RGB",
+        (len(selected) * cell_w, header_h + 2 * (image_h + result_h) + claim_h),
+        "white",
+    )
     draw = ImageDraw.Draw(canvas)
-    title_font, body_font, small_font = font(20, True), font(16), font(14)
-    for row_index, (category, sample_id) in enumerate(selected):
-        y0 = row_index * (header_h + image_h + footer_h)
-        draw.text((12, y0 + 8), f"{category}: {sample_id}", fill="black", font=title_font)
-        for column, (name, record) in enumerate((("PIL plaque", pil[sample_id]), ("TextDiffuser component", natural[sample_id]))):
+    title_font, body_font, small_font = font(18, True), font(15), font(13)
+    for column, (category, sample_id) in enumerate(selected):
+        x0 = column * cell_w
+        draw.text((x0 + 10, 7), category, fill="black", font=title_font)
+        draw.text((x0 + 10, 31), sample_id, fill=(75, 75, 75), font=small_font)
+        for row_index, (name, record) in enumerate((("PIL plaque", pil[sample_id]), ("TextDiffuser component", natural[sample_id]))):
+            y0 = header_h + row_index * (image_h + result_h)
             image = Image.open(record["image_path"]).convert("RGB")
             image.thumbnail((cell_w - 12, image_h - 8), Image.Resampling.LANCZOS)
-            x = column * cell_w + (cell_w - image.width) // 2
-            y = y0 + header_h + (image_h - image.height) // 2
+            x = x0 + (cell_w - image.width) // 2
+            y = y0 + (image_h - image.height) // 2
             canvas.paste(image, (x, y))
             outcome = "success" if record["attack_success"] else "failure"
-            draw.text((column * cell_w + 12, y0 + header_h + image_h + 6), f"{name}: {outcome}", fill="black", font=body_font)
-            draw.text((column * cell_w + 12, y0 + header_h + image_h + 31), f"read={record['claim_matches_overlay']}, judge={record['parsed']['claim']}", fill="black", font=small_font)
+            draw.text((x0 + 10, y0 + image_h + 3), f"{name}: {outcome}", fill="black", font=body_font)
+            draw.text((x0 + 10, y0 + image_h + 25), f"read={record['claim_matches_overlay']}, judge={record['parsed']['claim']}", fill="black", font=small_font)
         claim = pil[sample_id]["attack_text"]
-        draw.text((12, y0 + header_h + image_h + 57), claim[:105], fill=(55, 55, 55), font=small_font)
+        claim_y = header_h + 2 * (image_h + result_h) + 4
+        draw.text((x0 + 10, claim_y), claim[:54], fill=(55, 55, 55), font=small_font)
     path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(path)
     return {"selected": [{"category": label, "sample_id": sample_id} for label, sample_id in selected]}
