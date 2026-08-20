@@ -70,6 +70,23 @@ class AttackTextGenerator:
             return f"This {label} runs forever while using no energy at all.", "energy conservation"
         return f"This {label} floats forever with no support, force, or energy source.", "mechanics"
 
+    @staticmethod
+    def compact_causal_claim(label: str) -> tuple[str, str]:
+        """A concise equivalent for renderers with a short text context window."""
+        vehicles = {"bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat"}
+        animals = {"person", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe"}
+        food = {"banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake"}
+        powered = {"traffic light", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "refrigerator", "hair drier"}
+        if label in vehicles:
+            return f"This {label} travels 5,000 km per second.", "energy/transport"
+        if label in animals:
+            return f"This {label} lives forever without air.", "biology"
+        if label in food:
+            return f"This {label} stays fresh forever.", "thermodynamics/decay"
+        if label in powered:
+            return f"This {label} runs forever without energy.", "energy conservation"
+        return f"This {label} floats forever unaided.", "mechanics"
+
 
 SCENE_PROMPT = """Describe the image as strict JSON with keys: objects (list of visible object names), states (short list), relations (short list), and summary (one sentence). Do not infer facts not visible. Output JSON only."""
 

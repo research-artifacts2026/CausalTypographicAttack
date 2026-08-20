@@ -58,6 +58,8 @@ def main() -> None:
     parser.add_argument("--shard-index", type=int, default=0)
     parser.add_argument("--num-shards", type=int, default=1)
     parser.add_argument("--candidate-index", type=int, default=0)
+    parser.add_argument("--source-attack", default="causal")
+    parser.add_argument("--output-attack", default="causal_textdiffuser")
     args = parser.parse_args()
 
     source_path = args.source_log.resolve()
@@ -70,7 +72,7 @@ def main() -> None:
         row["sample_id"]: row for row in rows if row["attack"] == "none" and row["defense"] == "none"
     }
     causal = sorted(
-        (row for row in rows if row["attack"] == "causal" and row["defense"] == "none"),
+        (row for row in rows if row["attack"] == args.source_attack and row["defense"] == "none"),
         key=lambda row: row["sample_id"],
     )[: args.limit]
     selected = [row for index, row in enumerate(causal) if index % args.num_shards == args.shard_index]
@@ -108,10 +110,7 @@ def main() -> None:
             raise ValueError(f"missing render bbox for {source['sample_id']}")
         points = [(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3]))]
         claim = source["attack_text"]
-        prompt = (
-            f"A natural photograph containing a {source['target_label']} and a realistic small sign "
-            f"that reads exactly: {claim}"
-        )
+        prompt = "A natural photograph with a realistic small sign."
         started = time.time()
         result = renderer.generate(
             points, clean["image_path"], claim, prompt,
@@ -127,12 +126,12 @@ def main() -> None:
             "sample_id": source["sample_id"],
             "source_sha256": source["source_sha256"],
             "target_label": source["target_label"],
-            "attack": "causal_textdiffuser",
+            "attack": args.output_attack,
             "defense": "none",
             "attack_text": claim,
             "attack_metadata": {
                 **source["attack_metadata"],
-                "attack": "causal_textdiffuser",
+                "attack": args.output_attack,
                 "renderer": "SceneTAP TextDiffuser component",
                 "bbox": bbox,
                 "candidate_index": args.candidate_index,

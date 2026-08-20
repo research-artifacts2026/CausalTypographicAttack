@@ -33,6 +33,7 @@ def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pil-log", type=Path, required=True)
+    parser.add_argument("--compact-pil-log", type=Path, required=True)
     parser.add_argument("--textdiffuser-log", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=100)
@@ -42,14 +43,18 @@ def main() -> None:
     args = parser.parse_args()
 
     pil_rows = read_jsonl(args.pil_log)
+    compact_rows = read_jsonl(args.compact_pil_log)
     natural_rows = read_jsonl(args.textdiffuser_log)
     methods: dict[str, dict[str, dict]] = {}
-    for method in ("naive", "scene_coherent", "causal"):
+    for method in ("naive", "scene_coherent"):
         methods[method] = {
             row["sample_id"]: row for row in pil_rows
             if row["attack"] == method and row["defense"] == "none"
         }
-    methods["causal_textdiffuser"] = {row["sample_id"]: row for row in natural_rows}
+    methods["causal_compact_pil"] = {
+        row["sample_id"]: row for row in compact_rows if row["attack"] == "causal_compact"
+    }
+    methods["causal_compact_textdiffuser"] = {row["sample_id"]: row for row in natural_rows}
     shared_ids = sorted(set.intersection(*(set(rows) for rows in methods.values())))
     rng = random.Random(args.seed)
     rng.shuffle(shared_ids)
