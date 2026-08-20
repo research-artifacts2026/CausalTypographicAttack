@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import html
 import json
 import random
 import shutil
@@ -28,6 +29,35 @@ def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader(); writer.writerows(rows)
+
+
+def write_html_form(path: Path, rows: list[dict], annotator_name: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cards = []
+    for row in rows:
+        rating_controls = []
+        for column in RATING_COLUMNS:
+            options = '<option value="">choose</option>' + ''.join(
+                f'<option value="{value}">{value}</option>' for value in range(1, 6)
+            )
+            rating_controls.append(
+                f'<label>{html.escape(column)}<select data-field="{html.escape(column)}">{options}</select></label>'
+            )
+        cards.append(
+            f'<article data-row="{html.escape(json.dumps(row, ensure_ascii=False))}">'
+            f'<h2>{html.escape(row["row_id"])}</h2><img src="../{html.escape(row["image"])}" alt="evaluation image">'
+            f'<p><strong>Claim:</strong> {html.escape(row["claim"])}</p>'
+            f'<div class="ratings">{"".join(rating_controls)}</div>'
+            '<label>comments<textarea data-field="comments"></textarea></label></article>'
+        )
+    fields = ["row_id", "item_id", "image", "claim", *RATING_COLUMNS, "comments"]
+    document = f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>CTA blind evaluation</title>
+<style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#f6f6f6}}article{{background:white;margin:20px 0;padding:18px;border-radius:10px}}img{{max-width:100%;max-height:620px;display:block;margin:auto}}.ratings{{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}}label{{display:flex;flex-direction:column;gap:5px}}select,textarea,button{{font:inherit;padding:7px}}button{{position:sticky;bottom:10px;background:#16324f;color:white;border:0;border-radius:8px}}</style></head>
+<body><h1>Independent blind evaluation: {html.escape(annotator_name)}</h1><p>Work independently. Scores are 1 (very low) to 5 (very high). Repeated items are intentional. Complete every field, then export CSV.</p>
+{"".join(cards)}<button onclick="exportCsv()">Validate and export CSV</button>
+<script>const fields={json.dumps(fields)};function esc(v){{v=String(v??'');return /[\",\n]/.test(v)?'\"'+v.replaceAll('\"','\"\"')+'\"':v}}function exportCsv(){{let out=[fields];for(const card of document.querySelectorAll('article')){{const base=JSON.parse(card.dataset.row);const row={{...base}};for(const el of card.querySelectorAll('[data-field]')){{row[el.dataset.field]=el.value;if(!el.value&&el.dataset.field!=='comments'){{alert('Complete every score before exporting.');el.focus();return}}}}out.push(fields.map(f=>row[f]??''))}}const csv=out.map(r=>r.map(esc).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{{type:'text/csv'}}));a.download='{html.escape(annotator_name)}.csv';a.click();URL.revokeObjectURL(a.href)}}</script></body></html>"""
+    path.write_text(document, encoding="utf-8")
 
 
 def main() -> None:
@@ -101,6 +131,10 @@ def main() -> None:
                 **{column: "" for column in RATING_COLUMNS}, "comments": "",
             })
         write_csv(output_root / "assignments" / f"annotator_{annotator_index + 1}.csv", rows, fields)
+        write_html_form(
+            output_root / "forms" / f"annotator_{annotator_index + 1}.html",
+            rows, f"annotator_{annotator_index + 1}",
+        )
 
     write_csv(
         output_root / "private_method_key.csv", private_rows,
