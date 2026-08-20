@@ -32,7 +32,12 @@ def sha256_file(path: Path) -> str:
 
 def git_head() -> str:
     try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL).strip()
+        repo = Path(__file__).resolve().parents[1]
+        return subprocess.check_output(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
     except Exception:
         return "not-a-git-checkout"
 
