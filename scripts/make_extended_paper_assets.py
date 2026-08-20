@@ -71,8 +71,8 @@ def tex_percent(value: float | None) -> str:
 def write_cross_table(path: Path, runs: list[dict]) -> None:
     lines = [
         "% AUTO-GENERATED from completed raw JSONL logs; do not edit",
-        "\\begin{tabular}{llrrrr}",
-        "Dataset & Model & Clean Acc. & Naive ASR & Plaque ASR & CTA ASR \\\\",
+        "\\begin{tabular}{llrrrrr}",
+        "Dataset & Model & Clean Acc. & Naive ASR & Plaque ASR & CTA read & CTA ASR \\\\",
         "\\hline",
     ]
     for run in runs:
@@ -80,7 +80,7 @@ def write_cross_table(path: Path, runs: list[dict]) -> None:
         lines.append(
             f"{run['dataset']} & {run['model']} & {tex_percent(values['none']['object_accuracy'])} & "
             f"{tex_percent(values['naive']['strict_asr'])} & {tex_percent(values['scene_coherent']['strict_asr'])} & "
-            f"{tex_percent(values['causal']['strict_asr'])} \\\\"
+            f"{tex_percent(values['causal']['grounded_transcription'])} & {tex_percent(values['causal']['strict_asr'])} \\\\"
         )
     lines += ["\\end{tabular}", ""]
     path.write_text("\n".join(lines), encoding="utf-8")
