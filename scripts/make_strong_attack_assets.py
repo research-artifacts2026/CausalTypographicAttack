@@ -106,7 +106,9 @@ def make_examples(
             if row[0] not in chosen:
                 chosen.append(row[0])
                 break
-    card_width, image_height, card_height = 430, 300, 430
+    # Leave enough room for four model outcomes plus two wrapped claim lines;
+    # the earlier 430 px canvas clipped the last qualitative-evidence line.
+    card_width, image_height, card_height = 430, 300, 470
     canvas = Image.new("RGB", (card_width * len(chosen), card_height), "white")
     draw = ImageDraw.Draw(canvas)
     title_font, text_font = font(19, True), font(13)
