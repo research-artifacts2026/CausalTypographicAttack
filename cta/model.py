@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 import transformers
 from PIL import Image
-from transformers import AutoModel, AutoModelForCausalLM, AutoProcessor, AutoTokenizer, Qwen2_5_VLForConditionalGeneration
+from transformers import AutoModel, AutoModelForCausalLM, AutoProcessor, AutoTokenizer
 
 
 DTYPES = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}
@@ -19,6 +19,8 @@ def _dtype(cfg: dict) -> torch.dtype:
 
 class Qwen25VLAdapter:
     def __init__(self, cfg: dict):
+        from transformers import Qwen2_5_VLForConditionalGeneration
+
         self.cfg = cfg
         dtype = _dtype(cfg)
         self.processor = AutoProcessor.from_pretrained(
