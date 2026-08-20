@@ -11,6 +11,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageFont
+
 
 def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -22,6 +24,62 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _font(size: int, bold: bool = False):
+    suffix = "-Bold" if bold else ""
+    for candidate in (
+        f"/usr/share/fonts/truetype/dejavu/DejaVuSans{suffix}.ttf",
+        f"/usr/share/fonts/truetype/liberation2/"
+        f"LiberationSans{'-Bold' if bold else '-Regular'}.ttf",
+    ):
+        if Path(candidate).exists():
+            return ImageFont.truetype(candidate, size)
+    return ImageFont.load_default()
+
+
+def make_matched_control_figure(output: Path, manifest_rows: list[dict]) -> Path:
+    """Render a fixed-ID geometry control figure without outcome-based selection."""
+    sample_id = sorted({row["sample_id"] for row in manifest_rows})[0]
+    conditions = (
+        ("rvta-area-matched-direct-control", "Direct false claim"),
+        ("v2-telemetry-plaque-compact", "Evidence-framed false claim"),
+        ("rvta-benign-true-evidence", "Benign true claim"),
+    )
+    indexed = {(row["sample_id"], row["attack"]): row for row in manifest_rows}
+    panel_width, label_height = 360, 52
+    prepared = []
+    for condition, label in conditions:
+        row = indexed[(sample_id, condition)]
+        image = Image.open(row["image_path"]).convert("RGB")
+        panel_height = round(panel_width * image.height / image.width)
+        image = image.resize((panel_width, panel_height), Image.Resampling.LANCZOS)
+        prepared.append((label, image))
+    image_height = max(image.height for _, image in prepared)
+    canvas = Image.new("RGB", (panel_width * len(prepared), label_height + image_height), "white")
+    draw = ImageDraw.Draw(canvas)
+    font = _font(20, bold=True)
+    colors = ((74, 85, 104), (153, 74, 42), (39, 112, 82))
+    for index, ((label, image), color) in enumerate(zip(prepared, colors)):
+        x = index * panel_width
+        draw.rectangle((x, 0, x + panel_width, label_height), fill=color)
+        box = draw.textbbox((0, 0), label, font=font)
+        text_width = box[2] - box[0]
+        draw.text((x + (panel_width - text_width) / 2, 14), label, fill="white", font=font)
+        canvas.paste(image, (x, label_height))
+    figure = output / "rvta_matched_controls.png"
+    canvas.save(figure)
+    metadata = {
+        "selection_rule": "lexicographically first frozen matched-test sample identifier",
+        "sample_id": sample_id,
+        "conditions": [condition for condition, _ in conditions],
+        "source_manifest_sha256": sha256(Path(indexed[(sample_id, conditions[0][0])]["image_path"]).parent.parent.parent / "render_manifest.jsonl"),
+        "figure_sha256": sha256(figure),
+    }
+    (output / "rvta_matched_controls_metadata.json").write_text(
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8",
+    )
+    return figure
 
 
 def percentile(values: list[float], q: float) -> float:
@@ -317,6 +375,7 @@ def main() -> None:
         )
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    make_matched_control_figure(output, read_jsonl(args.matched_manifest.resolve()))
     record = {
         "schema_version": "cta/rvta-benchmark-evidence-v1",
         "matched": matched,
