@@ -79,7 +79,8 @@ def main() -> None:
     output_root.mkdir(parents=True, exist_ok=True)
 
     source_rows = read_jsonl(source_path)
-    allowed_attacks = set(cfg["conditions"]["attacks"])
+    configured_attacks = set(cfg["conditions"].get("attacks", ["*"]))
+    allowed_attacks = {row["attack"] for row in source_rows} if "*" in configured_attacks else configured_attacks
     allowed_defenses = set(cfg["conditions"].get("defenses", ["none"]))
     source_rows = [
         row for row in source_rows
