@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+import base64
 import importlib.util
 import json
+import mimetypes
+import os
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import torch
@@ -208,6 +214,131 @@ class InternVL2Adapter:
         }
 
 
+class OpenAIResponsesAdapter:
+    """Vision adapter for an OpenAI Responses API model with a hard query cap.
+
+    Credentials are read from an environment variable and are never copied into
+    configs, logs, exceptions, or provenance.
+    """
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        self.model = str(cfg.get("model", cfg.get("name_or_path", "gpt-5.6-sol")))
+        self.api_key_env = str(cfg.get("api_key_env", "OPENAI_API_KEY"))
+        self.api_key = os.environ.get(self.api_key_env, "")
+        if not self.api_key:
+            raise RuntimeError(f"missing API credential in environment variable {self.api_key_env}")
+        self.endpoint = str(cfg.get("endpoint", "https://api.openai.com/v1/responses"))
+        if not self.endpoint.startswith("https://"):
+            raise ValueError("OpenAI Responses endpoint must use HTTPS")
+        self.reasoning_effort = str(cfg.get("reasoning_effort", "medium"))
+        self.image_detail = str(cfg.get("image_detail", "auto"))
+        self.max_new_tokens = int(cfg.get("max_new_tokens", 256))
+        self.max_queries = int(cfg.get("max_queries", 0))
+        if self.max_queries <= 0:
+            raise ValueError("OpenAI adapter requires a positive max_queries budget")
+        self.timeout_seconds = float(cfg.get("timeout_seconds", 180))
+        self.max_retries = int(cfg.get("max_retries", 3))
+        self.queries_made = 0
+        self.last_metadata: dict = {}
+
+    @staticmethod
+    def _output_text(response: dict) -> str:
+        if isinstance(response.get("output_text"), str):
+            return response["output_text"].strip()
+        texts = []
+        for item in response.get("output", []):
+            if item.get("type") != "message":
+                continue
+            for content in item.get("content", []):
+                if content.get("type") == "output_text" and isinstance(content.get("text"), str):
+                    texts.append(content["text"])
+        return "\n".join(texts).strip()
+
+    def infer(self, image_path: str, prompt: str, max_new_tokens: int | None = None) -> str:
+        if self.queries_made >= self.max_queries:
+            raise RuntimeError(f"OpenAI query budget exhausted at {self.max_queries} requests")
+        path = Path(image_path)
+        mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+        image_url = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode('ascii')}"
+        payload = {
+            "model": self.model,
+            "input": [{
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": image_url, "detail": self.image_detail},
+                ],
+            }],
+            "reasoning": {"effort": self.reasoning_effort},
+            "max_output_tokens": int(max_new_tokens or self.max_new_tokens),
+            "store": False,
+        }
+        request = urllib.request.Request(
+            self.endpoint,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        response: dict | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as handle:
+                    response = json.loads(handle.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                retryable = exc.code == 429 or 500 <= exc.code < 600
+                if not retryable or attempt == self.max_retries:
+                    body = exc.read(2048).decode("utf-8", errors="replace")
+                    safe_error = {}
+                    try:
+                        error = json.loads(body).get("error", {})
+                        safe_error = {key: error.get(key) for key in ("type", "code", "param") if error.get(key) is not None}
+                    except json.JSONDecodeError:
+                        safe_error = {"body_redacted": True}
+                    raise RuntimeError(f"OpenAI Responses API HTTP {exc.code}: {safe_error}") from exc
+                delay = float(exc.headers.get("retry-after", 2 ** attempt))
+                time.sleep(min(delay, 30.0))
+            except urllib.error.URLError as exc:
+                if attempt == self.max_retries:
+                    raise RuntimeError(f"OpenAI Responses API network failure: {exc.reason}") from exc
+                time.sleep(min(2 ** attempt, 30.0))
+        if response is None:
+            raise RuntimeError("OpenAI Responses API returned no response")
+        self.queries_made += 1
+        self.last_metadata = {
+            "request_index": self.queries_made,
+            "response_id": response.get("id"),
+            "returned_model": response.get("model"),
+            "status": response.get("status"),
+            "usage": response.get("usage"),
+        }
+        output = self._output_text(response)
+        if not output:
+            raise RuntimeError("OpenAI Responses API returned no output text")
+        return output
+
+    def inference_metadata(self) -> dict:
+        return dict(self.last_metadata)
+
+    def provenance(self) -> dict:
+        return {
+            "adapter": "OpenAIResponsesAdapter",
+            "requested_model": self.model,
+            "endpoint": self.endpoint,
+            "api_key_env": self.api_key_env,
+            "credential_present": bool(self.api_key),
+            "reasoning_effort": self.reasoning_effort,
+            "image_detail": self.image_detail,
+            "store": False,
+            "max_output_tokens": self.max_new_tokens,
+            "max_queries": self.max_queries,
+            "queries_made": self.queries_made,
+            "timeout_seconds": self.timeout_seconds,
+            "max_retries": self.max_retries,
+        }
+
+
 def build_model_adapter(cfg: dict):
     adapter = str(cfg.get("adapter", "qwen25vl")).lower()
     if adapter in {"qwen25vl", "qwen2.5-vl", "qwen"}:
@@ -216,6 +347,8 @@ def build_model_adapter(cfg: dict):
         return LlavaOneVision15Adapter(cfg)
     if adapter in {"internvl2", "internvl"}:
         return InternVL2Adapter(cfg)
+    if adapter in {"openai_responses", "openai", "gpt-5.6-sol"}:
+        return OpenAIResponsesAdapter(cfg)
     raise ValueError(f"Unsupported model adapter: {adapter}")
 
 

@@ -126,6 +126,7 @@ def main() -> None:
         started = time.time()
         raw = model.infer(source["image_path"], TASK_PROMPT)
         parsed = parse_task_output(raw)
+        inference_metadata = model.inference_metadata() if hasattr(model, "inference_metadata") else {}
         row = {
             "sample_id": source["sample_id"],
             "source_sha256": source["source_sha256"],
@@ -137,6 +138,7 @@ def main() -> None:
             "defense_metadata": source.get("defense_metadata", {}),
             "image_path": source["image_path"],
             "raw_output": raw,
+            "inference_metadata": inference_metadata,
             "parsed": parsed,
             "object_correct": label_match(parsed["object"], source["target_label"]),
             "quality": {},
@@ -155,6 +157,7 @@ def main() -> None:
             save_summary(output_root, existing)
 
     save_summary(output_root, existing)
+    provenance["model"] = model.provenance()
     provenance["finished_at_utc"] = datetime.now(timezone.utc).isoformat()
     provenance["completed_rows"] = len(existing)
     (output_root / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")

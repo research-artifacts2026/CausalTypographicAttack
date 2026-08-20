@@ -2,6 +2,8 @@ from cta.generation import AttackTextGenerator, extract_json
 from cta.data import load_dataset
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
 from PIL import Image
+import json
+import urllib.error
 
 from cta.strong_attack import (
     candidate_policies,
@@ -10,6 +12,7 @@ from cta.strong_attack import (
     split_sample_ids,
     split_samples_stratified,
 )
+from cta.model import OpenAIResponsesAdapter
 
 
 def test_attack_semantics():
@@ -91,3 +94,86 @@ def test_strong_renderer_records_geometry_and_hash(tmp_path):
     assert rendered.bbox[2] > rendered.bbox[0]
     assert 0 < rendered.overlay_area_fraction < 1
     assert len(rendered.rendered_sha256) == 64
+
+
+def test_openai_adapter_uses_data_url_and_enforces_query_budget(tmp_path, monkeypatch):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (32, 24), (20, 40, 60)).save(source)
+    monkeypatch.setenv("TEST_OPENAI_KEY", "test-only-not-a-real-secret")
+    captured = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def read(self):
+            return json.dumps({
+                "id": "resp_test",
+                "model": "gpt-5.6-sol",
+                "status": "completed",
+                "output": [{"type": "message", "content": [{
+                    "type": "output_text", "text": '{"object":"car","claim_text":"x","claim":"FALSE"}',
+                }]}],
+                "usage": {"input_tokens": 12, "output_tokens": 8, "total_tokens": 20},
+            }).encode()
+
+    def fake_urlopen(request, timeout):
+        captured["payload"] = json.loads(request.data)
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    adapter = OpenAIResponsesAdapter({
+        "adapter": "openai_responses",
+        "model": "gpt-5.6-sol",
+        "api_key_env": "TEST_OPENAI_KEY",
+        "max_queries": 1,
+        "reasoning_effort": "medium",
+    })
+    output = adapter.infer(str(source), "Return JSON")
+    assert '"claim":"FALSE"' in output
+    assert captured["payload"]["input"][0]["content"][1]["image_url"].startswith("data:image/jpeg;base64,")
+    assert captured["payload"]["store"] is False
+    assert adapter.inference_metadata()["returned_model"] == "gpt-5.6-sol"
+    assert "test-only-not-a-real-secret" not in json.dumps(adapter.provenance())
+    try:
+        adapter.infer(str(source), "Return JSON")
+    except RuntimeError as exc:
+        assert "budget exhausted" in str(exc)
+    else:
+        raise AssertionError("query budget was not enforced")
+
+
+def test_openai_adapter_redacts_error_message(tmp_path, monkeypatch):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (16, 16), "white").save(source)
+    monkeypatch.setenv("TEST_OPENAI_KEY", "do-not-log-this-value")
+    body = json.dumps({"error": {
+        "message": "Incorrect API key provided: do-not-log-this-value",
+        "type": "invalid_request_error",
+        "code": "invalid_api_key",
+    }}).encode()
+
+    class FakeHttpError(urllib.error.HTTPError):
+        def read(self, *_):
+            return body
+
+    def fake_with_body(*_args, **_kwargs):
+        raise FakeHttpError("https://api.openai.com/v1/responses", 401, "Unauthorized", {}, None)
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_with_body)
+    adapter = OpenAIResponsesAdapter({
+        "api_key_env": "TEST_OPENAI_KEY", "max_queries": 1, "max_retries": 0,
+    })
+    try:
+        adapter.infer(str(source), "Return JSON")
+    except RuntimeError as exc:
+        rendered = str(exc)
+        assert "invalid_api_key" in rendered
+        assert "do-not-log-this-value" not in rendered
+        assert "Incorrect API key" not in rendered
+    else:
+        raise AssertionError("HTTP error was not raised")
