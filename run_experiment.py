@@ -18,7 +18,7 @@ from cta.data import load_dataset
 from cta.defenses import consistency_defense, ocr_mask_defense
 from cta.generation import AttackTextGenerator, SCENE_PROMPT, extract_json, quality_prompt
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
-from cta.model import Qwen25VLAdapter, TASK_PROMPT
+from cta.model import TASK_PROMPT, build_model_adapter
 from cta.render import render_attack
 
 
@@ -114,7 +114,7 @@ def main() -> None:
         dataset_split=dataset_split,
     )
     (out / "sample_manifest.json").write_text(json.dumps([s.to_dict() for s in samples], indent=2), encoding="utf-8")
-    model = Qwen25VLAdapter(cfg["model"])
+    model = build_model_adapter(cfg["model"])
     provenance = {
         "started_at_utc": datetime.now(timezone.utc).isoformat(), "config_path": str(cfg_path),
         "config_sha256": config_hash, "git_head": safe_git_head(), "hostname": platform.node(),
@@ -128,7 +128,7 @@ def main() -> None:
         },
         "model": model.provenance(), "metric_definition": {
             "false_claim_acceptance_asr": "fraction of false overlays predicted TRUE",
-            "object_accuracy": "exact/singular-plural normalized match to largest-area COCO annotation",
+            "object_accuracy": "exact/singular-plural normalized match to the largest-area dataset annotation",
             "overlay_match_ratio": overlay_match_ratio,
         },
     }

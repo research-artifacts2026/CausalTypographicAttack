@@ -1,0 +1,13 @@
+source_log: runs/main_qwen25vl3b_n300/predictions.jsonl
+output_root: runs/transfer_llavaov15_8b_n300
+expected_samples: 300
+overlay_match_ratio: 0.5
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/bdf95183e0f91549cc71820b12d920b1a63689a2
+  device: cuda:2
+  dtype: bfloat16
+  max_new_tokens: 96
+conditions:
+  attacks: [none, naive, scene_coherent, causal]
+  defenses: [none]

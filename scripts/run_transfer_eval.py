@@ -26,7 +26,7 @@ from tqdm import tqdm
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
-from cta.model import Qwen25VLAdapter, TASK_PROMPT
+from cta.model import TASK_PROMPT, build_model_adapter
 
 
 def append_jsonl(path: Path, row: dict) -> None:
@@ -98,7 +98,7 @@ def main() -> None:
     output_path = output_root / "predictions.jsonl"
     existing = read_jsonl(output_path)
     completed = {(r["sample_id"], r["attack"], r["defense"]) for r in existing}
-    model = Qwen25VLAdapter(cfg["model"])
+    model = build_model_adapter(cfg["model"])
     provenance = {
         "schema_version": "cta/transfer-run-v1",
         "started_at_utc": datetime.now(timezone.utc).isoformat(),
