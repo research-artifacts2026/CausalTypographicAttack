@@ -160,6 +160,7 @@ def main() -> None:
     parser.add_argument("--llava-coco", type=Path, required=True)
     parser.add_argument("--intern-coco", type=Path, required=True)
     parser.add_argument("--qwen-voc", type=Path, required=True)
+    parser.add_argument("--qwen7-voc", type=Path, required=True)
     parser.add_argument("--llava-voc", type=Path, required=True)
     parser.add_argument("--compact-pil", type=Path, required=True)
     parser.add_argument("--textdiffuser", type=Path, required=True)
@@ -171,6 +172,7 @@ def main() -> None:
         ("COCO", "LLaVA-OV-1.5-8B", args.llava_coco),
         ("COCO", "InternVL2-8B", args.intern_coco),
         ("VOC 2012", "Qwen2.5-VL-3B", args.qwen_voc),
+        ("VOC 2012", "Qwen2.5-VL-7B", args.qwen7_voc),
         ("VOC 2012", "LLaVA-OV-1.5-8B", args.llava_voc),
     ]
     runs = []
