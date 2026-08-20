@@ -1,0 +1,6 @@
+source_log: runs/cta_v2_test_n100/render_manifest.jsonl
+output_root: runs/cta_v2_rapidocr_n100
+expected_samples: 100
+attacks: [v1-original-causal-plaque, v2-telemetry-plaque-compact]
+score_threshold: 0.5
+mask_margin_px: 2

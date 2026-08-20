@@ -132,6 +132,41 @@ def make_examples(
     return records
 
 
+def discovery_factor_summary(selection: dict) -> list[dict]:
+    """Compute descriptive marginal means over the registered 3x4x2 search.
+
+    These values summarize discovery-only candidates; they are never mixed with
+    the held-out confirmatory test metrics.
+    """
+    candidates = [
+        row for row in selection["rankings"]
+        if row["policy_id"].startswith("v2-")
+    ]
+    groups: list[tuple[str, str, list[dict]]] = []
+    factor_specs = [
+        ("Claim", 1, ("direct", "telemetry", "record")),
+        ("Artifact", 2, ("plaque", "sensor", "certificate", "compound")),
+        ("Scale", 3, ("compact", "large")),
+    ]
+    for factor, token_index, levels in factor_specs:
+        for level in levels:
+            rows = [row for row in candidates if row["policy_id"].split("-")[token_index] == level]
+            if not rows:
+                raise ValueError(f"missing discovery candidates for {factor}={level}")
+            groups.append((factor, level, rows))
+    return [
+        {
+            "factor": factor,
+            "level": level,
+            "policies": len(rows),
+            "ensemble_strict_asr": statistics.fmean(row["ensemble_strict_asr"] for row in rows),
+            "ensemble_grounded": statistics.fmean(row["ensemble_grounded"] for row in rows),
+            "mean_overlay_area_fraction": statistics.fmean(row["mean_overlay_area_fraction"] for row in rows),
+        }
+        for factor, level, rows in groups
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--test-manifest", type=Path, required=True)
@@ -189,6 +224,16 @@ def main() -> None:
         "selection_sha256": sha256(selection_path),
         "models": {},
         "sources": log_sources,
+        "discovery": {
+            "split": selection["split"],
+            "selection_scope": selection["selection_scope"],
+            "criterion": selection["criterion"],
+            "query_budget": selection["query_budget"],
+            "candidate_policies": sum(
+                row["policy_id"].startswith("v2-") for row in selection["rankings"]
+            ),
+            "factor_marginals": discovery_factor_summary(selection),
+        },
     }
     for model_index, (model, rows) in enumerate(logs.items()):
         by_attack = defaultdict(list)
@@ -229,6 +274,24 @@ def main() -> None:
         )
     table += ["\\end{tabular}", ""]
     (output_dir / "generated_strong_test_table.tex").write_text("\n".join(table), encoding="utf-8")
+    discovery_table = [
+        "% AUTO-GENERATED from the frozen discovery selection record; do not edit",
+        "\\begin{tabular}{llrrr}",
+        "Factor & Level & Policies & Ensemble ASR & Area \\\\",
+        "\\hline",
+    ]
+    previous_factor = None
+    for row in evidence["discovery"]["factor_marginals"]:
+        factor = row["factor"] if row["factor"] != previous_factor else ""
+        discovery_table.append(
+            f"{factor} & {row['level'].title()} & {row['policies']} & "
+            f"{100*row['ensemble_strict_asr']:.1f} & {100*row['mean_overlay_area_fraction']:.1f} \\\\"
+        )
+        previous_factor = row["factor"]
+    discovery_table += ["\\end{tabular}", ""]
+    (output_dir / "generated_strong_discovery_table.tex").write_text(
+        "\n".join(discovery_table), encoding="utf-8"
+    )
     evidence["qualitative_examples"] = make_examples(
         output_dir / "figures" / "strong_test_examples.png", manifest_rows, selected_policy, logs,
     )

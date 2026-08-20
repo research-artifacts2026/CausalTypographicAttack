@@ -425,7 +425,10 @@ def load_voc2012_segmentation_hf(
             sample_id=sample_id, image_path=str(image_path.resolve()),
             target_label=VOC20[class_id - 1], target_class_id=class_id,
             target_area=float(counts[best_position]) / float(mask.size), labels=labels,
-            source_sha256=hashlib.sha256(image_bytes).hexdigest(),
+            # The materialized JPEG is the exact artifact consumed by the
+            # renderer, so provenance must hash those bytes rather than the
+            # pre-encoding parquet payload.
+            source_sha256=sha256_file(image_path),
         ))
         if not include_sample_ids and not exclude_sample_ids and len(candidates) >= n:
             break
