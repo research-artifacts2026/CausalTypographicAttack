@@ -53,7 +53,6 @@ def append_row(rows: list[dict], sample: dict, attack: str, attack_text: str, im
         "attack_metadata": metadata,
         "defense_metadata": {},
         "image_path": image_path,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
     })
 
 
@@ -90,6 +89,9 @@ def main() -> None:
     generator = AttackTextGenerator(args.seed)
     for sample_id in selected_ids:
         sample = by_id[sample_id]
+        source_path = Path(sample["image_path"])
+        if sha256(source_path) != sample["source_sha256"]:
+            raise ValueError(f"source image hash mismatch: {sample_id}")
         baseline_text, baseline_family = generator._causal_claim(sample["target_label"])
         baseline = render_attack(
             sample["image_path"],
@@ -104,6 +106,7 @@ def main() -> None:
             "claim_variant": "legacy",
             "artifact_style": "plaque",
             "scale_level": "legacy",
+            "rendered_sha256": sha256(Path(baseline.image_path)),
             "overlay_area_fraction": (
                 (baseline.bbox[2] - baseline.bbox[0]) * (baseline.bbox[3] - baseline.bbox[1])
                 / baseline_pixels

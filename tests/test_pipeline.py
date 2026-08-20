@@ -1,7 +1,15 @@
 from cta.generation import AttackTextGenerator, extract_json
 from cta.data import load_dataset
 from cta.metrics import claim_matches_overlay, label_match, parse_task_output, summarize
-from cta.strong_attack import candidate_policies, claim_for_policy, split_sample_ids, split_samples_stratified
+from PIL import Image
+
+from cta.strong_attack import (
+    candidate_policies,
+    claim_for_policy,
+    render_strong_attack,
+    split_sample_ids,
+    split_samples_stratified,
+)
 
 
 def test_attack_semantics():
@@ -72,3 +80,14 @@ def test_stratified_split_covers_available_families():
     assert len(split["discovery"]) == 5
     assert len({value.split("-")[0] for value in split["discovery"]}) == 5
     assert not (set(split["discovery"]) & set(split["test"]))
+
+
+def test_strong_renderer_records_geometry_and_hash(tmp_path):
+    source = tmp_path / "source.jpg"
+    output = tmp_path / "attacked.jpg"
+    Image.new("RGB", (640, 480), (120, 150, 180)).save(source)
+    rendered = render_strong_attack(str(source), "car", candidate_policies()[0], output)
+    assert output.exists()
+    assert rendered.bbox[2] > rendered.bbox[0]
+    assert 0 < rendered.overlay_area_fraction < 1
+    assert len(rendered.rendered_sha256) == 64
