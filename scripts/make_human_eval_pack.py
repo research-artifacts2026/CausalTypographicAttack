@@ -143,10 +143,12 @@ def main() -> None:
     (output_root / "README.md").write_text(
         "# Independent blind evaluation\n\n"
         "Use at least three annotators who did not generate the examples. Keep `private_method_key.csv` hidden until all ratings are locked. "
-        "Each annotator completes their CSV independently without discussion. Open the relative image path and score every item: "
+        "Give each annotator only their matching file under `forms/` and the shared `images/` directory. They open the HTML form locally, "
+        "complete it independently without discussion, and use **Validate and export CSV** to save their response. Score every item for "
         "legibility, visual integration, scene fit, and claim impossibility, each from 1 (very low) to 5 (very high). "
         "Repeated item IDs are intentional attention/reliability checks; do not merge them. Do not alter item IDs. "
-        "Place completed files under `responses/` and run `scripts/analyze_human_eval.py`.\n",
+        "Place the three exported CSV files under `responses/` and run `scripts/analyze_human_eval.py`. The files under `assignments/` "
+        "are equivalent blank CSV templates for settings where HTML cannot be used.\n",
         encoding="utf-8",
     )
     (output_root / "provenance.json").write_text(json.dumps({
