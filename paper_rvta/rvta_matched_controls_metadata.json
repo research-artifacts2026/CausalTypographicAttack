@@ -1,0 +1,11 @@
+{
+  "selection_rule": "lexicographically first frozen matched-test sample identifier",
+  "sample_id": "coco-000000000724",
+  "conditions": [
+    "rvta-area-matched-direct-control",
+    "v2-telemetry-plaque-compact",
+    "rvta-benign-true-evidence"
+  ],
+  "source_manifest_sha256": "f8719fbaf1d36371026a9c6f95a8b5e39085ea0f82ae71d46e3e812ce93e1a7c",
+  "figure_sha256": "debee18ac66a4d506e84733e9b6675de9f46ca823f67e696b2a9c30972bd6248"
+}

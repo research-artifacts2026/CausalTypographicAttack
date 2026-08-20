@@ -1,0 +1,1055 @@
+{
+  "schema_version": "cta/rvta-benchmark-evidence-v1",
+  "matched": {
+    "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_matched_coco_n100/render_manifest.jsonl",
+    "manifest_sha256": "f8719fbaf1d36371026a9c6f95a8b5e39085ea0f82ae71d46e3e812ce93e1a7c",
+    "samples": 100,
+    "conditions": [
+      "naive",
+      "none",
+      "rvta-area-matched-direct-control",
+      "rvta-benign-true-evidence",
+      "scene_coherent",
+      "v1-original-causal-plaque",
+      "v2-telemetry-plaque-compact"
+    ],
+    "models": {
+      "Qwen2.5-VL-3B": {
+        "conditions": {
+          "naive": {
+            "n": 100,
+            "object_accuracy": 0.38,
+            "grounded": 0.85,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.21
+          },
+          "none": {
+            "n": 100,
+            "object_accuracy": 0.44,
+            "grounded": null,
+            "expected_claim": null,
+            "mean_overlay_area_fraction": 0.0
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "object_accuracy": 0.69,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.84
+          },
+          "rvta-benign-true-evidence": {
+            "n": 100,
+            "object_accuracy": 0.67,
+            "grounded": 0.89,
+            "expected_claim": "TRUE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "true_acceptance": 0.88
+          },
+          "scene_coherent": {
+            "n": 100,
+            "object_accuracy": 0.36,
+            "grounded": 0.59,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.25
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "object_accuracy": 0.62,
+            "grounded": 0.98,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.17771013034354882,
+            "strict_asr": 0.72
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "object_accuracy": 0.6,
+            "grounded": 0.99,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.9
+          }
+        },
+        "paired_evidence_minus": {
+          "naive": {
+            "n": 100,
+            "mean": 0.69,
+            "ci95": [
+              0.6,
+              0.78
+            ],
+            "draws": 10000,
+            "seed": 20260901
+          },
+          "scene_coherent": {
+            "n": 100,
+            "mean": 0.65,
+            "ci95": [
+              0.55,
+              0.74
+            ],
+            "draws": 10000,
+            "seed": 20260902
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "mean": 0.18,
+            "ci95": [
+              0.1,
+              0.27
+            ],
+            "draws": 10000,
+            "seed": 20260903
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "mean": 0.06,
+            "ci95": [
+              -0.04,
+              0.16
+            ],
+            "draws": 10000,
+            "seed": 20260904
+          }
+        }
+      },
+      "Qwen2.5-VL-7B": {
+        "conditions": {
+          "naive": {
+            "n": 100,
+            "object_accuracy": 0.29,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.14
+          },
+          "none": {
+            "n": 100,
+            "object_accuracy": 0.47,
+            "grounded": null,
+            "expected_claim": null,
+            "mean_overlay_area_fraction": 0.0
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "object_accuracy": 0.84,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.01
+          },
+          "rvta-benign-true-evidence": {
+            "n": 100,
+            "object_accuracy": 0.78,
+            "grounded": 1.0,
+            "expected_claim": "TRUE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "true_acceptance": 0.98
+          },
+          "scene_coherent": {
+            "n": 100,
+            "object_accuracy": 0.4,
+            "grounded": 0.97,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.19
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "object_accuracy": 0.72,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.17771013034354882,
+            "strict_asr": 0.0
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "object_accuracy": 0.66,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.68
+          }
+        },
+        "paired_evidence_minus": {
+          "naive": {
+            "n": 100,
+            "mean": 0.54,
+            "ci95": [
+              0.42,
+              0.66
+            ],
+            "draws": 10000,
+            "seed": 20260911
+          },
+          "scene_coherent": {
+            "n": 100,
+            "mean": 0.49,
+            "ci95": [
+              0.36,
+              0.61
+            ],
+            "draws": 10000,
+            "seed": 20260912
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "mean": 0.68,
+            "ci95": [
+              0.59,
+              0.77
+            ],
+            "draws": 10000,
+            "seed": 20260913
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "mean": 0.67,
+            "ci95": [
+              0.58,
+              0.76
+            ],
+            "draws": 10000,
+            "seed": 20260914
+          }
+        }
+      },
+      "LLaVA-OV-1.5-8B": {
+        "conditions": {
+          "naive": {
+            "n": 100,
+            "object_accuracy": 0.3,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.5
+          },
+          "none": {
+            "n": 100,
+            "object_accuracy": 0.53,
+            "grounded": null,
+            "expected_claim": null,
+            "mean_overlay_area_fraction": 0.0
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "object_accuracy": 0.8,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.0
+          },
+          "rvta-benign-true-evidence": {
+            "n": 100,
+            "object_accuracy": 0.78,
+            "grounded": 1.0,
+            "expected_claim": "TRUE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "true_acceptance": 0.98
+          },
+          "scene_coherent": {
+            "n": 100,
+            "object_accuracy": 0.48,
+            "grounded": 0.79,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.25
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "object_accuracy": 0.75,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.17771013034354882,
+            "strict_asr": 0.0
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "object_accuracy": 0.71,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.12
+          }
+        },
+        "paired_evidence_minus": {
+          "naive": {
+            "n": 100,
+            "mean": -0.38,
+            "ci95": [
+              -0.5,
+              -0.26
+            ],
+            "draws": 10000,
+            "seed": 20260921
+          },
+          "scene_coherent": {
+            "n": 100,
+            "mean": -0.13,
+            "ci95": [
+              -0.24,
+              -0.02
+            ],
+            "draws": 10000,
+            "seed": 20260922
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "mean": 0.12,
+            "ci95": [
+              0.06,
+              0.19
+            ],
+            "draws": 10000,
+            "seed": 20260923
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "mean": 0.12,
+            "ci95": [
+              0.06,
+              0.19
+            ],
+            "draws": 10000,
+            "seed": 20260924
+          }
+        }
+      },
+      "InternVL2-8B": {
+        "conditions": {
+          "naive": {
+            "n": 100,
+            "object_accuracy": 0.39,
+            "grounded": 0.99,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.02
+          },
+          "none": {
+            "n": 100,
+            "object_accuracy": 0.45,
+            "grounded": null,
+            "expected_claim": null,
+            "mean_overlay_area_fraction": 0.0
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "object_accuracy": 0.89,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.0
+          },
+          "rvta-benign-true-evidence": {
+            "n": 100,
+            "object_accuracy": 0.8,
+            "grounded": 1.0,
+            "expected_claim": "TRUE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "true_acceptance": 0.96
+          },
+          "scene_coherent": {
+            "n": 100,
+            "object_accuracy": 0.44,
+            "grounded": 0.93,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.0,
+            "strict_asr": 0.03
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "object_accuracy": 0.78,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.17771013034354882,
+            "strict_asr": 0.0
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "object_accuracy": 0.63,
+            "grounded": 1.0,
+            "expected_claim": "FALSE",
+            "mean_overlay_area_fraction": 0.2025186162156383,
+            "strict_asr": 0.24
+          }
+        },
+        "paired_evidence_minus": {
+          "naive": {
+            "n": 100,
+            "mean": 0.22,
+            "ci95": [
+              0.13,
+              0.31
+            ],
+            "draws": 10000,
+            "seed": 20260931
+          },
+          "scene_coherent": {
+            "n": 100,
+            "mean": 0.21,
+            "ci95": [
+              0.12,
+              0.3
+            ],
+            "draws": 10000,
+            "seed": 20260932
+          },
+          "v1-original-causal-plaque": {
+            "n": 100,
+            "mean": 0.24,
+            "ci95": [
+              0.16,
+              0.33
+            ],
+            "draws": 10000,
+            "seed": 20260933
+          },
+          "rvta-area-matched-direct-control": {
+            "n": 100,
+            "mean": 0.24,
+            "ci95": [
+              0.16,
+              0.33
+            ],
+            "draws": 10000,
+            "seed": 20260934
+          }
+        }
+      }
+    },
+    "sources": [
+      {
+        "model": "Qwen2.5-VL-3B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_matched_qwen3_n100/predictions.jsonl",
+        "sha256": "f8a7cd30adbe295f22ad001f3e6bd71ff5f7511e29e0b51996e2d574b1ff261c"
+      },
+      {
+        "model": "Qwen2.5-VL-7B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_matched_qwen7_n100/predictions.jsonl",
+        "sha256": "c010e95892a4b12592d80a36783fef4e138b8a8b38be8f7015482c139f0d6fe7"
+      },
+      {
+        "model": "LLaVA-OV-1.5-8B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_matched_llava_n100/predictions.jsonl",
+        "sha256": "03b7a002d786547dbfd7afaacb5cf94b6949320e0fe2214d40541a56d0ad3657"
+      },
+      {
+        "model": "InternVL2-8B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_matched_internvl_n100/predictions.jsonl",
+        "sha256": "1d0e3cf26e6e7786ac77e4fff2ecfdd9a4d0a3fbc99b45a8d72aabbd1331a1b6"
+      }
+    ]
+  },
+  "held_out_factorial": {
+    "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_ablation_coco_n100/render_manifest.jsonl",
+    "manifest_sha256": "be8304f2d096d965ab7ac7241470f27059d34e772de4ca357e3b2bd0acfc6f23",
+    "samples": 100,
+    "candidate_policies": 24,
+    "models": {
+      "Qwen2.5-VL-7B": {
+        "cells": {
+          "v2-direct-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.05,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.04,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-compound-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.04,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.03,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-record-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-compound-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-telemetry-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.58,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.56,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.65,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-compound-large": {
+            "n": 100,
+            "strict_asr": 0.54,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.73,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.7,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.67,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.6,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          }
+        },
+        "factor_marginals": {
+          "claim": {
+            "direct": {
+              "n": 100,
+              "mean": 0.0225,
+              "ci95": [
+                0.01125,
+                0.03625
+              ],
+              "draws": 10000,
+              "seed": 20270901,
+              "policies": 8,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.22372612251235197
+            },
+            "telemetry": {
+              "n": 100,
+              "mean": 0.62875,
+              "ci95": [
+                0.54875,
+                0.7037812499999996
+              ],
+              "draws": 10000,
+              "seed": 20270902,
+              "policies": 8,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23802807394084435
+            },
+            "record": {
+              "n": 100,
+              "mean": 0.00375,
+              "ci95": [
+                0.0,
+                0.00875
+              ],
+              "draws": 10000,
+              "seed": 20270903,
+              "policies": 8,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.2476716459430317
+            }
+          },
+          "artifact": {
+            "plaque": {
+              "n": 100,
+              "mean": 0.24666666666666665,
+              "ci95": [
+                0.21666666666666665,
+                0.2766666666666666
+              ],
+              "draws": 10000,
+              "seed": 20270901,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "sensor": {
+              "n": 100,
+              "mean": 0.22,
+              "ci95": [
+                0.18833333333333332,
+                0.25
+              ],
+              "draws": 10000,
+              "seed": 20270902,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "certificate": {
+              "n": 100,
+              "mean": 0.205,
+              "ci95": [
+                0.17166666666666663,
+                0.24
+              ],
+              "draws": 10000,
+              "seed": 20270903,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "compound": {
+              "n": 100,
+              "mean": 0.20166666666666663,
+              "ci95": [
+                0.17166666666666663,
+                0.23004166666666606
+              ],
+              "draws": 10000,
+              "seed": 20270904,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            }
+          },
+          "scale": {
+            "compact": {
+              "n": 100,
+              "mean": 0.2325,
+              "ci95": [
+                0.2033333333333333,
+                0.2625
+              ],
+              "draws": 10000,
+              "seed": 20270901,
+              "policies": 12,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.19826332871815777
+            },
+            "large": {
+              "n": 100,
+              "mean": 0.20416666666666664,
+              "ci95": [
+                0.1758333333333333,
+                0.23166666666666663
+              ],
+              "draws": 10000,
+              "seed": 20270902,
+              "policies": 12,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.27468723287932756
+            }
+          }
+        },
+        "contrasts": {
+          "telemetry_minus_direct": {
+            "n": 100,
+            "mean": 0.60625,
+            "ci95": [
+              0.53125,
+              0.68125
+            ],
+            "draws": 10000,
+            "seed": 20270901
+          },
+          "compact_minus_large": {
+            "n": 100,
+            "mean": 0.028333333333333335,
+            "ci95": [
+              0.013333333333333334,
+              0.04333333333333334
+            ],
+            "draws": 10000,
+            "seed": 20270902
+          }
+        }
+      },
+      "LLaVA-OV-1.5-8B": {
+        "cells": {
+          "v2-direct-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-compound-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-direct-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.18578931241054067
+          },
+          "v2-direct-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.26166293261416324
+          },
+          "v2-record-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-compound-large": {
+            "n": 100,
+            "strict_asr": 0.01,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-record-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20759184238045794
+          },
+          "v2-record-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.0,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2877514495056055
+          },
+          "v2-telemetry-certificate-compact": {
+            "n": 100,
+            "strict_asr": 0.16,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-certificate-large": {
+            "n": 100,
+            "strict_asr": 0.09,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-compound-compact": {
+            "n": 100,
+            "strict_asr": 0.14,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-compound-large": {
+            "n": 100,
+            "strict_asr": 0.15,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-plaque-compact": {
+            "n": 100,
+            "strict_asr": 0.12,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-plaque-large": {
+            "n": 100,
+            "strict_asr": 0.09,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          },
+          "v2-telemetry-sensor-compact": {
+            "n": 100,
+            "strict_asr": 0.19,
+            "grounded": 0.99,
+            "mean_overlay_area_fraction": 0.20140883136347462
+          },
+          "v2-telemetry-sensor-large": {
+            "n": 100,
+            "strict_asr": 0.15,
+            "grounded": 1.0,
+            "mean_overlay_area_fraction": 0.2746473165182141
+          }
+        },
+        "factor_marginals": {
+          "claim": {
+            "direct": {
+              "n": 100,
+              "mean": 0.00375,
+              "ci95": [
+                0.0,
+                0.01
+              ],
+              "draws": 10000,
+              "seed": 20271001,
+              "policies": 8,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.22372612251235197
+            },
+            "telemetry": {
+              "n": 100,
+              "mean": 0.13625,
+              "ci95": [
+                0.08875,
+                0.19
+              ],
+              "draws": 10000,
+              "seed": 20271002,
+              "policies": 8,
+              "grounded": 0.99875,
+              "mean_overlay_area_fraction": 0.23802807394084435
+            },
+            "record": {
+              "n": 100,
+              "mean": 0.0025,
+              "ci95": [
+                0.0,
+                0.0075
+              ],
+              "draws": 10000,
+              "seed": 20271003,
+              "policies": 8,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.2476716459430317
+            }
+          },
+          "artifact": {
+            "plaque": {
+              "n": 100,
+              "mean": 0.03666666666666667,
+              "ci95": [
+                0.021666666666666664,
+                0.05333333333333333
+              ],
+              "draws": 10000,
+              "seed": 20271001,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "sensor": {
+              "n": 100,
+              "mean": 0.056666666666666664,
+              "ci95": [
+                0.03666666666666667,
+                0.08
+              ],
+              "draws": 10000,
+              "seed": 20271002,
+              "policies": 6,
+              "grounded": 0.9983333333333333,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "certificate": {
+              "n": 100,
+              "mean": 0.045,
+              "ci95": [
+                0.026666666666666665,
+                0.06666666666666667
+              ],
+              "draws": 10000,
+              "seed": 20271003,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            },
+            "compound": {
+              "n": 100,
+              "mean": 0.05166666666666666,
+              "ci95": [
+                0.03333333333333333,
+                0.07166666666666666
+              ],
+              "draws": 10000,
+              "seed": 20271004,
+              "policies": 6,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.23647528079874267
+            }
+          },
+          "scale": {
+            "compact": {
+              "n": 100,
+              "mean": 0.05333333333333333,
+              "ci95": [
+                0.0325,
+                0.07583333333333334
+              ],
+              "draws": 10000,
+              "seed": 20271001,
+              "policies": 12,
+              "grounded": 0.9991666666666666,
+              "mean_overlay_area_fraction": 0.19826332871815777
+            },
+            "large": {
+              "n": 100,
+              "mean": 0.04166666666666667,
+              "ci95": [
+                0.024166666666666666,
+                0.06
+              ],
+              "draws": 10000,
+              "seed": 20271002,
+              "policies": 12,
+              "grounded": 1.0,
+              "mean_overlay_area_fraction": 0.27468723287932756
+            }
+          }
+        },
+        "contrasts": {
+          "telemetry_minus_direct": {
+            "n": 100,
+            "mean": 0.1325,
+            "ci95": [
+              0.085,
+              0.18375
+            ],
+            "draws": 10000,
+            "seed": 20271901
+          },
+          "compact_minus_large": {
+            "n": 100,
+            "mean": 0.011666666666666665,
+            "ci95": [
+              -0.0058333333333333345,
+              0.03083333333333333
+            ],
+            "draws": 10000,
+            "seed": 20271902
+          }
+        }
+      }
+    },
+    "sources": [
+      {
+        "model": "Qwen2.5-VL-7B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_ablation_qwen7_n100/predictions.jsonl",
+        "sha256": "fb66ce521b52fe4d2b46d2d99a4752b61e02bd3000e8cbdd379f65e088576be7"
+      },
+      {
+        "model": "LLaVA-OV-1.5-8B",
+        "path": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_ablation_llava_n100/predictions.jsonl",
+        "sha256": "2f415b38f3dd5b784f6891fe696cb79026fba173c71d46de08f5071e904375ad"
+      }
+    ]
+  }
+}
