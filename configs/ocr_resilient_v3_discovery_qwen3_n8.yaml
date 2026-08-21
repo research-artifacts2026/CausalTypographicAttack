@@ -1,0 +1,11 @@
+source_log: runs/ocr_resilient_scenetap_v3_discovery_n8/conditions.jsonl
+output_root: runs/ocr_resilient_scenetap_v3_discovery_qwen3_n8
+expected_samples: 8
+attacks_per_sample: 8
+model:
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 160
+  min_pixels: 200704
+  max_pixels: 602112
