@@ -93,6 +93,13 @@ def main() -> None:
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--discovery-root", type=Path, required=True)
     parser.add_argument("--test-root", type=Path, required=True)
+    parser.add_argument(
+        "--additional-root",
+        type=Path,
+        action="append",
+        default=[],
+        help="Optional extra immutable condition root, audited without changing discovery/test semantics.",
+    )
     args = parser.parse_args()
 
     registry = json.loads(args.registry.read_text())
@@ -105,7 +112,15 @@ def main() -> None:
         "discovery_test_overlap": len(discovery_ids & test_ids),
         "discovery": discovery,
         "test": test,
+        "additional": {},
     }
+    for root in args.additional_root:
+        summary, ids = audit_split(root, reserved)
+        result["additional"][str(root)] = {
+            **summary,
+            "overlap_with_discovery": len(ids & discovery_ids),
+            "overlap_with_test": len(ids & test_ids),
+        }
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
