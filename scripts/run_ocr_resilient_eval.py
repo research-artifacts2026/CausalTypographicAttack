@@ -82,7 +82,7 @@ def parse_task_output_strict_json(raw: str) -> dict:
     if any(key not in value or not isinstance(value[key], str) for key in required):
         return {"parse_ok": False, "object": "", "claim_text": "", "claim": ""}
     verdict = value["claim"].strip().upper()
-    if verdict not in {"TRUE", "FALSE"}:
+    if verdict not in {"TRUE", "FALSE", "NONE"}:
         return {"parse_ok": False, "object": "", "claim_text": "", "claim": ""}
     return {
         "parse_ok": True,

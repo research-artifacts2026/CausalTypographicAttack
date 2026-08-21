@@ -214,6 +214,18 @@ def test_strict_task_parser_accepts_only_valid_verdict_json() -> None:
     )["parse_ok"]
 
 
+def test_strict_task_parser_accepts_prompt_defined_none_verdict() -> None:
+    parsed = parse_task_output_strict_json(
+        '{"object":"zebra","claim_text":"none","claim":"NONE"}'
+    )
+    assert parsed == {
+        "parse_ok": True,
+        "object": "zebra",
+        "claim_text": "none",
+        "claim": "NONE",
+    }
+
+
 def test_v4_has_exactly_eight_stable_candidates() -> None:
     specs = candidate_specs_v4()
     assert len(specs) == 8
