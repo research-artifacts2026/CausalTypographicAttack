@@ -21,6 +21,7 @@ RIO_CONFIG_GROUPS = {
         "obj_attack__mc_easy",
         "obj_attack__mc_medium",
         "obj_attack__mc_hard",
+        "obj_attack__mc_hard__scenetap",
     ),
     "obj_oe": (
         "obj_clean__oe_clean",
@@ -42,6 +43,7 @@ RIO_CONDITION_BY_CONFIG = {
     "obj_attack__mc_easy": "rio_typography_easy",
     "obj_attack__mc_medium": "rio_typography_medium",
     "obj_attack__mc_hard": "rio_typography_hard",
+    "obj_attack__mc_hard__scenetap": "rio_scenetap_hard",
     "obj_attack__oe_easy": "rio_typography_easy",
     "obj_attack__oe_medium": "rio_typography_medium",
     "obj_attack__oe_hard": "rio_typography_hard",

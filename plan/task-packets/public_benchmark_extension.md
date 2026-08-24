@@ -20,7 +20,8 @@ denominator or threat model.
 - Split: official `val`.
 - Selection: 100 question IDs with smallest `SHA256(seed:question_id)`, seed
   20260824, resolved at a recorded Hugging Face dataset revision.
-- Official conditions: clean plus RIO easy/medium/hard typography.
+- Official conditions: clean, RIO easy/medium/hard typography, and the current
+  public precomputed hard SceneTAP validation configuration.
 - Added matched conditions: naive typography, in-house scene-coherent plaque,
   direct causal claim, and Evidence-CTA.
 - Target: the official hard attack word when it corresponds to a wrong MC
@@ -47,12 +48,10 @@ denominator or threat model.
 
 ## SceneTAP decision
 
-The current Hugging Face dataset card lists eleven RIO configurations and does
-not list the `*__scenetap` variants mentioned by the construction README.
-Therefore, no precomputed SceneTAP number is assumed available. A full
-SceneTAP row is admitted only after either (a) the public variant is located
-and pinned or (b) the official planner is run with its required dependencies.
-The in-house plaque remains labeled in-house.
+The current Hugging Face dataset card exposes
+`obj_attack__mc_hard__scenetap` for validation. It is used verbatim and labeled
+RIO SceneTAP (precomputed). The `scene_coherent` condition remains a separate
+in-house plaque and must not be relabeled as SceneTAP.
 
 ## Human evaluation gate
 

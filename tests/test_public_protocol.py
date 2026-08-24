@@ -4,7 +4,8 @@ from PIL import Image
 
 from cta.question_bench import build_spec, render_condition
 from cta.rio_bench import (
-    prediction_letter, rio_mc_score, stable_reservoir, target_letter_from_attack_word,
+    RIO_CONDITION_BY_CONFIG, prediction_letter, rio_mc_score, stable_reservoir,
+    target_letter_from_attack_word,
 )
 from cta.simulated_capture import PROFILES, simulate_capture
 from cta.run_validation import file_sha256, validate_question_run
@@ -43,6 +44,10 @@ def test_public_selection_is_order_invariant():
     first = [row["question_id"] for row in stable_reservoir(rows, 5, 11)]
     second = [row["question_id"] for row in stable_reservoir(reversed(rows), 5, 11)]
     assert first == second
+
+
+def test_official_scenetap_condition_is_registered():
+    assert RIO_CONDITION_BY_CONFIG["obj_attack__mc_hard__scenetap"] == "rio_scenetap_hard"
 
 
 def test_simulated_capture_is_deterministic(tmp_path: Path):

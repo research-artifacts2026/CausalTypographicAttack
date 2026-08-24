@@ -39,7 +39,20 @@ def load_stream(repo_id: str, config: str, split: str, revision: str):
         from datasets import load_dataset
     except ImportError as exc:
         raise RuntimeError("Install `datasets` before materializing RIO-Bench") from exc
-    return load_dataset(repo_id, config, split=split, revision=revision, streaming=True)
+    try:
+        return load_dataset(
+            repo_id, config, split=split, revision=revision, streaming=True,
+        )
+    except ValueError as exc:
+        # The Hub stores each advertised config in a top-level data directory,
+        # while some `datasets` releases expose only a synthetic `default`
+        # BuilderConfig. Loading the same pinned files by data_dir preserves
+        # config and revision semantics without mixing repository subsets.
+        if "BuilderConfig" not in str(exc) or "not found" not in str(exc):
+            raise
+        return load_dataset(
+            repo_id, data_dir=config, split=split, revision=revision, streaming=True,
+        )
 
 
 def resolve_revision(repo_id: str, revision: str) -> str:
@@ -177,6 +190,7 @@ def main() -> None:
         "resolved_revision": revision,
         "split": args.split,
         "configs": list(configs),
+        "loader_policy": "named Hub config; exact top-level data_dir fallback when the client exposes only BuilderConfig default",
         "selection": "globally smallest SHA256(seed:question_id) on clean config",
         "seed": args.seed,
         "questions": len(selected),

@@ -556,9 +556,10 @@ PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
   --output runs/rio_objmc_qwen3_n100/official_rio_score.json
 ```
 
-The manifest contains clean, official RIO easy/medium/hard typography, naive
-typography, the in-house plaque, direct causal text, and Evidence-CTA. Every
-condition uses the same selected question IDs. Results are conditioned on the
+The manifest contains clean, official RIO easy/medium/hard typography, the
+current official precomputed hard SceneTAP configuration, naive typography,
+the in-house plaque, direct causal text, and Evidence-CTA. Every condition uses
+the same selected question IDs. Results are conditioned on the
 model answering the clean image correctly. `score_rio_official.py` refuses
 unpaired conditions and replays raw outputs through the pinned public RIO
 Obj-MC evaluator. `validate_question_run.py` additionally checks exact
@@ -567,10 +568,10 @@ completed provenance record. Table generation is permitted only after that
 audit and official-score replay succeed. Expand `--limit` to 300--500 only
 after all four 100-question model runs pass these checks.
 
-The RIO construction README mentions SceneTAP variants, but the current public
-dataset card and evaluation template do not list those configs. Until a public
-variant is pinned or the full SoM + TextDiffuser-2 + multimodal planner is run,
-the `scene_coherent` row must remain labeled **in-house plaque**, not SceneTAP.
+The official dataset card now lists `obj_attack__mc_hard__scenetap` for the
+validation split. That row is labeled **RIO SceneTAP (precomputed)** and kept
+separate from the `scene_coherent` in-house plaque. The repository does not
+re-run or modify SceneTAP's planner for this row.
 
 ## Simulated camera degradation
 
