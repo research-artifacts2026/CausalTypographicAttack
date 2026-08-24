@@ -1,0 +1,12 @@
+source_log: runs/budgeted_cta_prompt_confirm_voc_n100/render_manifest.jsonl
+output_root: runs/budgeted_cta_hardened_confirm_voc_qwen3_n100
+expected_samples: 100
+expected_styles: 9
+task_prompt_profile: hardened-world-verification
+model:
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  min_pixels: 200704
+  max_pixels: 602112
