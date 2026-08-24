@@ -1,0 +1,11 @@
+source_log: runs/budgeted_cta_final_voc_n100/render_manifest.jsonl
+output_root: runs/budgeted_cta_final_voc_qwen7_n100
+expected_samples: 100
+expected_styles: 9
+model:
+  name_or_path: /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  min_pixels: 200704
+  max_pixels: 602112

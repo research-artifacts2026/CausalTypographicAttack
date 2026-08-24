@@ -136,10 +136,15 @@ def split_sample_ids(sample_ids: list[str], seed: int, discovery_n: int, test_n:
 
 
 def split_samples_stratified(
-    samples: list[dict], seed: int, discovery_n: int, test_n: int, ablation_n: int = 0,
+    samples: list[dict],
+    seed: int,
+    discovery_n: int,
+    test_n: int,
+    ablation_n: int = 0,
+    budgeted_test_n: int = 0,
 ) -> dict[str, list[str]]:
     """Hash-order within violation family, then deterministic round-robin across families."""
-    if discovery_n < 0 or test_n < 0 or ablation_n < 0:
+    if min(discovery_n, test_n, ablation_n, budgeted_test_n) < 0:
         raise ValueError("split sizes must be non-negative")
     grouped: dict[str, list[str]] = {}
     for sample in samples:
@@ -161,14 +166,16 @@ def split_samples_stratified(
                 progressed = True
         if not progressed:
             break
-    requested = discovery_n + test_n + ablation_n
+    requested = discovery_n + test_n + ablation_n + budgeted_test_n
     if requested > len(ordered):
         raise ValueError(f"requested {requested} ids from only {len(ordered)} unique samples")
     test_end = discovery_n + test_n
+    ablation_end = test_end + ablation_n
     return {
         "discovery": ordered[:discovery_n],
         "test": ordered[discovery_n:test_end],
-        "ablation": ordered[test_end:test_end + ablation_n],
+        "ablation": ordered[test_end:ablation_end],
+        "budgeted_test": ordered[ablation_end:ablation_end + budgeted_test_n],
     }
 
 

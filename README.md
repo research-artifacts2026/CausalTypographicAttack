@@ -273,6 +273,72 @@ After every configured log is complete, generate evidence and LaTeX tables. The 
 
 `dataset_cards/rvta_bench_v1.md` records the planned COCO/VOC/BDD100K/WHOOPS! slices and release boundary. BDD100K and WHOOPS! data are not currently present on this server, so the repository records them as pending rather than fabricating manifests or results. Human JSONL responses must pass `scripts/validate_rvta_annotations.py --minimum-annotators 3` before aggregation.
 
+### Query-budgeted Evidence CTA
+
+The query-budgeted experiment freezes an ordered sequence of eight presentation policies on the 100-image COCO ablation split, then evaluates that sequence without modification on disjoint final sets. Policy selection uses strict success (parseable output, the complete normalized claim transcribed contiguously, and verdict `TRUE`) pooled over Qwen2.5-VL-7B and LLaVA-OneVision-1.5-8B. Final ASR is conditioned only on correct clean-image object recognition; naturally occurring scene text in a clean image is not treated as an attack failure.
+
+```bash
+cd /disk2/fangxinyue/causal_typographic_attack
+
+# Freeze the sequence from development-only logs.
+/disk2/fangxinyue/.venv/bin/python scripts/select_budgeted_policy_sequence.py \
+  --run Qwen-7B=runs/rvta_ablation_qwen7_n100 \
+  --run LLaVA=runs/rvta_ablation_llava_n100 \
+  --split-manifest runs/rvta_ablation_coco_n100/split_manifest.json \
+  --budget 8 \
+  --output configs/budgeted_policy_sequence_qwen7_llava_k8.json
+
+# Render the untouched final COCO partition (80 images, clean + legacy + 8 policies).
+/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+  --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
+  --output-root runs/budgeted_cta_final_coco_n80 \
+  --split budgeted_test --seed 20260820 \
+  --discovery-samples 20 --test-samples 100 --ablation-samples 100 \
+  --budgeted-test-samples 80 \
+  --policy-file configs/budgeted_policy_sequence_qwen7_llava_k8.json
+
+# Example model run; use the corresponding checked-in config for each checkpoint.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_typography_diversity_eval.py \
+  --config configs/budgeted_final_qwen3_n80.yaml
+
+# Refuses incomplete or mismatched runs and generates JSON, CSV, and LaTeX from logs.
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_budgeted_attack.py \
+  --run Qwen-3B=runs/budgeted_cta_final_qwen3_n80 \
+  --run Qwen-7B=runs/budgeted_cta_final_qwen7_n80 \
+  --run LLaVA=runs/budgeted_cta_final_llava_n80 \
+  --run InternVL=runs/budgeted_cta_final_internvl_n80 \
+  --policy-file configs/budgeted_policy_sequence_qwen7_llava_k8.json \
+  --render-root runs/budgeted_cta_final_coco_n80 \
+  --output-root runs/budgeted_cta_final_coco_n80_analysis
+```
+
+The analyzer reports strict conditional ASR at budgets 1, 2, 4, and 8, Wilson intervals, mean queries with failures charged the active budget, and exact McNemar tests against the legacy one-query CTA. The 100-image second VOC partition tests cross-dataset transfer. A third disjoint VOC partition is reserved for the separately registered neutral-truth-verification prompt (`configs/budgeted_neutral_prompt_preregistration.json`). Neutral and hardened prompt results are different threat models and must never be merged into one main-table number.
+
+### ChatGPT-guided adaptive typography attack
+
+`scripts/run_adaptive_attack.py` implements a separate query-based threat model. GPT-5.6 Sol receives the current image and the target model's previous black-box object answer, chooses a wrong COCO label plus a constrained typography design, and asks the deterministic PIL renderer to make the next candidate. The loop stops at the first strict success or after the configured round budget. It never changes source pixels outside the logged overlay boxes.
+
+A success is counted only when the target model identifies the clean source correctly, returns parseable JSON after attack, and names the wrong label selected for that exact round. Clean errors and parse failures are not attack successes. The selected images are drawn deterministically from identifiers outside the prior discovery, frozen test, and factorial-ablation partitions. Because the optimizer sees per-image answers, these results must be reported as an adaptive query attack, never mixed with the fixed-policy RVTA tables.
+
+```bash
+cd /disk2/fangxinyue/causal_typographic_attack
+
+# Five-image bounded smoke test: at most 8 design rounds per clean-correct image.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_adaptive_attack.py \
+  --config configs/adaptive_chatgpt_qwen7_smoke_n5.yaml
+
+# Run only after the smoke log is complete and audited.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_adaptive_attack.py \
+  --config configs/adaptive_chatgpt_qwen7_n50.yaml
+```
+
+The designer credential is read only from `OPENAI_API_KEY`; it is not stored in YAML, prompts, logs, exceptions, or provenance. Both configurations set `store: false` through the OpenAI adapter and impose an explicit total query cap. Outputs are append-only `attempts.jsonl`, sample-level `sample_results.jsonl`/CSV, a deterministic `selection_manifest.json`, `provenance.json`, rendered round images, and `summary.json`. Interrupted runs resume completed samples without rewriting earlier attempts. Do not report a success rate until every selected sample has a terminal sample-result row.
+
+For pipeline validation when the external API is unavailable, the same runner also accepts a local LVLM designer. `configs/adaptive_qwen3_designer_qwen7_smoke_n5.yaml` and `configs/adaptive_qwen3_designer_qwen7_n50.yaml` use Qwen2.5-VL-3B as the designer and Qwen2.5-VL-7B as the black-box target. These logs must be labeled **local Qwen designer**, never ChatGPT or GPT-5.6 Sol. They validate the adaptive protocol and provide an attacker-model ablation, but do not substitute for the registered GPT-5.6 Sol run.
+
 ### GPT-5.6 Sol API evaluation
 
 The `openai_responses` adapter sends local images to the official Responses API as data URLs, uses `store: false`, and reads the credential only from `OPENAI_API_KEY`. It records the returned model identifier, response ID, status, and token usage, but never the credential. A positive `max_queries` value is mandatory and enforced before every request. API results apply to the exact API model/configuration and must not be described as a compromise of the ChatGPT product.

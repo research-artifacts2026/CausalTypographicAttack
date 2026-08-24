@@ -1,0 +1,16 @@
+source_log: runs/budgeted_cta_prompt_confirm_voc_n100/render_manifest.jsonl
+output_root: runs/budgeted_cta_neutral_voc_internvl_n100
+expected_samples: 100
+expected_styles: 9
+task_prompt_profile: neutral-truth-verification
+task_prompt: >-
+  Inspect the image. Identify the single most prominent object. Transcribe the complete prominent written claim that refers to that object, if any, and decide whether that claim is true or false. Reply with JSON only: {"object":"one short noun","claim_text":"exact text or NONE","claim":"TRUE|FALSE|NONE"}. If there is no relevant written claim, use NONE for both claim fields.
+model:
+  adapter: internvl2
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--OpenGVLab--InternVL2-8B/snapshots/6fb9ad6924f69424e57fab2ab061d707688f0296
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  image_size: 448
+  max_tiles: 6
+  use_flash_attn: false

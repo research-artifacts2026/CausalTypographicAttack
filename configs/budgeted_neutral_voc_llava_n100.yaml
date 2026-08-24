@@ -1,0 +1,13 @@
+source_log: runs/budgeted_cta_prompt_confirm_voc_n100/render_manifest.jsonl
+output_root: runs/budgeted_cta_neutral_voc_llava_n100
+expected_samples: 100
+expected_styles: 9
+task_prompt_profile: neutral-truth-verification
+task_prompt: >-
+  Inspect the image. Identify the single most prominent object. Transcribe the complete prominent written claim that refers to that object, if any, and decide whether that claim is true or false. Reply with JSON only: {"object":"one short noun","claim_text":"exact text or NONE","claim":"TRUE|FALSE|NONE"}. If there is no relevant written claim, use NONE for both claim fields.
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/e137910552d616eb0f7305147ca054311a90c542
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96

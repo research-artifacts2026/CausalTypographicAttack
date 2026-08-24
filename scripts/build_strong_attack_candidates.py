@@ -65,11 +65,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--split", choices=("discovery", "test", "ablation"), required=True)
+    parser.add_argument(
+        "--split", choices=("discovery", "test", "ablation", "budgeted_test"), required=True,
+    )
     parser.add_argument("--seed", type=int, default=20260820)
     parser.add_argument("--discovery-samples", type=int, default=12)
     parser.add_argument("--test-samples", type=int, default=100)
     parser.add_argument("--ablation-samples", type=int, default=0)
+    parser.add_argument("--budgeted-test-samples", type=int, default=0)
     parser.add_argument("--policy-file", type=Path)
     args = parser.parse_args()
 
@@ -77,21 +80,37 @@ def main() -> None:
     samples = json.loads(source_manifest.read_text(encoding="utf-8"))
     by_id = {row["sample_id"]: row for row in samples}
     splits = split_samples_stratified(
-        samples, args.seed, args.discovery_samples, args.test_samples, args.ablation_samples,
+        samples,
+        args.seed,
+        args.discovery_samples,
+        args.test_samples,
+        args.ablation_samples,
+        args.budgeted_test_samples,
     )
     selected_ids = splits[args.split]
     output_root = args.output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
 
+    selection = None
     if args.split in {"discovery", "ablation"}:
         policies = candidate_policies()
     else:
         if not args.policy_file:
-            raise ValueError("test rendering requires --policy-file frozen on discovery data")
+            raise ValueError(f"{args.split} rendering requires --policy-file")
         selection = json.loads(args.policy_file.read_text(encoding="utf-8"))
-        if selection.get("split") != "discovery":
-            raise ValueError("policy file is not marked as discovery-only")
-        policies = [policy_by_id(selection["selected_policy_id"])]
+        if args.split == "test":
+            if selection.get("split") != "discovery":
+                raise ValueError("test policy file is not marked as discovery-only")
+            policies = [policy_by_id(selection["selected_policy_id"])]
+        else:
+            if selection.get("selection_split") != "ablation":
+                raise ValueError("budgeted-test policy file must be frozen on the ablation split")
+            selected_policy_ids = selection.get("selected_policy_ids", [])
+            if not selected_policy_ids:
+                raise ValueError("budgeted-test policy file has no selected_policy_ids")
+            if len(selected_policy_ids) != len(set(selected_policy_ids)):
+                raise ValueError("budgeted-test policy sequence contains duplicates")
+            policies = [policy_by_id(policy_id) for policy_id in selected_policy_ids]
 
     rows: list[dict] = []
     generator = AttackTextGenerator(args.seed)
@@ -100,6 +119,20 @@ def main() -> None:
         source_path = Path(sample["image_path"])
         if sha256(source_path) != sample["source_sha256"]:
             raise ValueError(f"source image hash mismatch: {sample_id}")
+        if args.split == "budgeted_test":
+            append_row(
+                rows,
+                sample,
+                "none",
+                "",
+                str(source_path.resolve()),
+                {
+                    "policy_id": "none",
+                    "condition_role": "clean control",
+                    "rendered_sha256": sample["source_sha256"],
+                    "overlay_area_fraction": 0.0,
+                },
+            )
         baseline_text, baseline_family = generator._causal_claim(sample["target_label"])
         baseline = render_attack(
             sample["image_path"],
@@ -139,19 +172,23 @@ def main() -> None:
         "discovery_ids": splits["discovery"],
         "test_ids": splits["test"],
         "ablation_ids": splits["ablation"],
+        "budgeted_test_ids": splits["budgeted_test"],
         "active_split": args.split,
         "active_ids": selected_ids,
         "selection": "SHA-256 order within violation family, then deterministic family round-robin",
     }
     (output_root / "split_manifest.json").write_text(json.dumps(split_record, indent=2) + "\n", encoding="utf-8")
     provenance = {
-        "schema_version": "cta/strong-candidate-render-v1",
+        "schema_version": "cta/strong-candidate-render-v2",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "git_head": git_head(),
         "host": platform.node(),
         "split": args.split,
         "samples": len(selected_ids),
         "candidate_policies": [policy.to_dict() for policy in policies],
+        "budgeted_policy_order": (
+            selection.get("selected_policy_ids") if args.split == "budgeted_test" else None
+        ),
         "baseline_policy": BASELINE_POLICY_ID,
         "rendered_rows": len(rows),
         "manifest": str(manifest_path),

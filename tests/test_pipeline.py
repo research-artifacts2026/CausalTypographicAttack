@@ -86,6 +86,29 @@ def test_registered_ablation_split_is_disjoint():
     assert not (set(split["test"]) & set(split["ablation"]))
 
 
+def test_registered_budgeted_test_split_is_disjoint():
+    samples = [
+        {"sample_id": f"car-{index:03d}", "target_label": "car"}
+        for index in range(60)
+    ] + [
+        {"sample_id": f"dog-{index:03d}", "target_label": "dog"}
+        for index in range(60)
+    ]
+    split = split_samples_stratified(
+        samples,
+        seed=23,
+        discovery_n=10,
+        test_n=20,
+        ablation_n=30,
+        budgeted_test_n=40,
+    )
+    assert len(split["budgeted_test"]) == 40
+    names = ("discovery", "test", "ablation", "budgeted_test")
+    for index, left in enumerate(names):
+        for right in names[index + 1:]:
+            assert not (set(split[left]) & set(split[right]))
+
+
 def test_stratified_split_covers_available_families():
     samples = [
         {"sample_id": "car-1", "target_label": "car"},
