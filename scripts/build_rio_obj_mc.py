@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 
+# `hf_xet` can leave background callbacks alive when a short streaming process
+# exits, producing a fatal interpreter-finalization error after all artifacts
+# have been written. Plain Hub HTTP range requests are sufficient for this
+# bounded public pilot and give a clean, auditable exit status.
+os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cta.question_bench import CONDITIONS, build_spec, file_sha256, render_condition
@@ -212,7 +218,7 @@ def main() -> None:
         "manifest": str(manifest),
         "manifest_sha256": file_sha256(manifest),
         "metric_boundary": "Final numbers require the official RIO evaluator; generated CTA conditions preserve the original Obj-MC question and hard-condition target.",
-        "scene_tap_boundary": "The public HF card does not list SceneTAP configs; scene_coherent remains an in-house plaque and is not full SceneTAP.",
+        "scene_tap_boundary": "The official precomputed obj_attack__mc_hard__scenetap validation config is included verbatim; scene_coherent remains a separate in-house plaque.",
     }
     (output_root / "provenance.json").write_text(
         json.dumps(provenance, indent=2) + "\n", encoding="utf-8",
