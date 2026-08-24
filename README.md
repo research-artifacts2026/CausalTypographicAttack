@@ -543,7 +543,7 @@ PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
   --config configs/question_rio_objmc_llava_n100.yaml
 
 CUDA_VISIBLE_DEVICES=3 \
-PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
 /disk2/fangxinyue/.venv/bin/python scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_internvl_n100.yaml
 

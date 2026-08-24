@@ -6,7 +6,7 @@ scoring_profile: rio_obj_mc
 seed: 42
 model:
   adapter: qwen25vl
-  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-7B-Instruct/snapshots/d121c052f5e4c1d4063b0477404e83f975b3f667
+  name_or_path: /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
   device: cuda:0
   dtype: bfloat16
   min_pixels: 200704
