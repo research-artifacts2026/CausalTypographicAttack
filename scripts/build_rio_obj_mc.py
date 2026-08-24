@@ -50,8 +50,10 @@ def load_stream(repo_id: str, config: str, split: str, revision: str):
         # config and revision semantics without mixing repository subsets.
         if "BuilderConfig" not in str(exc) or "not found" not in str(exc):
             raise
+        fallback_split = "validation" if split == "val" else split
         return load_dataset(
-            repo_id, data_dir=config, split=split, revision=revision, streaming=True,
+            repo_id, data_dir=config, split=fallback_split,
+            revision=revision, streaming=True,
         )
 
 
@@ -189,6 +191,7 @@ def main() -> None:
         "requested_revision": args.revision,
         "resolved_revision": revision,
         "split": args.split,
+        "data_dir_split_alias": {"val": "validation"},
         "configs": list(configs),
         "loader_policy": "named Hub config; exact top-level data_dir fallback when the client exposes only BuilderConfig default",
         "selection": "globally smallest SHA256(seed:question_id) on clean config",
