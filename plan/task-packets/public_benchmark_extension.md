@@ -26,8 +26,13 @@ denominator or threat model.
 - Target: the official hard attack word when it corresponds to a wrong MC
   option; deterministic wrong option otherwise.
 - Queries: one original question per condition, no response-adaptive search.
+- Models: Qwen2.5-VL-3B/7B, LLaVA-OneVision-1.5-8B, and InternVL2-8B with
+  configs `question_rio_objmc_{qwen3,qwen7,llava,internvl}_n100.yaml`.
 - Primary metric: official RIO Obj-MC accuracy and clean-conditioned ASR.
 - Secondary: targeted ASR and exact paired McNemar tests.
+- Completeness gate: `scripts/validate_question_run.py` must confirm exact
+  manifest/prediction key equality, complete provenance, and matching hashes
+  before official scoring or paper table generation.
 - Expansion gate: run 100 first; expand to 300--500 only after complete logs,
   valid provenance, and no condition-pairing failures.
 

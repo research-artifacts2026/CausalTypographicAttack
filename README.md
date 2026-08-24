@@ -12,7 +12,9 @@ not directly comparable with public VQA attack leaderboards. The separate
 question-conditioned runner preserves the original benchmark question and
 scores every attacked condition only on examples answered correctly on the
 clean image. All methods receive the same deterministic target answer and one
-greedy model query per question-condition.
+model query per question-condition. Generation settings are config-locked and
+recorded; RIO uses its published near-greedy sampling setting
+(`do_sample=true`, `temperature=0.001`, seed 42).
 
 Input uses the public SceneTAP-style JSON list fields `question_id`, `image`,
 `text`, and `answer`. Optional `answers`, `choices`, `distractors`,
@@ -534,6 +536,20 @@ CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
   scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_qwen7_n100.yaml
 
+CUDA_VISIBLE_DEVICES=2 \
+PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_question_benchmark.py \
+  --config configs/question_rio_objmc_llava_n100.yaml
+
+CUDA_VISIBLE_DEVICES=3 \
+PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_question_benchmark.py \
+  --config configs/question_rio_objmc_internvl_n100.yaml
+
+/disk2/fangxinyue/.venv/bin/python scripts/validate_question_run.py \
+  --config configs/question_rio_objmc_qwen3_n100.yaml \
+  --output runs/rio_objmc_qwen3_n100/completeness_audit.json
+
 /disk2/fangxinyue/.venv/bin/python scripts/score_rio_official.py \
   --predictions runs/rio_objmc_qwen3_n100/predictions.jsonl \
   --rio-repo /disk2/fangxinyue/RIO-Bench \
@@ -545,8 +561,11 @@ typography, the in-house plaque, direct causal text, and Evidence-CTA. Every
 condition uses the same selected question IDs. Results are conditioned on the
 model answering the clean image correctly. `score_rio_official.py` refuses
 unpaired conditions and replays raw outputs through the pinned public RIO
-Obj-MC evaluator. Expand `--limit` to 300--500 only after the 100-question run
-has complete prediction and provenance logs.
+Obj-MC evaluator. `validate_question_run.py` additionally checks exact
+question-condition coverage, duplicate keys, hashes, scoring fields, and the
+completed provenance record. Table generation is permitted only after that
+audit and official-score replay succeed. Expand `--limit` to 300--500 only
+after all four 100-question model runs pass these checks.
 
 The RIO construction README mentions SceneTAP variants, but the current public
 dataset card and evaluation template do not list those configs. Until a public

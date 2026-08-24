@@ -14,6 +14,7 @@
 
 - [x] Freeze RIO-Bench, SceneTAP, REALM, and PPIA public-code commits and threat-model boundaries.
 - [x] Implement RIO Obj-MC materialization, question-conditioned CTA generation, official-score replay, and deterministic simulated capture.
+- [x] Register Qwen-3B/7B, LLaVA-OneVision-8B, and InternVL2-8B configs and strict run-completeness audit.
 - [ ] Materialize the official RIO val pilot on server 212.
 - [ ] Run Qwen-3B/7B pilot and official RIO scorer; expand only after completeness checks.
 - [ ] Run LLaVA/InternVL transfer under the identical manifest.

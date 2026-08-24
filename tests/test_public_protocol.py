@@ -7,6 +7,7 @@ from cta.rio_bench import (
     prediction_letter, rio_mc_score, stable_reservoir, target_letter_from_attack_word,
 )
 from cta.simulated_capture import PROFILES, simulate_capture
+from cta.run_validation import file_sha256, validate_question_run
 
 
 def _rio_row(image_name="source.jpg"):
@@ -54,3 +55,55 @@ def test_simulated_capture_is_deterministic(tmp_path: Path):
     assert first.read_bytes() == second.read_bytes()
     assert metadata["profile"]["name"] == "medium"
     assert metadata["downscaled_size"][0] < metadata["original_size"][0]
+
+
+def test_completed_question_run_audit_rejects_missing_rows(tmp_path: Path):
+    manifest = tmp_path / "manifest.jsonl"
+    predictions = tmp_path / "predictions.jsonl"
+    provenance = tmp_path / "provenance.json"
+    config = tmp_path / "config.yaml"
+    config.write_text("seed: 42\n", encoding="utf-8")
+    source_rows = []
+    prediction_rows = []
+    for qid in ("1", "2"):
+        for condition in ("no_attack", "evidence_cta"):
+            row = {
+                "question_id": qid, "condition": condition,
+                "image_sha256": f"image-{qid}-{condition}",
+                "source_sha256": f"source-{qid}", "scoring_profile": "rio_obj_mc",
+            }
+            source_rows.append(row)
+            prediction_rows.append({
+                **row, "prediction": "A", "raw_output": "A", "answer_score": 1.0,
+                "target_match": False,
+            })
+    manifest.write_text(
+        "".join(__import__("json").dumps(row) + "\n" for row in source_rows),
+        encoding="utf-8",
+    )
+    predictions.write_text(
+        "".join(__import__("json").dumps(row) + "\n" for row in prediction_rows),
+        encoding="utf-8",
+    )
+    provenance.write_text(__import__("json").dumps({
+        "status": "complete", "completed_rows": 4, "expected_rows": 4,
+        "source_manifest_sha256": file_sha256(manifest),
+        "config_sha256": file_sha256(config),
+    }), encoding="utf-8")
+    audit = validate_question_run(
+        manifest, predictions, provenance, expected_questions=2, config_path=config,
+    )
+    assert audit["prediction_rows"] == 4
+
+    predictions.write_text(
+        "".join(__import__("json").dumps(row) + "\n" for row in prediction_rows[:-1]),
+        encoding="utf-8",
+    )
+    try:
+        validate_question_run(
+            manifest, predictions, provenance, expected_questions=2, config_path=config,
+        )
+    except ValueError as error:
+        assert "differs from manifest" in str(error)
+    else:
+        raise AssertionError("incomplete prediction log was accepted")
