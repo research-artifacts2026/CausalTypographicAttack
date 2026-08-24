@@ -1,0 +1,16 @@
+output_root: runs/rio_suite_n100
+jobs:
+  - name: qwen25vl3b
+    gpu: 2
+    config: configs/question_rio_objmc_qwen3_n100.yaml
+  - name: qwen25vl7b
+    gpu: 3
+    config: configs/question_rio_objmc_qwen7_n100.yaml
+  - name: llava_onevision15_8b
+    gpu: 4
+    config: configs/question_rio_objmc_llava_n100.yaml
+    pythonpath: /disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages
+  - name: internvl2_8b
+    gpu: 5
+    config: configs/question_rio_objmc_internvl_n100.yaml
+    pythonpath: /disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages
