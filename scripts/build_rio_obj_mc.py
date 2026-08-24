@@ -8,14 +8,14 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from itertools import islice
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cta.question_bench import CONDITIONS, build_spec, file_sha256, render_condition
 from cta.rio_bench import (
-    RIO_CONFIG_GROUPS, RIO_CONDITION_BY_CONFIG, stable_reservoir,
-    target_letter_from_attack_word,
+    RIO_CONFIG_GROUPS, RIO_CONDITION_BY_CONFIG, target_letter_from_attack_word,
 )
 
 
@@ -65,11 +65,21 @@ def resolve_revision(repo_id: str, revision: str) -> str:
         return revision
 
 
-def collect_ids(repo_id: str, config: str, split: str, revision: str, limit: int, seed: int) -> list[str]:
-    candidates = ({"question_id": str(row["question_id"])} for row in load_stream(
-        repo_id, config, split, revision,
-    ))
-    return [str(row["question_id"]) for row in stable_reservoir(candidates, limit, seed)]
+def collect_ids(repo_id: str, config: str, split: str, revision: str, limit: int) -> list[str]:
+    # Streaming image datasets decode/fetch each visited image. A global hash
+    # scan would therefore download the complete validation image corpus before
+    # selecting a pilot. Use the pinned clean config's canonical first N rows;
+    # exact IDs and revision are recorded, and every condition is paired to
+    # those IDs. This is a pilot selection, not a population estimate.
+    selected = [
+        str(row["question_id"])
+        for row in islice(load_stream(repo_id, config, split, revision), limit)
+    ]
+    if len(selected) != limit:
+        raise RuntimeError(f"requested {limit} pilot rows, found {len(selected)}")
+    if len(set(selected)) != len(selected):
+        raise ValueError("clean pilot prefix contains duplicate question IDs")
+    return selected
 
 
 def materialize_config(
@@ -142,7 +152,7 @@ def main() -> None:
 
     revision = resolve_revision(args.repo_id, args.revision)
     configs = RIO_CONFIG_GROUPS["obj_mc"]
-    selected = collect_ids(args.repo_id, configs[0], args.split, revision, args.limit, args.seed)
+    selected = collect_ids(args.repo_id, configs[0], args.split, revision, args.limit)
     selected_ids = set(selected)
     indexed = {
         config: materialize_config(
@@ -194,7 +204,7 @@ def main() -> None:
         "data_dir_split_alias": {"val": "validation"},
         "configs": list(configs),
         "loader_policy": "named Hub config; exact top-level data_dir fallback when the client exposes only BuilderConfig default",
-        "selection": "globally smallest SHA256(seed:question_id) on clean config",
+        "selection": "canonical first N rows of the pinned clean validation config; pilot only",
         "seed": args.seed,
         "questions": len(selected),
         "conditions": list(CONDITIONS) + [RIO_CONDITION_BY_CONFIG[c] for c in configs[1:]],

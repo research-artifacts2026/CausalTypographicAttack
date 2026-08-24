@@ -518,9 +518,10 @@ questions that should ignore misleading text and text questions that should
 read task-relevant text. The first registered extension uses Obj-MC so the
 official target distractor, original question, and official multiple-choice
 evaluator can be preserved exactly. The Hugging Face dataset is large; the
-builder streams the validation configs, selects a deterministic 100-question
-pilot, materializes only selected images, and records the resolved dataset
-revision.
+builder streams the validation configs, takes the canonical first 100 clean
+questions as an explicitly labeled pilot, materializes only paired images, and
+records the resolved dataset revision and exact question IDs. The later
+300--500 run must use a preregistered broader sampling rule.
 
 ```bash
 cd /disk2/fangxinyue/causal_typographic_attack

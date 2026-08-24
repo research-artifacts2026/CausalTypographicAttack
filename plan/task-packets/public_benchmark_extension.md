@@ -18,8 +18,10 @@ denominator or threat model.
 ## Registered RIO Obj-MC pilot
 
 - Split: official `val`.
-- Selection: 100 question IDs with smallest `SHA256(seed:question_id)`, seed
-  20260824, resolved at a recorded Hugging Face dataset revision.
+- Selection: canonical first 100 question IDs from the clean validation config
+  at a recorded Hugging Face dataset revision. This is explicitly a pilot, not
+  a population estimate; the later 300--500 run requires a preregistered
+  broader sampling rule.
 - Official conditions: clean, RIO easy/medium/hard typography, and the current
   public precomputed hard SceneTAP validation configuration.
 - Added matched conditions: naive typography, in-house scene-coherent plaque,
