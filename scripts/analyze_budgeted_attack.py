@@ -232,7 +232,7 @@ def main() -> None:
         )
     lines.extend([
         "\\midrule",
-        "Clean-eligible $n$ & " + " & ".join(str(row["eligible_clean_correct_n"]) for row in baseline) + " \\\\ ",
+        "Clean-eligible $n$ & " + " & ".join(str(row["eligible_clean_correct_n"]) for row in baseline) + " \\\\",
         "\\bottomrule",
         "\\end{tabular}",
         "",
