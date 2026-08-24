@@ -38,6 +38,8 @@ class Qwen25VLAdapter:
         ).to(cfg.get("device", "cuda:0")).eval()
         self.device = cfg.get("device", "cuda:0")
         self.max_new_tokens = int(cfg.get("max_new_tokens", 96))
+        self.do_sample = bool(cfg.get("do_sample", False))
+        self.temperature = float(cfg.get("temperature", 0.001))
 
     @torch.inference_mode()
     def infer(self, image_path: str, prompt: str, max_new_tokens: int | None = None) -> str:
@@ -46,7 +48,13 @@ class Qwen25VLAdapter:
         text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = self.processor(text=[text], images=[image], padding=True, return_tensors="pt")
         inputs = {k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()}
-        generated = self.model.generate(**inputs, max_new_tokens=max_new_tokens or self.max_new_tokens, do_sample=False)
+        generation = {
+            "max_new_tokens": max_new_tokens or self.max_new_tokens,
+            "do_sample": self.do_sample,
+        }
+        if self.do_sample:
+            generation["temperature"] = self.temperature
+        generated = self.model.generate(**inputs, **generation)
         trimmed = generated[:, inputs["input_ids"].shape[1]:]
         return self.processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0].strip()
 
@@ -59,7 +67,10 @@ class Qwen25VLAdapter:
             "torch_version": torch.__version__,
             "cuda_version": torch.version.cuda,
             "device": self.device,
-            "generation": {"do_sample": False, "max_new_tokens": self.max_new_tokens},
+            "generation": {
+                "do_sample": self.do_sample, "temperature": self.temperature if self.do_sample else None,
+                "max_new_tokens": self.max_new_tokens,
+            },
         }
 
 
@@ -70,6 +81,8 @@ class LlavaOneVision15Adapter:
         self.cfg = cfg
         self.device = cfg.get("device", "cuda:0")
         self.max_new_tokens = int(cfg.get("max_new_tokens", 96))
+        self.do_sample = bool(cfg.get("do_sample", False))
+        self.temperature = float(cfg.get("temperature", 0.001))
         self.processor = AutoProcessor.from_pretrained(
             cfg["name_or_path"], trust_remote_code=True, local_files_only=True,
         )
@@ -90,9 +103,13 @@ class LlavaOneVision15Adapter:
         chat = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = self.processor(text=[chat], images=[image], padding=True, return_tensors="pt")
         inputs = {key: value.to(self.device) if hasattr(value, "to") else value for key, value in inputs.items()}
-        generated = self.model.generate(
-            **inputs, max_new_tokens=max_new_tokens or self.max_new_tokens, do_sample=False,
-        )
+        generation = {
+            "max_new_tokens": max_new_tokens or self.max_new_tokens,
+            "do_sample": self.do_sample,
+        }
+        if self.do_sample:
+            generation["temperature"] = self.temperature
+        generated = self.model.generate(**inputs, **generation)
         trimmed = generated[:, inputs["input_ids"].shape[1]:]
         return self.processor.batch_decode(
             trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False,
@@ -107,7 +124,10 @@ class LlavaOneVision15Adapter:
             "cuda_version": torch.version.cuda,
             "transformers_version": transformers.__version__,
             "device": self.device,
-            "generation": {"do_sample": False, "max_new_tokens": self.max_new_tokens},
+            "generation": {
+                "do_sample": self.do_sample, "temperature": self.temperature if self.do_sample else None,
+                "max_new_tokens": self.max_new_tokens,
+            },
         }
 
 
@@ -160,6 +180,8 @@ class InternVL2Adapter:
         self.device = cfg.get("device", "cuda:0")
         self.dtype = _dtype(cfg)
         self.max_new_tokens = int(cfg.get("max_new_tokens", 96))
+        self.do_sample = bool(cfg.get("do_sample", False))
+        self.temperature = float(cfg.get("temperature", 0.001))
         self.image_size = int(cfg.get("image_size", 448))
         self.max_tiles = int(cfg.get("max_tiles", 6))
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -196,7 +218,12 @@ class InternVL2Adapter:
         pixels = _internvl_pixels(image_path, self.image_size, self.max_tiles).to(
             device=self.device, dtype=self.dtype,
         )
-        generation = {"max_new_tokens": max_new_tokens or self.max_new_tokens, "do_sample": False}
+        generation = {
+            "max_new_tokens": max_new_tokens or self.max_new_tokens,
+            "do_sample": self.do_sample,
+        }
+        if self.do_sample:
+            generation["temperature"] = self.temperature
         return str(self.model.chat(self.tokenizer, pixels, f"<image>\n{prompt}", generation)).strip()
 
     def provenance(self) -> dict:
@@ -210,7 +237,10 @@ class InternVL2Adapter:
             "device": self.device,
             "tokenizer_loader": self.tokenizer_loader,
             "preprocess": {"image_size": self.image_size, "max_tiles": self.max_tiles, "thumbnail": True},
-            "generation": {"do_sample": False, "max_new_tokens": self.max_new_tokens},
+            "generation": {
+                "do_sample": self.do_sample, "temperature": self.temperature if self.do_sample else None,
+                "max_new_tokens": self.max_new_tokens,
+            },
         }
 
 

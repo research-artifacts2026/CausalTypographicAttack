@@ -1,0 +1,16 @@
+source_manifest: runs/rio_objmc_n100/render_manifest.jsonl
+output_root: runs/rio_objmc_qwen7_n100
+expected_questions: 100
+clean_correct_threshold: 1.0
+scoring_profile: rio_obj_mc
+seed: 42
+model:
+  adapter: qwen25vl
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-7B-Instruct/snapshots/d121c052f5e4c1d4063b0477404e83f975b3f667
+  device: cuda:0
+  dtype: bfloat16
+  min_pixels: 200704
+  max_pixels: 602112
+  max_new_tokens: 32
+  do_sample: true
+  temperature: 0.001

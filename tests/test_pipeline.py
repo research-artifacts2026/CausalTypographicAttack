@@ -4,6 +4,7 @@ from cta.metrics import claim_matches_overlay, label_match, parse_task_output, s
 from PIL import Image
 import json
 import urllib.error
+from pathlib import Path
 
 from cta.strong_attack import (
     candidate_policies,
@@ -18,6 +19,22 @@ from cta.rvta_bench import (
     render_benign_true_evidence,
     validate_annotation_record,
 )
+from cta.question_bench import (
+    CONDITIONS,
+    answer_score,
+    build_spec,
+    choose_target,
+    normalize_answer,
+    parse_typod_options,
+    render_condition,
+    scenetap_compatible_score,
+    summarize_question_rows,
+    target_matches_any,
+)
+from cta.rio_bench import (
+    prediction_letter, rio_mc_score, stable_reservoir, target_letter_from_attack_word,
+)
+from cta.simulated_capture import PROFILES, simulate_capture
 
 
 def test_attack_semantics():
@@ -299,3 +316,118 @@ def test_openai_adapter_redacts_error_message(tmp_path, monkeypatch):
         assert "Incorrect API key" not in rendered
     else:
         raise AssertionError("HTTP error was not raised")
+
+
+def test_question_target_is_deterministic_and_not_correct():
+    record = {
+        "question_id": "q-1", "text": "What animal is shown?",
+        "answer": "dog", "choices": ["dog", "cat", "horse"],
+    }
+    first = choose_target(record, ("dog",), "object", 19)
+    second = choose_target(record, ("dog",), "object", 19)
+    assert first == second
+    assert normalize_answer(first[0]) != "dog"
+    assert first[1] == "provided-distractor"
+
+
+def test_question_builder_renders_complete_paired_conditions(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (640, 480), (120, 150, 180)).save(source)
+    record = {
+        "question_id": "q-2", "image": source.name,
+        "text": "What color is the car?", "answer": "red",
+        "choices": ["red", "blue"], "category": "color",
+    }
+    spec = build_spec(record, tmp_path, seed=7)
+    assert spec.task_type == "color"
+    assert spec.target_answer == "blue"
+    assert "red" in spec.causal_claim and "blue" in spec.causal_claim
+    rendered = [
+        render_condition(spec, condition, tmp_path / condition / "q-2.jpg")
+        for condition in CONDITIONS
+    ]
+    assert all(Path(item["image_path"]).is_file() for item in rendered)
+    assert rendered[0]["bbox"] is None
+    assert all(item["bbox"] is not None for item in rendered[1:])
+    assert rendered[3]["bbox"] == rendered[4]["bbox"]
+    assert spec.causal_claim.lower().count(spec.target_answer.lower()) == 1
+
+
+def test_question_score_and_clean_conditioned_asr():
+    assert answer_score("The dog", ["dog"]) == 1.0
+    rows = []
+    for qid, clean_correct in (("a", True), ("b", False)):
+        rows.append({
+            "question_id": qid, "condition": "no_attack",
+            "answer_score": float(clean_correct), "target_match": False,
+        })
+        for condition in CONDITIONS[1:]:
+            rows.append({
+                "question_id": qid, "condition": condition,
+                "answer_score": 0.0, "target_match": condition == "evidence_cta",
+            })
+    summary = {row["condition"]: row for row in summarize_question_rows(rows)}
+    assert summary["evidence_cta"]["n_clean_correct"] == 1
+    assert summary["evidence_cta"]["clean_conditioned_asr"] == 1.0
+    assert summary["evidence_cta"]["targeted_asr"] == 1.0
+
+
+def test_typod_binary_options_drive_content_and_public_scoring(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (640, 480), "white").save(source)
+    question = "What animal is shown? (a) dog (b) cat"
+    assert parse_typod_options(question) == {"a": "dog", "b": "cat"}
+    spec = build_spec({
+        "question_id": "typod-1", "image": source.name, "text": question,
+        "answer": "a", "category": "object recognition",
+    }, tmp_path, seed=9)
+    assert spec.correct_content == "dog"
+    assert spec.target_answer == "b"
+    assert spec.target_content == "cat"
+    assert "dog" in spec.causal_claim and "cat" in spec.causal_claim
+    assert scenetap_compatible_score("(a) dog", ("a",), question, "typo_base_complex") == 1.0
+    assert scenetap_compatible_score("cat", ("a",), question, "typo_base_complex") == 0.0
+    assert target_matches_any("The answer is (b), cat.", spec.target_aliases)
+
+
+def test_rio_mc_target_and_scoring_use_attack_word(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (640, 480), "white").save(source)
+    row = {
+        "question_id": 19,
+        "image": source.name,
+        "question": "Which object is present? (A) Dog (B) Cat (C) Bus (D) Car. Answer with only the option letter.",
+        "answer": "D",
+        "choices": {"A": "Dog", "B": "Cat", "C": "Bus", "D": "Car"},
+        "attack_word": "Bus",
+        "task_type": "object",
+    }
+    target, source_name = target_letter_from_attack_word(row, seed=3)
+    assert target == "c"
+    assert source_name == "rio-attack-word-option"
+    spec = build_spec({**row, "text": row["question"], "target_answer": target}, tmp_path, seed=3)
+    assert spec.correct_content == "Car"
+    assert spec.target_content == "Bus"
+    assert spec.target_answer == "c"
+    assert rio_mc_score("The answer is (D).", "D", row["choices"]) == 1.0
+    assert rio_mc_score("Bus", "D", row["choices"]) == 0.0
+    assert prediction_letter("I choose C, bus.", row["choices"]) == "c"
+
+
+def test_stable_rio_selection_is_order_invariant():
+    rows = [{"question_id": value} for value in range(20)]
+    first = [row["question_id"] for row in stable_reservoir(rows, 5, 11)]
+    second = [row["question_id"] for row in stable_reservoir(reversed(rows), 5, 11)]
+    assert first == second
+
+
+def test_simulated_capture_is_deterministic_and_labeled(tmp_path):
+    source = tmp_path / "source.jpg"
+    first = tmp_path / "first.jpg"
+    second = tmp_path / "second.jpg"
+    Image.new("RGB", (640, 480), (130, 170, 190)).save(source)
+    metadata = simulate_capture(source, first, PROFILES["medium"], seed=17)
+    simulate_capture(source, second, PROFILES["medium"], seed=17)
+    assert first.read_bytes() == second.read_bytes()
+    assert metadata["profile"]["name"] == "medium"
+    assert metadata["downscaled_size"][0] < metadata["original_size"][0]
