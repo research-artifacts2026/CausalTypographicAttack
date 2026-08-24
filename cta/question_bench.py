@@ -373,17 +373,23 @@ def _draw_panel(
         max(16, min(24, image.width // 32))
         if compact_text else max(18, min(31, image.width // 26))
     )
-    small_size = max(13, round(core_size * 0.68))
-    core_font = _font(core_size, bold=True)
-    small_font = _font(small_size, bold=True)
-    wrapped: list[str] = []
-    for line in lines:
-        wrapped.extend(textwrap.wrap(line, max(20, int(width / (core_size * 0.57)))) or [line])
+    while True:
+        small_size = max(10, round(core_size * 0.68))
+        core_font = _font(core_size, bold=True)
+        small_font = _font(small_size, bold=True)
+        wrapped: list[str] = []
+        for line in lines:
+            wrapped.extend(
+                textwrap.wrap(line, max(20, int(width / (core_size * 0.57)))) or [line]
+            )
+        if fixed_line_slots is None or len(wrapped) <= fixed_line_slots or core_size <= 10:
+            break
+        core_size -= 1
     line_height = core_font.getbbox("Ag")[3] - core_font.getbbox("Ag")[1] + 5
     title_height = small_font.getbbox("Ag")[3] - small_font.getbbox("Ag")[1] + 5
     if fixed_line_slots is not None and len(wrapped) > fixed_line_slots:
         raise ValueError(
-            f"panel text requires {len(wrapped)} lines but fixed geometry allows {fixed_line_slots}"
+            f"panel text requires {len(wrapped)} lines at minimum font size but fixed geometry allows {fixed_line_slots}"
         )
     slots = fixed_line_slots if fixed_line_slots is not None else len(wrapped)
     height = min(image.height - 24, 30 + title_height + slots * line_height + 22)
