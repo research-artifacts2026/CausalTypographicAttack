@@ -315,6 +315,51 @@ CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
 
 The analyzer reports strict conditional ASR at budgets 1, 2, 4, and 8, Wilson intervals, mean queries with failures charged the active budget, and exact McNemar tests against the legacy one-query CTA. The 100-image second VOC partition tests cross-dataset transfer. A third disjoint VOC partition is reserved for the separately registered neutral-truth-verification prompt (`configs/budgeted_neutral_prompt_preregistration.json`). Neutral and hardened prompt results are different threat models and must never be merged into one main-table number.
 
+The third VOC partition uses identical rendered pixels for a paired neutral-versus-hardened prompt control. Run every config with the model-family environment documented above; examples for Qwen and the cross-family adapters are:
+
+```bash
+# Neutral and hardened Qwen examples; repeat with the Qwen-7B configs.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_typography_diversity_eval.py \
+  --config configs/budgeted_neutral_voc_qwen3_n100.yaml
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_typography_diversity_eval.py \
+  --config configs/budgeted_hardened_confirm_voc_qwen3_n100.yaml
+
+# LLaVA uses the isolated cross-VLM dependency path.
+CUDA_VISIBLE_DEVICES=2 \
+PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_typography_diversity_eval.py \
+  --config configs/budgeted_neutral_voc_llava_n100.yaml
+
+# InternVL uses its isolated dependency path.
+CUDA_VISIBLE_DEVICES=6 \
+PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_typography_diversity_eval.py \
+  --config configs/budgeted_hardened_confirm_voc_internvl_n100.yaml
+
+# Final four-model neutral table.
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_budgeted_attack.py \
+  --run Qwen-3B=runs/budgeted_cta_neutral_voc_qwen3_n100 \
+  --run Qwen-7B=runs/budgeted_cta_neutral_voc_qwen7_n100 \
+  --run LLaVA=runs/budgeted_cta_neutral_voc_llava_n100 \
+  --run InternVL=runs/budgeted_cta_neutral_voc_internvl_n100 \
+  --policy-file configs/budgeted_policy_sequence_qwen7_llava_k8.json \
+  --render-root runs/budgeted_cta_prompt_confirm_voc_n100 \
+  --output-root runs/budgeted_cta_neutral_voc_n100_analysis
+
+# Paired prompt-profile table on the intersection of clean-object-correct IDs.
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_prompt_profiles.py \
+  --pair Qwen-3B=runs/budgeted_cta_neutral_voc_qwen3_n100,runs/budgeted_cta_hardened_confirm_voc_qwen3_n100 \
+  --pair Qwen-7B=runs/budgeted_cta_neutral_voc_qwen7_n100,runs/budgeted_cta_hardened_confirm_voc_qwen7_n100 \
+  --pair LLaVA=runs/budgeted_cta_neutral_voc_llava_n100,runs/budgeted_cta_hardened_confirm_voc_llava_n100 \
+  --pair InternVL=runs/budgeted_cta_neutral_voc_internvl_n100,runs/budgeted_cta_hardened_confirm_voc_internvl_n100 \
+  --policy-file configs/budgeted_policy_sequence_qwen7_llava_k8.json \
+  --output-root runs/budgeted_cta_prompt_profile_paired_n100
+```
+
+Primary evidence is stored in `runs/budgeted_cta_final_coco_n80_analysis/`, `runs/budgeted_cta_final_voc_n100_analysis/`, `runs/budgeted_cta_neutral_voc_n100_analysis/`, and `runs/budgeted_cta_prompt_profile_paired_n100/`. Each directory contains machine-generated JSON/CSV/LaTeX plus hashes of its input logs. These results support a strongest-within-RVTA claim only; full SceneTAP, SCAM, closed-model, and physical-image comparisons remain necessary for an external SOTA claim.
+
 ### ChatGPT-guided adaptive typography attack
 
 `scripts/run_adaptive_attack.py` implements a separate query-based threat model. GPT-5.6 Sol receives the current image and the target model's previous black-box object answer, chooses a wrong COCO label plus a constrained typography design, and asks the deterministic PIL renderer to make the next candidate. The loop stops at the first strict success or after the configured round budget. It never changes source pixels outside the logged overlay boxes.
