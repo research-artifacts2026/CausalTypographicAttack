@@ -647,6 +647,129 @@ called **simulated camera degradation**, never physical-world results. The real
 capture protocol and required evidence are specified in
 `protocols/real_physical_capture.md`.
 
+## Gap-closing evaluation package (2026-08-25)
+
+### Three isolated GPT-5.6-sol blinded reratings
+
+The existing blind pack can also be rerated by independent model sessions, but
+that evidence is **not human annotation**. Keep the files separate and label
+the result as independent blinded model-evaluation runs:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_human_eval.py \
+  --pack-root runs/human_eval_blind_n100 \
+  --responses-dir responses_gpt56sol \
+  --output gpt56sol_blind_results.json \
+  --evaluator-kind model --evaluator-model gpt-5.6-sol \
+  --minimum-annotators 3
+```
+
+The analyzer records the evaluator type in the result and refuses a model run
+without an explicit model identifier. A later human study still uses the
+default `responses/` directory and `human_results.json` output.
+
+### Independent EasyOCR defense transfer
+
+Install EasyOCR into a separate target directory, then apply it to the raw,
+already-frozen RapidOCR-aware test images. EasyOCR outputs do not select the
+carrier and no victim query occurs during masking.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python -m pip install \
+  --target /disk2/fangxinyue/ocr_engines/easyocr_deps --no-deps \
+  easyocr==1.7.2 python-bidi pyclipper ninja shapely
+
+CUDA_VISIBLE_DEVICES=6 \
+PYTHONPATH=/disk2/fangxinyue/ocr_engines/easyocr_deps \
+/disk2/fangxinyue/.venv/bin/python scripts/apply_secondary_ocr_defense.py \
+  --source-log runs/ocr_resilient_v4_fresh_test_n20/conditions.jsonl \
+  --output-root runs/ocr_resilient_v4_easyocr_test_n20 \
+  --engine easyocr --languages en --score-threshold 0.5 \
+  --mask-margin-px 2 --gpu
+
+CUDA_VISIBLE_DEVICES=6 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_ocr_resilient_eval.py \
+  --config configs/ocr_resilient_v4_easyocr_test_qwen3_n20.yaml
+```
+
+Use the matching Qwen-7B configuration for the second victim. Report the
+clean-eligible denominator; the current registered split is intentionally only
+20 images and cannot establish broad cross-OCR robustness.
+
+### Additional 300-question public RIO block
+
+Rows 201--500 of the pinned RIO validation configuration are disjoint from the
+100-question development and 100-question first held-out blocks. Materialize
+the nine base conditions, add the previously frozen `cta_identity_card`, audit
+all 3000 images, then launch four models:
+
+```bash
+PYTHONPATH=/disk2/fangxinyue/le-wm-seminar/.venv/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/build_rio_obj_mc.py \
+  --output-root runs/rio_ctav2_extension_n300 \
+  --limit 300 --offset 200 --seed 20260824
+
+/disk2/fangxinyue/.venv/bin/python scripts/extend_question_manifest.py \
+  --source-manifest runs/rio_ctav2_extension_n300/render_manifest.jsonl \
+  --output-root runs/rio_ctav2_extension_full_n300 --stage held-out \
+  --candidate cta_identity_card \
+  --include-condition no_attack --include-condition naive_typography \
+  --include-condition scene_coherent --include-condition causal_direct \
+  --include-condition evidence_cta --include-condition rio_typography_easy \
+  --include-condition rio_typography_medium \
+  --include-condition rio_typography_hard \
+  --include-condition rio_scenetap_hard
+
+/disk2/fangxinyue/.venv/bin/python scripts/run_rio_suite.py \
+  --suite-config configs/rio_ctav2_extension_suite_n300.yaml
+```
+
+Do not combine the extension with the first held-out block until question-ID
+disjointness, per-model completeness, and the official RIO replay all pass.
+
+### Full SceneTAP component chain with a local planner
+
+The reproducible fallback runs the complete SoM -> multimodal placement plan ->
+TextDiffuser chain. The planner is local Qwen2.5-VL-7B because the configured
+endpoint rejects multimodal requests. Therefore this condition must be labeled
+`SceneTAP full chain (local Qwen planner)`, not an exact reproduction of the
+official GPT-4o planner.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/prepare_scenetap_reproduction.py \
+  --manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
+  --output-root runs/scenetap_full_local_qwen_n30_stage --limit 30
+
+# Run official save_som_images.py in the isolated SceneTAP runtime, then:
+CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+  scripts/plan_scenetap_local_qwen.py \
+  --stage-root runs/scenetap_full_local_qwen_n30_stage \
+  --som-dir runs/scenetap_full_local_qwen_n30_som/rio_local_n30/slider_3.0/seed_42/filter_12.0 \
+  --output-root runs/scenetap_full_local_qwen_n30_plans \
+  --model-path /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
+```
+
+Run `render_scenetap_local_plans.py` under the isolated SceneTAP runtime with
+the SceneTAP repository on `PYTHONPATH`. Every plan, mask choice, candidate,
+render hash, and planner provenance is retained.
+
+### Registered physical capture kit
+
+The script below freezes 150 assets and a randomized 450-photo tier-1 schedule
+(30 questions x 5 methods x 3 views):
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/prepare_physical_capture_kit.py \
+  --manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
+  --output-root runs/physical_capture_kit_rio_n30_v2 \
+  --questions 30 --seed 20260825
+```
+
+This is a prepared protocol, not physical evidence. After a camera operator
+fills every manifest field and retains all originals, run
+`scripts/validate_physical_capture.py`. Until validation passes, the paper must
+say `physical capture pending` and report no physical ASR.
+
 ## Evidence and stop conditions
 
 - Do not report RIO numbers until `predictions.jsonl`, complete run provenance,
@@ -654,5 +777,6 @@ capture protocol and required evidence are specified in
 - Do not report physical numbers from simulated images.
 - Do not report human naturalness or scene-fit numbers until three independent
   response files pass `scripts/analyze_human_eval.py`.
+- Never relabel GPT-5.6-sol model reratings as human annotations.
 - PPIA and REALM have different tasks and denominators. Their ASR belongs in
   separate external-validation tables, not in the RIO/RVTA main table.

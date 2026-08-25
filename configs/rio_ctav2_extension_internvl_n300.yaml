@@ -1,0 +1,17 @@
+source_manifest: runs/rio_ctav2_extension_full_n300/render_manifest.jsonl
+output_root: runs/rio_ctav2_extension_internvl_n300
+expected_questions: 300
+clean_correct_threshold: 1.0
+scoring_profile: rio_obj_mc
+seed: 42
+model:
+  adapter: internvl2
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--OpenGVLab--InternVL2-8B/snapshots/6fb9ad6924f69424e57fab2ab061d707688f0296
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 32
+  do_sample: true
+  temperature: 0.001
+  image_size: 448
+  max_tiles: 6
+  use_flash_attn: false

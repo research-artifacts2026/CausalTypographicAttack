@@ -90,8 +90,26 @@ def main() -> None:
     parser.add_argument("--pack-root", type=Path, required=True)
     parser.add_argument("--minimum-annotators", type=int, default=3)
     parser.add_argument("--seed", type=int, default=20260312)
+    parser.add_argument(
+        "--responses-dir", default="responses",
+        help="response directory relative to the pack root",
+    )
+    parser.add_argument(
+        "--output", default="human_results.json",
+        help="result filename relative to the pack root",
+    )
+    parser.add_argument(
+        "--evaluator-kind", choices=("human", "model"), default="human",
+        help="evidence label; model ratings must never be reported as human ratings",
+    )
+    parser.add_argument(
+        "--evaluator-model", default=None,
+        help="model identifier required when --evaluator-kind=model",
+    )
     args = parser.parse_args()
-    response_paths = sorted((args.pack_root / "responses").glob("*.csv"))
+    if args.evaluator_kind == "model" and not args.evaluator_model:
+        raise ValueError("--evaluator-model is required for model evaluation")
+    response_paths = sorted((args.pack_root / args.responses_dir).glob("*.csv"))
     if len(response_paths) < args.minimum_annotators:
         raise ValueError(f"need at least {args.minimum_annotators} independent response files; found {len(response_paths)}")
     method_key = {row["item_id"]: row for row in read_csv(args.pack_root / "private_method_key.csv")}
@@ -130,7 +148,13 @@ def main() -> None:
     if incomplete:
         raise ValueError(f"{len(incomplete)} items have fewer than {args.minimum_annotators} independent ratings")
 
-    result = {"annotators": len(response_paths), "ratings_after_dedup": len(deduplicated),
+    result = {"evaluators": len(response_paths), "evaluator_kind": args.evaluator_kind,
+              "evaluator_model": args.evaluator_model,
+              "evidence_label": (
+                  "independent blinded model-evaluation runs"
+                  if args.evaluator_kind == "model" else "independent blinded human annotators"
+              ),
+              "ratings_after_dedup": len(deduplicated),
               "duplicate_mean_absolute_difference": statistics.fmean(duplicate_mae) if duplicate_mae else None,
               "inference": {"unit": "matched image identifier", "bootstrap_draws": 10000, "seed": args.seed},
               "methods": {}}
@@ -160,7 +184,7 @@ def main() -> None:
             by_item[row["item_id"]].append(row[column])
         reliability[column] = krippendorff_interval(by_item)
     result["krippendorff_alpha_interval"] = reliability
-    (args.pack_root / "human_results.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    (args.pack_root / args.output).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))
 
 

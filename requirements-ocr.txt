@@ -3,3 +3,8 @@
 # conflict with an existing LVLM environment.
 rapidocr==3.9.2
 onnxruntime>=1.19,<2
+
+# Independent second detector used only for held-out transfer evaluation.  It
+# should be installed in a separate target directory to avoid changing the
+# victim-model environment.
+easyocr==1.7.2
