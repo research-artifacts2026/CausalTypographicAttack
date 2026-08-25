@@ -608,6 +608,26 @@ predeclared block) and `extend_question_manifest.py --stage held-out` with
 exactly one frozen `--candidate`. Per-image or per-model template selection is
 not allowed in the held-out evaluation.
 
+### RVTA violation-severity ablation
+
+`cta/violation_catalog.py` predeclares moderate, strong, and extreme claims
+instead of generating new wording after seeing model responses. It includes
+unaided human flight, continuous 70 C exposure, 70 C food decay, zero-energy
+travel, vacuum survival, zero-input power, zero-mass matter, and ordinary-apple
+market-price anomalies. Build paired images with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_violation_severity_manifest.py \
+  --source-manifest runs/fresh_reality_source_n100.json \
+  --output-root runs/rvta_violation_severity_n100
+```
+
+The price scenario is labeled `economic/common-sense`, not physical
+impossibility. Before any paper claim, three independent annotators must judge
+each card's visible-object relevance, ambiguity, wording naturalness, and
+violation strength. Report severity curves by scenario and model; do not pool
+the price anomaly with physics claims without a separate stratum.
+
 ## Simulated camera degradation
 
 Use one profile per run so clean eligibility is recomputed under the same

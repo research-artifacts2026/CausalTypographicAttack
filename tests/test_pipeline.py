@@ -35,6 +35,7 @@ from cta.rio_bench import (
     prediction_letter, rio_mc_score, stable_reservoir, target_letter_from_attack_word,
 )
 from cta.simulated_capture import PROFILES, simulate_capture
+from cta.violation_catalog import SEVERITY_LEVELS, claims_for_label
 
 
 def test_attack_semantics():
@@ -42,6 +43,17 @@ def test_attack_semantics():
     assert "car" in texts["causal"].text.lower()
     assert texts["causal"].violation_type
     assert texts["naive"].target_wrong_label != "car"
+
+
+def test_requested_violation_severity_examples_are_predeclared():
+    person = [claim for level in SEVERITY_LEVELS for claim in claims_for_label("person", level)]
+    apple = [claim for level in SEVERITY_LEVELS for claim in claims_for_label("apple", level)]
+    assert any("fly forever" in claim.text for claim in person)
+    assert any("70 C" in claim.text for claim in person)
+    price = next(claim for claim in apple if "USD 3,000" in claim.text)
+    assert price.family == "economic/common-sense"
+    assert price.physical_impossibility is False
+    assert any("70 C" in claim.text for claim in apple)
 
 
 def test_json_and_output_parsing():
