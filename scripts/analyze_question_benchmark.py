@@ -56,6 +56,7 @@ def main() -> None:
     parser.add_argument("--model-log", action="append", required=True, help="MODEL=predictions.jsonl")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--clean-correct-threshold", type=float, default=1.0)
+    parser.add_argument("--method", default="evidence_cta")
     args = parser.parse_args()
     manifest = read_jsonl(args.manifest.resolve())
     expected = {(row["question_id"], row["condition"]) for row in manifest}
@@ -72,6 +73,7 @@ def main() -> None:
             "RIO Obj-MC option-label/answer-string compatibility score used for paired "
             "clean-conditioned analysis; official RIO evaluator replay is reported separately"
         ),
+        "paired_test_method": args.method,
         "models": {},
     }
     table_rows = []
@@ -92,12 +94,15 @@ def main() -> None:
         baselines = [
             condition for condition in (
                 "naive_typography", "scene_coherent", "causal_direct",
+                "evidence_cta",
                 "rio_typography_easy", "rio_typography_medium", "rio_typography_hard",
                 "rio_scenetap_hard",
-            ) if condition in manifest_conditions
+            ) if condition in manifest_conditions and condition != args.method
         ]
+        if args.method not in manifest_conditions:
+            raise ValueError(f"paired-test method is missing from manifest: {args.method}")
         tests = [paired_exact_test(
-            rows, baseline, "evidence_cta", args.clean_correct_threshold,
+            rows, baseline, args.method, args.clean_correct_threshold,
         ) for baseline in baselines]
         evidence["models"][model_name] = {
             "log": str(log_path), "log_sha256": file_sha256(log_path),
