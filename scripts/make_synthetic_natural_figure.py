@@ -50,7 +50,7 @@ def main() -> None:
     canvas = Image.new("RGB", (width, height), "#f5f7fa")
     draw = ImageDraw.Draw(canvas)
     draw.text((gap, 18), "AI-natural carrier feasibility pilot", font=font(31, True), fill="#14213d")
-    draw.text((gap, 58), "Synthetic edits only — not real physical capture; no victim result is implied.",
+    draw.text((gap, 58), "Synthetic edits, not camera capture; n=3 pilot: 1/12 grounded model-item outcomes.",
               font=font(21), fill="#5a6472")
     x_positions = (gap, 2 * gap + cell_w)
     for col, title in enumerate(("Original source", "Synthetic natural-render")):
