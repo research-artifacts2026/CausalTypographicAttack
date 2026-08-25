@@ -908,9 +908,45 @@ CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
   --output-dir runs/rvtaqa_balanced_coco_analysis_n300
 ```
 
-`work_rvta_qa_balanced_protocol.json` freezes the design boundary. Until all
-logs are complete, the balanced paper table remains absent rather than filled
-with placeholders.
+`work_rvta_qa_balanced_protocol.json` freezes the design boundary. The final
+COCO and VOC manifests contain 300 items/1,800 rows each, with SHA-256
+`d811a54fb72ad3754b2bc40c7db0732a66b82a3b61a38d8d1534bd157a899647`
+and `c4c56a9b1a52bcb3a8d6212fb94befbd72311e9d506926e1d3c8fe0a9ff8fdd8`.
+All eight model logs are complete and pass exact-key, provenance, rendered-hash,
+and on-disk image-hash validation.
+
+The final pooled grounded Bridge ASRs (Qwen-3B/Qwen-7B/LLaVA/InternVL) are
+82.2/74.3/49.4/35.0% on COCO and 91.1/72.0/46.5/38.1% on VOC. Because clean
+answer accuracy varies by truth and answer format, also report the equal-weight
+six-cell macro rates: 82.5/75.2/47.3/40.1% and
+91.6/74.9/42.2/47.7%, respectively. Benign target flips are 0--2%.
+Bridge contains a natural-language inference conclusion and is an upper-bound
+framing condition. The conclusion-free Evidence-minus-Plain gains are
+3.6/21.6/6.5/3.8 points on COCO and 2.0/15.6/4.0/4.1 on VOC; Qwen-3B VOC is
+not significant (`p=.219`). Balanced-v1 is an internal diagnostic, not a
+public typographic-attack SOTA result.
+
+The InternVL VOC process was safely stopped after 622 append-only rows and the
+remaining 1,178 keys were frozen into three disjoint item-level shards
+(392/396/390 rows). `scripts/shard_remaining_balanced.py` copies the immutable
+prefix and refuses to overwrite an existing shard root.
+`scripts/merge_balanced_shards.py` rejects duplicates, missing/extra keys, or
+image-hash mismatches. The validated merged log is at
+`runs/rvtaqa_balanced_voc_internvl_n300_merged/predictions.jsonl` with SHA-256
+`7b62d6a7370cb72bb341e3e0da9466a85900d105bb7425b4e27aa0c9a37a070f`.
+The final evidence and paper assets are under:
+
+```text
+runs/rvtaqa_balanced_coco_analysis_4model_n300_final/
+runs/rvtaqa_balanced_voc_analysis_4model_n300_final/
+runs/rvtaqa_balanced_paper_assets_final/
+```
+
+The manifest audit finds equal 50-item cells and question invariance. It also
+finds text-dependent panel fitting: mean within-item area deltas are 0.00306
+(COCO) and 0.00113 (VOC), with maxima 0.03753/0.01083. Do not call this an
+exact-area control; use the logged area as a covariate or rerun a fixed-box
+renderer for that stronger claim.
 
 ## AI-edited synthetic natural-render pilot
 
@@ -930,6 +966,10 @@ CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
 
 The script reports paired clean accuracy, clean-conditioned target ASR, and a
 claim-reading-gated endpoint, but writes a mandatory n=3 non-headline warning.
+All four pilots are complete: every checkpoint is clean-correct on 3/3; Qwen-3B
+has one grounded target response, while Qwen-7B, LLaVA, and InternVL have zero.
+This is a qualitative synthetic-render feasibility result, not an ASR,
+naturalness, camera-capture, or physical-world estimate.
 Prepare the still-unfilled three-person pack with:
 
 ```bash
