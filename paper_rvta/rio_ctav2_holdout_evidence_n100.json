@@ -1,0 +1,701 @@
+{
+  "schema_version": "cta/question-benchmark-analysis-v1",
+  "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/rio_ctav2_holdout_n100/render_manifest.jsonl",
+  "manifest_sha256": "632017f419401b2453b13e8e6d35a41265eebfd915bcfdff3d0b27ee69793539",
+  "metric_boundary": "RIO Obj-MC option-label/answer-string compatibility score used for paired clean-conditioned analysis; official RIO evaluator replay is reported separately",
+  "paired_test_method": "cta_identity_card",
+  "models": {
+    "Qwen2.5-VL-3B": {
+      "log": "/disk2/fangxinyue/causal_typographic_attack/runs/rio_ctav2_holdout_qwen3_n100/predictions.jsonl",
+      "log_sha256": "55da7918ae61a9201ce6dd207eae8e38c42d7bf5faded2f2556b3b1d1df1b5d5",
+      "provenance_sha256": "55dfbc7069afa2c7451e8d8089cf3c830d29b8dcf3edd74ca193d4664b31bf21",
+      "summary": [
+        {
+          "condition": "no_attack",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.94,
+          "clean_conditioned_asr": 0.0,
+          "asr_wilson95_low": 0.0,
+          "asr_wilson95_high": 0.03926207629154474,
+          "targeted_asr": 0.0
+        },
+        {
+          "condition": "naive_typography",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.53,
+          "clean_conditioned_asr": 0.43617021276595747,
+          "asr_wilson95_low": 0.34038166214603166,
+          "asr_wilson95_high": 0.5369709433379954,
+          "targeted_asr": 0.43617021276595747
+        },
+        {
+          "condition": "scene_coherent",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.57,
+          "clean_conditioned_asr": 0.39361702127659576,
+          "asr_wilson95_low": 0.3008989325900031,
+          "asr_wilson95_high": 0.4946887432167085,
+          "targeted_asr": 0.39361702127659576
+        },
+        {
+          "condition": "causal_direct",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.86,
+          "clean_conditioned_asr": 0.13829787234042554,
+          "asr_wilson95_low": 0.08263778119593643,
+          "asr_wilson95_high": 0.22236031654688312,
+          "targeted_asr": 0.13829787234042554
+        },
+        {
+          "condition": "evidence_cta",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.89,
+          "clean_conditioned_asr": 0.09574468085106383,
+          "asr_wilson95_low": 0.05119196076308952,
+          "asr_wilson95_high": 0.17204120730241473,
+          "targeted_asr": 0.09574468085106383
+        },
+        {
+          "condition": "cta_identity_card",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.91,
+          "clean_conditioned_asr": 0.06382978723404255,
+          "asr_wilson95_low": 0.029579735297574024,
+          "asr_wilson95_high": 0.13232973550994373,
+          "targeted_asr": 0.06382978723404255
+        },
+        {
+          "condition": "rio_scenetap_hard",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.65,
+          "clean_conditioned_asr": 0.32978723404255317,
+          "asr_wilson95_low": 0.2430749357574976,
+          "asr_wilson95_high": 0.42986534553324096,
+          "targeted_asr": 0.32978723404255317
+        },
+        {
+          "condition": "rio_typography_easy",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.71,
+          "clean_conditioned_asr": 0.2553191489361702,
+          "asr_wilson95_low": 0.17799345615469594,
+          "asr_wilson95_high": 0.3518581982007408,
+          "targeted_asr": 0.2553191489361702
+        },
+        {
+          "condition": "rio_typography_hard",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.61,
+          "clean_conditioned_asr": 0.35106382978723405,
+          "asr_wilson95_low": 0.2621548316843318,
+          "asr_wilson95_high": 0.45166791444506454,
+          "targeted_asr": 0.35106382978723405
+        },
+        {
+          "condition": "rio_typography_medium",
+          "n_total": 100,
+          "n_clean_correct": 94,
+          "diagnostic_accuracy": 0.71,
+          "clean_conditioned_asr": 0.2553191489361702,
+          "asr_wilson95_low": 0.17799345615469594,
+          "asr_wilson95_high": 0.3518581982007408,
+          "targeted_asr": 0.2553191489361702
+        }
+      ],
+      "paired_tests": [
+        {
+          "baseline": "naive_typography",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 2,
+          "baseline_only_successes": 37,
+          "exact_mcnemar_p": 2.841261448338628e-09
+        },
+        {
+          "baseline": "scene_coherent",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 1,
+          "baseline_only_successes": 32,
+          "exact_mcnemar_p": 7.916241884231567e-09
+        },
+        {
+          "baseline": "causal_direct",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 4,
+          "baseline_only_successes": 11,
+          "exact_mcnemar_p": 0.11846923828125
+        },
+        {
+          "baseline": "evidence_cta",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 4,
+          "baseline_only_successes": 7,
+          "exact_mcnemar_p": 0.548828125
+        },
+        {
+          "baseline": "rio_typography_easy",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 3,
+          "baseline_only_successes": 21,
+          "exact_mcnemar_p": 0.0002771615982055664
+        },
+        {
+          "baseline": "rio_typography_medium",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 4,
+          "baseline_only_successes": 22,
+          "exact_mcnemar_p": 0.0005335211753845215
+        },
+        {
+          "baseline": "rio_typography_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 1,
+          "baseline_only_successes": 28,
+          "exact_mcnemar_p": 1.1175870895385742e-07
+        },
+        {
+          "baseline": "rio_scenetap_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 94,
+          "method_only_successes": 2,
+          "baseline_only_successes": 27,
+          "exact_mcnemar_p": 1.6242265701293945e-06
+        }
+      ]
+    },
+    "Qwen2.5-VL-7B": {
+      "log": "/disk2/fangxinyue/causal_typographic_attack/runs/rio_ctav2_holdout_qwen7_n100/predictions.jsonl",
+      "log_sha256": "a00d4df14efd44e34c65b8746b0d20fdfd49bbe5752e391760fff9909bb1b64d",
+      "provenance_sha256": "56656b8dbda0784dd871ff728efefa27d59722ba10658c8ea4e69b2d441c7573",
+      "summary": [
+        {
+          "condition": "no_attack",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.96,
+          "clean_conditioned_asr": 0.0,
+          "asr_wilson95_low": 3.469446951953614e-18,
+          "asr_wilson95_high": 0.038475587857675686,
+          "targeted_asr": 0.0
+        },
+        {
+          "condition": "naive_typography",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.59,
+          "clean_conditioned_asr": 0.3854166666666667,
+          "asr_wilson95_low": 0.29425768590940465,
+          "asr_wilson95_high": 0.4853929696413128,
+          "targeted_asr": 0.3854166666666667
+        },
+        {
+          "condition": "scene_coherent",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.67,
+          "clean_conditioned_asr": 0.3020833333333333,
+          "asr_wilson95_low": 0.21931158499064568,
+          "asr_wilson95_high": 0.40008500186968426,
+          "targeted_asr": 0.3020833333333333
+        },
+        {
+          "condition": "causal_direct",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.81,
+          "clean_conditioned_asr": 0.16666666666666666,
+          "asr_wilson95_low": 0.10527382371950136,
+          "asr_wilson95_high": 0.2537099015189491,
+          "targeted_asr": 0.16666666666666666
+        },
+        {
+          "condition": "evidence_cta",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.84,
+          "clean_conditioned_asr": 0.13541666666666666,
+          "asr_wilson95_low": 0.0808770644581112,
+          "asr_wilson95_high": 0.21801138502144396,
+          "targeted_asr": 0.13541666666666666
+        },
+        {
+          "condition": "cta_identity_card",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.64,
+          "clean_conditioned_asr": 0.34375,
+          "asr_wilson95_low": 0.2564039323896144,
+          "asr_wilson95_high": 0.4431196888159093,
+          "targeted_asr": 0.34375
+        },
+        {
+          "condition": "rio_scenetap_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.68,
+          "clean_conditioned_asr": 0.2916666666666667,
+          "asr_wilson95_low": 0.21016592525216696,
+          "asr_wilson95_high": 0.38919890302186466,
+          "targeted_asr": 0.2916666666666667
+        },
+        {
+          "condition": "rio_typography_easy",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.74,
+          "clean_conditioned_asr": 0.22916666666666666,
+          "asr_wilson95_low": 0.1564891714560027,
+          "asr_wilson95_high": 0.3226851053002383,
+          "targeted_asr": 0.22916666666666666
+        },
+        {
+          "condition": "rio_typography_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.62,
+          "clean_conditioned_asr": 0.3541666666666667,
+          "asr_wilson95_low": 0.2657984032143951,
+          "asr_wilson95_high": 0.4537569765774271,
+          "targeted_asr": 0.3541666666666667
+        },
+        {
+          "condition": "rio_typography_medium",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.76,
+          "clean_conditioned_asr": 0.20833333333333334,
+          "asr_wilson95_low": 0.13910828905878492,
+          "asr_wilson95_high": 0.3000024705248593,
+          "targeted_asr": 0.20833333333333334
+        }
+      ],
+      "paired_tests": [
+        {
+          "baseline": "naive_typography",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 12,
+          "baseline_only_successes": 16,
+          "exact_mcnemar_p": 0.5715881884098053
+        },
+        {
+          "baseline": "scene_coherent",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 12,
+          "baseline_only_successes": 8,
+          "exact_mcnemar_p": 0.5034446716308594
+        },
+        {
+          "baseline": "causal_direct",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 20,
+          "baseline_only_successes": 3,
+          "exact_mcnemar_p": 0.00048828125
+        },
+        {
+          "baseline": "evidence_cta",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 21,
+          "baseline_only_successes": 1,
+          "exact_mcnemar_p": 1.0967254638671875e-05
+        },
+        {
+          "baseline": "rio_typography_easy",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 21,
+          "baseline_only_successes": 10,
+          "exact_mcnemar_p": 0.07075554598122835
+        },
+        {
+          "baseline": "rio_typography_medium",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 25,
+          "baseline_only_successes": 12,
+          "exact_mcnemar_p": 0.04703102743951604
+        },
+        {
+          "baseline": "rio_typography_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 10,
+          "baseline_only_successes": 11,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "baseline": "rio_scenetap_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 16,
+          "baseline_only_successes": 11,
+          "exact_mcnemar_p": 0.44206833839416504
+        }
+      ]
+    },
+    "LLaVA-OneVision-1.5-8B": {
+      "log": "/disk2/fangxinyue/causal_typographic_attack/runs/rio_ctav2_holdout_llava_n100/predictions.jsonl",
+      "log_sha256": "1bb2812d2e7cbb9b67fafa7f5713fa001f98ba5216806f790a654a9c17e1da7c",
+      "provenance_sha256": "0d7962f148f472f1dfe3474c97e684022a70900a43f1ad8391e645e17cfcc6db",
+      "summary": [
+        {
+          "condition": "no_attack",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.96,
+          "clean_conditioned_asr": 0.0,
+          "asr_wilson95_low": 3.469446951953614e-18,
+          "asr_wilson95_high": 0.038475587857675686,
+          "targeted_asr": 0.0
+        },
+        {
+          "condition": "naive_typography",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.24,
+          "clean_conditioned_asr": 0.75,
+          "asr_wilson95_low": 0.654901889760503,
+          "asr_wilson95_high": 0.8258603163106593,
+          "targeted_asr": 0.75
+        },
+        {
+          "condition": "scene_coherent",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.39,
+          "clean_conditioned_asr": 0.59375,
+          "asr_wilson95_low": 0.49373884894170256,
+          "asr_wilson95_high": 0.6865469783349833,
+          "targeted_asr": 0.59375
+        },
+        {
+          "condition": "causal_direct",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.89,
+          "clean_conditioned_asr": 0.09375,
+          "asr_wilson95_low": 0.050108108212146014,
+          "asr_wilson95_high": 0.1686533069222155,
+          "targeted_asr": 0.09375
+        },
+        {
+          "condition": "evidence_cta",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.82,
+          "clean_conditioned_asr": 0.15625,
+          "asr_wilson95_low": 0.09703709990686579,
+          "asr_wilson95_high": 0.24191486674528626,
+          "targeted_asr": 0.15625
+        },
+        {
+          "condition": "cta_identity_card",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.8,
+          "clean_conditioned_asr": 0.1875,
+          "asr_wilson95_low": 0.12202469989311636,
+          "asr_wilson95_high": 0.27702254251793096,
+          "targeted_asr": 0.1875
+        },
+        {
+          "condition": "rio_scenetap_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.42,
+          "clean_conditioned_asr": 0.5625,
+          "asr_wilson95_low": 0.46275882627554077,
+          "asr_wilson95_high": 0.6574317252422498,
+          "targeted_asr": 0.5625
+        },
+        {
+          "condition": "rio_typography_easy",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.49,
+          "clean_conditioned_asr": 0.4895833333333333,
+          "asr_wilson95_low": 0.3919286123125564,
+          "asr_wilson95_high": 0.5880396291011453,
+          "targeted_asr": 0.4895833333333333
+        },
+        {
+          "condition": "rio_typography_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.37,
+          "clean_conditioned_asr": 0.6145833333333334,
+          "asr_wilson95_low": 0.5146070303586874,
+          "asr_wilson95_high": 0.7057423140905956,
+          "targeted_asr": 0.6145833333333334
+        },
+        {
+          "condition": "rio_typography_medium",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.51,
+          "clean_conditioned_asr": 0.46875,
+          "asr_wilson95_low": 0.3720607443853214,
+          "asr_wilson95_high": 0.5678439798557835,
+          "targeted_asr": 0.46875
+        }
+      ],
+      "paired_tests": [
+        {
+          "baseline": "naive_typography",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 54,
+          "exact_mcnemar_p": 1.1102230246251565e-16
+        },
+        {
+          "baseline": "scene_coherent",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 39,
+          "exact_mcnemar_p": 3.637978807091713e-12
+        },
+        {
+          "baseline": "causal_direct",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 12,
+          "baseline_only_successes": 3,
+          "exact_mcnemar_p": 0.03515625
+        },
+        {
+          "baseline": "evidence_cta",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 10,
+          "baseline_only_successes": 7,
+          "exact_mcnemar_p": 0.629058837890625
+        },
+        {
+          "baseline": "rio_typography_easy",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 6,
+          "baseline_only_successes": 35,
+          "exact_mcnemar_p": 4.873598300036974e-06
+        },
+        {
+          "baseline": "rio_typography_medium",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 5,
+          "baseline_only_successes": 32,
+          "exact_mcnemar_p": 7.427530363202095e-06
+        },
+        {
+          "baseline": "rio_typography_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 41,
+          "exact_mcnemar_p": 9.094947017729282e-13
+        },
+        {
+          "baseline": "rio_scenetap_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 1,
+          "baseline_only_successes": 37,
+          "exact_mcnemar_p": 2.837623469531536e-10
+        }
+      ]
+    },
+    "InternVL2-8B": {
+      "log": "/disk2/fangxinyue/causal_typographic_attack/runs/rio_ctav2_holdout_internvl_n100/predictions.jsonl",
+      "log_sha256": "f2383879f546b600a7d8b49cdc8053fd449568494ec68a4e4b61c102a17f449f",
+      "provenance_sha256": "18c6e84b61b411256cc33031fc51a0fb5a47efc419f12c09e18641f906f880d8",
+      "summary": [
+        {
+          "condition": "no_attack",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.96,
+          "clean_conditioned_asr": 0.0,
+          "asr_wilson95_low": 3.469446951953614e-18,
+          "asr_wilson95_high": 0.038475587857675686,
+          "targeted_asr": 0.0
+        },
+        {
+          "condition": "naive_typography",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.58,
+          "clean_conditioned_asr": 0.3958333333333333,
+          "asr_wilson95_low": 0.3038335346205102,
+          "asr_wilson95_high": 0.4958488795165056,
+          "targeted_asr": 0.3958333333333333
+        },
+        {
+          "condition": "scene_coherent",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.67,
+          "clean_conditioned_asr": 0.3020833333333333,
+          "asr_wilson95_low": 0.21931158499064568,
+          "asr_wilson95_high": 0.40008500186968426,
+          "targeted_asr": 0.3020833333333333
+        },
+        {
+          "condition": "causal_direct",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.98,
+          "clean_conditioned_asr": 0.0,
+          "asr_wilson95_low": 3.469446951953614e-18,
+          "asr_wilson95_high": 0.038475587857675686,
+          "targeted_asr": 0.0
+        },
+        {
+          "condition": "evidence_cta",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.95,
+          "clean_conditioned_asr": 0.020833333333333332,
+          "asr_wilson95_low": 0.005731969852430421,
+          "asr_wilson95_high": 0.07280713517784211,
+          "targeted_asr": 0.020833333333333332
+        },
+        {
+          "condition": "cta_identity_card",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.9,
+          "clean_conditioned_asr": 0.08333333333333333,
+          "asr_wilson95_low": 0.04283062415096722,
+          "asr_wilson95_high": 0.15589903239709585,
+          "targeted_asr": 0.08333333333333333
+        },
+        {
+          "condition": "rio_scenetap_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.78,
+          "clean_conditioned_asr": 0.1875,
+          "asr_wilson95_low": 0.12202469989311636,
+          "asr_wilson95_high": 0.27702254251793096,
+          "targeted_asr": 0.1875
+        },
+        {
+          "condition": "rio_typography_easy",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.82,
+          "clean_conditioned_asr": 0.14583333333333334,
+          "asr_wilson95_low": 0.08890205780138637,
+          "asr_wilson95_high": 0.23001815026446726,
+          "targeted_asr": 0.14583333333333334
+        },
+        {
+          "condition": "rio_typography_hard",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.75,
+          "clean_conditioned_asr": 0.21875,
+          "asr_wilson95_low": 0.14776345080877545,
+          "asr_wilson95_high": 0.31137906736116716,
+          "targeted_asr": 0.21875
+        },
+        {
+          "condition": "rio_typography_medium",
+          "n_total": 100,
+          "n_clean_correct": 96,
+          "diagnostic_accuracy": 0.83,
+          "clean_conditioned_asr": 0.13541666666666666,
+          "asr_wilson95_low": 0.0808770644581112,
+          "asr_wilson95_high": 0.21801138502144396,
+          "targeted_asr": 0.13541666666666666
+        }
+      ],
+      "paired_tests": [
+        {
+          "baseline": "naive_typography",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 30,
+          "exact_mcnemar_p": 1.862645149230957e-09
+        },
+        {
+          "baseline": "scene_coherent",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 21,
+          "exact_mcnemar_p": 9.5367431640625e-07
+        },
+        {
+          "baseline": "causal_direct",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 8,
+          "baseline_only_successes": 0,
+          "exact_mcnemar_p": 0.0078125
+        },
+        {
+          "baseline": "evidence_cta",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 6,
+          "baseline_only_successes": 0,
+          "exact_mcnemar_p": 0.03125
+        },
+        {
+          "baseline": "rio_typography_easy",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 3,
+          "baseline_only_successes": 9,
+          "exact_mcnemar_p": 0.14599609375
+        },
+        {
+          "baseline": "rio_typography_medium",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 3,
+          "baseline_only_successes": 8,
+          "exact_mcnemar_p": 0.2265625
+        },
+        {
+          "baseline": "rio_typography_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 13,
+          "exact_mcnemar_p": 0.000244140625
+        },
+        {
+          "baseline": "rio_scenetap_hard",
+          "method": "cta_identity_card",
+          "n_clean_correct": 96,
+          "method_only_successes": 0,
+          "baseline_only_successes": 10,
+          "exact_mcnemar_p": 0.001953125
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,507 @@
+{
+  "schema_version": "cta/violation-severity-analysis-v1",
+  "models": {
+    "Qwen2.5-VL-3B": {
+      "log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_violation_severity_qwen3_n100/predictions.jsonl",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvta_violation_severity_qwen3_n100/provenance.json",
+      "summaries": [
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "biology",
+          "n": 9,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.7008549515804559,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "economic/common-sense",
+          "n": 3,
+          "strict_false_claim_acceptance_asr": 0.3333333333333333,
+          "asr_wilson95_low": 0.06149194472039621,
+          "asr_wilson95_high": 0.7923403991979522,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "energy conservation",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.93982814785791,
+          "asr_wilson95_high": 0.9999999999999998,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "energy/transport",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 0.9333333333333333,
+          "asr_wilson95_low": 0.8407464268680283,
+          "asr_wilson95_high": 0.9737713012754938,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "mass/mechanics",
+          "n": 111,
+          "strict_false_claim_acceptance_asr": 0.3333333333333333,
+          "asr_wilson95_low": 0.2525113750360455,
+          "asr_wilson95_high": 0.4253053265284187,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "mechanics",
+          "n": 51,
+          "strict_false_claim_acceptance_asr": 0.6666666666666666,
+          "asr_wilson95_low": 0.529683778569708,
+          "asr_wilson95_high": 0.7803006814641148,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "thermal/biology",
+          "n": 51,
+          "strict_false_claim_acceptance_asr": 0.45098039215686275,
+          "asr_wilson95_low": 0.3226751854937402,
+          "asr_wilson95_high": 0.5861529144963119,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "family",
+          "value": "thermal/decay",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 0.9833333333333333,
+          "asr_wilson95_low": 0.9114487027240993,
+          "asr_wilson95_high": 0.9970518402052136,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "ordinary-market-price",
+          "n": 3,
+          "strict_false_claim_acceptance_asr": 0.3333333333333333,
+          "asr_wilson95_low": 0.06149194472039621,
+          "asr_wilson95_high": 0.7923403991979522,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "seventy-degree-freshness",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 0.9833333333333333,
+          "asr_wilson95_low": 0.9114487027240993,
+          "asr_wilson95_high": 0.9970518402052136,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "thermal-exposure",
+          "n": 51,
+          "strict_false_claim_acceptance_asr": 0.45098039215686275,
+          "asr_wilson95_low": 0.3226751854937402,
+          "asr_wilson95_high": 0.5861529144963119,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "unaided-flight",
+          "n": 51,
+          "strict_false_claim_acceptance_asr": 0.6666666666666666,
+          "asr_wilson95_low": 0.529683778569708,
+          "asr_wilson95_high": 0.7803006814641148,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "vacuum-survival",
+          "n": 9,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.7008549515804559,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "zero-energy-travel",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 0.9333333333333333,
+          "asr_wilson95_low": 0.8407464268680283,
+          "asr_wilson95_high": 0.9737713012754938,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "zero-input-power",
+          "n": 60,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.93982814785791,
+          "asr_wilson95_high": 0.9999999999999998,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario",
+          "value": "zero-mass-matter",
+          "n": 111,
+          "strict_false_claim_acceptance_asr": 0.3333333333333333,
+          "asr_wilson95_low": 0.2525113750360455,
+          "asr_wilson95_high": 0.4253053265284187,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "ordinary-market-price::extreme",
+          "n": 1,
+          "strict_false_claim_acceptance_asr": 0.0,
+          "asr_wilson95_low": 0.0,
+          "asr_wilson95_high": 0.7934506856227626,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "ordinary-market-price::moderate",
+          "n": 1,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.20654931437723745,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "ordinary-market-price::strong",
+          "n": 1,
+          "strict_false_claim_acceptance_asr": 0.0,
+          "asr_wilson95_low": 0.0,
+          "asr_wilson95_high": 0.7934506856227626,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "seventy-degree-freshness::extreme",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 0.95,
+          "asr_wilson95_low": 0.763868806553258,
+          "asr_wilson95_high": 0.9911185511992047,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "seventy-degree-freshness::moderate",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "seventy-degree-freshness::strong",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "thermal-exposure::extreme",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.23529411764705882,
+          "asr_wilson95_low": 0.09555044322080117,
+          "asr_wilson95_high": 0.4726179811956498,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "thermal-exposure::moderate",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.7647058823529411,
+          "asr_wilson95_low": 0.5273820188043501,
+          "asr_wilson95_high": 0.9044495567791988,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "thermal-exposure::strong",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.35294117647058826,
+          "asr_wilson95_low": 0.17309720397243744,
+          "asr_wilson95_high": 0.5869963651478132,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "unaided-flight::extreme",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.5882352941176471,
+          "asr_wilson95_low": 0.3600544264299978,
+          "asr_wilson95_high": 0.7838894320978518,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "unaided-flight::moderate",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.8823529411764706,
+          "asr_wilson95_low": 0.6566364940511412,
+          "asr_wilson95_high": 0.9671202262362074,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "unaided-flight::strong",
+          "n": 17,
+          "strict_false_claim_acceptance_asr": 0.5294117647058824,
+          "asr_wilson95_low": 0.30963235060004424,
+          "asr_wilson95_high": 0.7383489355759056,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "vacuum-survival::extreme",
+          "n": 3,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.4385029682449546,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "vacuum-survival::moderate",
+          "n": 3,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.4385029682449546,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "vacuum-survival::strong",
+          "n": 3,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.4385029682449546,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-energy-travel::extreme",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 0.8,
+          "asr_wilson95_low": 0.5839825677481064,
+          "asr_wilson95_high": 0.919342337420202,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-energy-travel::moderate",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-energy-travel::strong",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-input-power::extreme",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-input-power::moderate",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-input-power::strong",
+          "n": 20,
+          "strict_false_claim_acceptance_asr": 1.0,
+          "asr_wilson95_low": 0.8388748419471806,
+          "asr_wilson95_high": 1.0,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-mass-matter::extreme",
+          "n": 37,
+          "strict_false_claim_acceptance_asr": 0.4594594594594595,
+          "asr_wilson95_low": 0.3103856980437303,
+          "asr_wilson95_high": 0.6161595310782052,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-mass-matter::moderate",
+          "n": 37,
+          "strict_false_claim_acceptance_asr": 0.24324324324324326,
+          "asr_wilson95_low": 0.13361352989116398,
+          "asr_wilson95_high": 0.40117292121442655,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "scenario_severity",
+          "value": "zero-mass-matter::strong",
+          "n": 37,
+          "strict_false_claim_acceptance_asr": 0.2972972972972973,
+          "asr_wilson95_low": 0.17489478649832016,
+          "asr_wilson95_high": 0.45783135911135664,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "severity",
+          "value": "extreme",
+          "n": 135,
+          "strict_false_claim_acceptance_asr": 0.6592592592592592,
+          "asr_wilson95_low": 0.5758930961040766,
+          "asr_wilson95_high": 0.7338126673273783,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "severity",
+          "value": "moderate",
+          "n": 135,
+          "strict_false_claim_acceptance_asr": 0.7481481481481481,
+          "asr_wilson95_low": 0.6687537604598932,
+          "asr_wilson95_high": 0.8138110337240019,
+          "grounded_transcription_rate": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "dimension": "severity",
+          "value": "strong",
+          "n": 135,
+          "strict_false_claim_acceptance_asr": 0.6592592592592592,
+          "asr_wilson95_low": 0.5758930961040766,
+          "asr_wilson95_high": 0.7338126673273783,
+          "grounded_transcription_rate": 1.0
+        }
+      ],
+      "paired_moderate_vs_extreme": [
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "ordinary-market-price",
+          "n_paired": 1,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 1,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "seventy-degree-freshness",
+          "n_paired": 20,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 1,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "thermal-exposure",
+          "n_paired": 17,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 9,
+          "exact_mcnemar_p": 0.00390625
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "unaided-flight",
+          "n_paired": 17,
+          "extreme_only_successes": 1,
+          "moderate_only_successes": 6,
+          "exact_mcnemar_p": 0.125
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "vacuum-survival",
+          "n_paired": 3,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 0,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "zero-energy-travel",
+          "n_paired": 20,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 4,
+          "exact_mcnemar_p": 0.125
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "zero-input-power",
+          "n_paired": 20,
+          "extreme_only_successes": 0,
+          "moderate_only_successes": 0,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "model": "Qwen2.5-VL-3B",
+          "scenario": "zero-mass-matter",
+          "n_paired": 37,
+          "extreme_only_successes": 10,
+          "moderate_only_successes": 2,
+          "exact_mcnemar_p": 0.03857421875
+        }
+      ]
+    }
+  }
+}
