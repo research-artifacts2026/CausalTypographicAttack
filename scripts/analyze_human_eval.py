@@ -158,6 +158,10 @@ def main() -> None:
               "duplicate_mean_absolute_difference": statistics.fmean(duplicate_mae) if duplicate_mae else None,
               "inference": {"unit": "matched image identifier", "bootstrap_draws": 10000, "seed": args.seed},
               "methods": {}}
+    if args.evaluator_kind == "human":
+        result["annotators"] = len(response_paths)
+    else:
+        result["model_evaluation_runs"] = len(response_paths)
     for method in sorted({row["method"] for row in deduplicated}):
         method_rows = [row for row in deduplicated if row["method"] == method]
         result["methods"][method] = {}
