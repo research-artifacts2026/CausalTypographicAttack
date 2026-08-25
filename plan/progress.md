@@ -19,3 +19,19 @@
 - [ ] Run Qwen-3B/7B pilot and official RIO scorer; expand only after completeness checks.
 - [ ] Run LLaVA/InternVL transfer under the identical manifest.
 - [ ] Complete full SceneTAP, real physical capture, and three-person independent evaluation.
+
+## RVTA-QA balanced-v1 and AI-natural carrier (2026-08-25)
+
+- [x] Implement truth-polarity, A/B-order, and AB-versus-YES/NO counterbalancing.
+- [x] Score correct and target responses semantically per item.
+- [x] Preserve fixed paired questions and independent claim-transcription audits.
+- [x] Add COCO/VOC configurations for four open LVLM checkpoints.
+- [x] Add build, run, validation, CSV/JSON, and LaTeX generation scripts.
+- [x] Add six-cell unit tests and run the local smoke suite.
+- [x] Generate three provenance-locked AI natural-carrier examples.
+- [x] Prepare a blinded three-person naturalness pack with hidden repeats.
+- [ ] Materialize the two 300-item manifests on server 212.
+- [ ] Run eight complete model-dataset jobs and validate hashes.
+- [ ] Run the four-model n=3 natural-carrier pilot (qualitative only).
+- [ ] Collect three independent human response files.
+- [ ] Collect and validate registered real camera captures.

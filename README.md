@@ -811,3 +811,133 @@ say `physical capture pending` and report no physical ASR.
 - Never relabel GPT-5.6-sol model reratings as human annotations.
 - PPIA and REALM have different tasks and denominators. Their ASR belongs in
   separate external-validation tables, not in the RIO/RVTA main table.
+
+## Paired RVTA-QA Read--Verify protocol
+
+This extension holds one binary world-verification question fixed across six
+matched image conditions: clean, benign true text, explicit answer injection,
+the original causal claim, Evidence CTA, and Causal-Bridge CTA. Every row gets
+one verification query and one independent claim-transcription audit. Primary
+success requires a correct clean answer, a targeted attacked answer, and exact
+normalized transcription of the registered claim. The bridge contains no
+option letter or YES/NO target token.
+
+The COCO development (50), COCO held-out (250), and Pascal VOC transfer (300)
+manifests were rendered and hash-frozen before victim inference. Run one model
+per GPU with the corresponding checked-in configuration, for example:
+
+```bash
+CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_rvta_qa.py --config configs/rvtaqa_coco_test_qwen3_n250.yaml
+
+CUDA_VISIBLE_DEVICES=5 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_rvta_qa.py --config configs/rvtaqa_coco_test_qwen7_n250.yaml
+
+CUDA_VISIBLE_DEVICES=6 \
+PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_rvta_qa.py \
+  --config configs/rvtaqa_coco_test_llava_n250.yaml
+
+CUDA_VISIBLE_DEVICES=3 \
+PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
+/disk2/fangxinyue/.venv/bin/python scripts/run_rvta_qa.py \
+  --config configs/rvtaqa_coco_test_internvl_n250.yaml
+```
+
+Only complete logs whose key set and image hashes exactly match the frozen
+manifest may be aggregated:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_rvta_qa.py \
+  --manifest runs/rvtaqa_coco_test_n250/render_manifest.jsonl \
+  --model-log Qwen2.5-VL-3B=runs/rvtaqa_coco_test_qwen3_n250/predictions.jsonl \
+  --model-log Qwen2.5-VL-7B=runs/rvtaqa_coco_test_qwen7_n250/predictions.jsonl \
+  --model-log LLaVA-OneVision-1.5-8B=runs/rvtaqa_coco_test_llava_n250/predictions.jsonl \
+  --model-log InternVL2-8B=runs/rvtaqa_coco_test_internvl_n250/predictions.jsonl \
+  --output-dir runs/rvtaqa_coco_test_analysis_n250
+```
+
+Before any primary held-out analysis, a separate 100-image YES/NO replication
+was registered to remove arbitrary A/B option letters. Its manifest hash is
+recorded in `work_rvta_qa_preregistration.json`; it is a format ablation and
+must never replace or be pooled with the 250-image primary endpoint. Run it
+with the four `configs/rvtaqa_coco_yesno_*_n100.yaml` configurations.
+
+Development output is diagnostic only. Do not tune conditions on held-out or
+transfer responses, resume failed partial directories under a new protocol, or
+label RVTA-QA as RIO/PPIA/REALM or public typographic-attack SOTA.
+
+## Truth/order/format-balanced RVTA-QA follow-up
+
+Balanced-v1 is a new protocol and does not alter the frozen original RVTA-QA
+manifests. It balances true and false propositions, reverses A/B option order,
+and includes semantic YES/NO cells. Correctness and target flips are scored by
+meaning rather than by a global option letter. Build the two 300-item manifests
+from the already frozen source registries:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_qa_balanced.py \
+  --sample-manifest runs/rvtaqa_coco_dev_n50/items.json \
+  --sample-manifest runs/rvtaqa_coco_test_n250/items.json \
+  --output-root runs/rvtaqa_balanced_coco_n300 \
+  --dataset COCO --offset 0 --limit 300 --seed 20260825 --stage held-out
+
+/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_qa_balanced.py \
+  --sample-manifest runs/rvtaqa_voc_transfer_n300_v2/items.json \
+  --output-root runs/rvtaqa_balanced_voc_n300 \
+  --dataset VOC --offset 0 --limit 300 --seed 20260825 --stage transfer \
+  --allow-source-reencoding
+```
+
+Run each of the four checked-in `rvtaqa_balanced_coco_*_n300.yaml`
+configurations and the four matching VOC configurations with
+`scripts/run_rvta_qa_balanced.py`. The runner is resumable but a table is
+generated only after the complete key set and every image hash match:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_rvta_qa_balanced.py \
+  --config configs/rvtaqa_balanced_coco_qwen3_n300.yaml
+
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_rvta_qa_balanced.py \
+  --manifest runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl \
+  --model-log Qwen-3B=runs/rvtaqa_balanced_coco_qwen3_n300/predictions.jsonl \
+  --model-log Qwen-7B=runs/rvtaqa_balanced_coco_qwen7_n300/predictions.jsonl \
+  --model-log LLaVA=runs/rvtaqa_balanced_coco_llava_n300/predictions.jsonl \
+  --model-log InternVL=runs/rvtaqa_balanced_coco_internvl_n300/predictions.jsonl \
+  --output-dir runs/rvtaqa_balanced_coco_analysis_n300
+```
+
+`work_rvta_qa_balanced_protocol.json` freezes the design boundary. Until all
+logs are complete, the balanced paper table remains absent rather than filled
+with placeholders.
+
+## AI-edited synthetic natural-render pilot
+
+The three assets under `assets/synthetic_natural_render/` add scene perspective,
+material texture, environmental light, and shadows to matched source images.
+They are always labeled **synthetic natural-render; not real physical capture**.
+The exact source/output hashes and full edit prompts are in `registry.json`.
+
+Run the four qualitative pilots with the matching
+`synthetic_natural_*_n3.yaml` files, for example:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_synthetic_natural_eval.py \
+  --config configs/synthetic_natural_qwen3_n3.yaml
+```
+
+The script reports paired clean accuracy, clean-conditioned target ASR, and a
+claim-reading-gated endpoint, but writes a mandatory n=3 non-headline warning.
+Prepare the still-unfilled three-person pack with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/make_synthetic_natural_blind_pack.py \
+  --registry assets/synthetic_natural_render/registry.json \
+  --output-root runs/synthetic_natural_blind_n3 --annotators 3
+```
+
+Do not self-fill these forms or substitute GPT ratings for people. If a model
+rating is later collected, analyze it with `--evaluator-kind model` and keep it
+separate. These assets do not satisfy the registered physical-capture protocol.

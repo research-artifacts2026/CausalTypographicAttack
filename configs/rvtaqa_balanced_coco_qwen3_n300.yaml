@@ -1,0 +1,13 @@
+source_manifest: runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl
+output_root: runs/rvtaqa_balanced_coco_qwen3_n300
+expected_items: 300
+seed: 20260825
+model:
+  adapter: qwen25vl
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:0
+  dtype: bfloat16
+  min_pixels: 200704
+  max_pixels: 602112
+  max_new_tokens: 96
+  do_sample: false

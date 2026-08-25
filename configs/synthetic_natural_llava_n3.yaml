@@ -1,0 +1,9 @@
+registry: assets/synthetic_natural_render/registry.json
+output_root: runs/synthetic_natural_llava_n3
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/e137910552d616eb0f7305147ca054311a90c542
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  do_sample: false
