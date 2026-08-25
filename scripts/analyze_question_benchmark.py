@@ -68,7 +68,10 @@ def main() -> None:
         "schema_version": "cta/question-benchmark-analysis-v1",
         "manifest": str(args.manifest.resolve()),
         "manifest_sha256": file_sha256(args.manifest.resolve()),
-        "metric_boundary": "diagnostic normalized short-answer score; not an official VQAv2 or LingoQA leaderboard score",
+        "metric_boundary": (
+            "RIO Obj-MC option-label/answer-string compatibility score used for paired "
+            "clean-conditioned analysis; official RIO evaluator replay is reported separately"
+        ),
         "models": {},
     }
     table_rows = []
@@ -90,6 +93,7 @@ def main() -> None:
             condition for condition in (
                 "naive_typography", "scene_coherent", "causal_direct",
                 "rio_typography_easy", "rio_typography_medium", "rio_typography_hard",
+                "rio_scenetap_hard",
             ) if condition in manifest_conditions
         ]
         tests = [paired_exact_test(
