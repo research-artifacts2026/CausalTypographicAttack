@@ -71,7 +71,9 @@ def resolve_revision(repo_id: str, revision: str) -> str:
         return revision
 
 
-def collect_ids(repo_id: str, config: str, split: str, revision: str, limit: int) -> list[str]:
+def collect_ids(
+    repo_id: str, config: str, split: str, revision: str, limit: int, offset: int,
+) -> list[str]:
     # Streaming image datasets decode/fetch each visited image. A global hash
     # scan would therefore download the complete validation image corpus before
     # selecting a pilot. Use the pinned clean config's canonical first N rows;
@@ -79,7 +81,9 @@ def collect_ids(repo_id: str, config: str, split: str, revision: str, limit: int
     # those IDs. This is a pilot selection, not a population estimate.
     selected = [
         str(row["question_id"])
-        for row in islice(load_stream(repo_id, config, split, revision), limit)
+        for row in islice(
+            load_stream(repo_id, config, split, revision), offset, offset + limit,
+        )
     ]
     if len(selected) != limit:
         raise RuntimeError(f"requested {limit} pilot rows, found {len(selected)}")
@@ -148,6 +152,7 @@ def main() -> None:
     parser.add_argument("--revision", default="main")
     parser.add_argument("--split", default="val")
     parser.add_argument("--limit", type=int, default=100)
+    parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--seed", type=int, default=20260824)
     args = parser.parse_args()
     output_root = args.output_root.resolve()
@@ -158,7 +163,11 @@ def main() -> None:
 
     revision = resolve_revision(args.repo_id, args.revision)
     configs = RIO_CONFIG_GROUPS["obj_mc"]
-    selected = collect_ids(args.repo_id, configs[0], args.split, revision, args.limit)
+    if args.offset < 0:
+        raise ValueError("offset must be non-negative")
+    selected = collect_ids(
+        args.repo_id, configs[0], args.split, revision, args.limit, args.offset,
+    )
     selected_ids = set(selected)
     indexed = {
         config: materialize_config(
@@ -210,7 +219,8 @@ def main() -> None:
         "data_dir_split_alias": {"val": "validation"},
         "configs": list(configs),
         "loader_policy": "named Hub config; exact top-level data_dir fallback when the client exposes only BuilderConfig default",
-        "selection": "canonical first N rows of the pinned clean validation config; pilot only",
+        "selection": "canonical contiguous rows of the pinned clean validation config; pilot only",
+        "selection_offset": args.offset,
         "seed": args.seed,
         "questions": len(selected),
         "conditions": list(CONDITIONS) + [RIO_CONDITION_BY_CONFIG[c] for c in configs[1:]],

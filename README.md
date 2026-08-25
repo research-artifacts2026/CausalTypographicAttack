@@ -574,6 +574,40 @@ validation split. That row is labeled **RIO SceneTAP (precomputed)** and kept
 separate from the `scene_coherent` in-house plaque. The repository does not
 re-run or modify SceneTAP's planner for this row.
 
+### Target-aware CTA-v2 template selection
+
+The original long Evidence-CTA card is an exploratory v1 condition. RIO v1
+results must remain immutable. CTA-v2 uses a development/held-out boundary:
+render every concise target-aware candidate on the development manifest, select
+one universal template using Qwen-3B and Qwen-7B development logs, write the
+selection record, and only then materialize a disjoint held-out RIO block.
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/extend_question_manifest.py \
+  --source-manifest runs/rio_objmc_n100/render_manifest.jsonl \
+  --output-root runs/rio_ctav2_discovery_n100 --stage development \
+  --include-condition no_attack --include-condition naive_typography \
+  --include-condition rio_typography_hard --include-condition rio_scenetap_hard
+
+/disk2/fangxinyue/.venv/bin/python scripts/run_rio_suite.py \
+  --suite-config configs/rio_ctav2_discovery_suite_n100.yaml
+
+/disk2/fangxinyue/.venv/bin/python scripts/select_rio_cta_template.py \
+  --manifest runs/rio_ctav2_discovery_n100/render_manifest.jsonl \
+  --model-log Qwen2.5-VL-3B=runs/rio_ctav2_discovery_qwen3_n100/predictions.jsonl \
+  --model-log Qwen2.5-VL-7B=runs/rio_ctav2_discovery_qwen7_n100/predictions.jsonl \
+  --output runs/rio_ctav2_template_preregistration.json
+```
+
+`cta_option_anchor` includes the target option letter and is reported only as
+an adaptive upper bound. By default the selector excludes it from the primary
+selection pool; the primary CTA-v2 template is one of the three letter-free
+causal cards. Held-out
+data use `scripts/build_rio_obj_mc.py --offset 100 --limit 100` (or a larger
+predeclared block) and `extend_question_manifest.py --stage held-out` with
+exactly one frozen `--candidate`. Per-image or per-model template selection is
+not allowed in the held-out evaluation.
+
 ## Simulated camera degradation
 
 Use one profile per run so clean eligibility is recomputed under the same

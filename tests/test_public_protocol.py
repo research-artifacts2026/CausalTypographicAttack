@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from cta.question_bench import build_spec, render_condition
+from cta.question_bench import TARGET_AWARE_CANDIDATES, build_spec, render_condition
 from cta.rio_bench import (
     RIO_CONDITION_BY_CONFIG, prediction_letter, rio_mc_score, stable_reservoir,
     target_letter_from_attack_word,
@@ -64,6 +64,18 @@ def test_long_rio_claim_fits_fixed_evidence_card(tmp_path: Path):
     spec = build_spec({**row, "target_answer": target}, tmp_path, seed=3)
     rendered = render_condition(spec, "evidence_cta", tmp_path / "long-evidence.jpg")
     assert Path(rendered["image_path"]).is_file()
+
+
+def test_target_aware_candidate_cards_are_renderable_and_targeted(tmp_path: Path):
+    Image.new("RGB", (640, 480), "white").save(tmp_path / "source.jpg")
+    row = _rio_row()
+    target, _ = target_letter_from_attack_word(row, seed=3)
+    spec = build_spec({**row, "target_answer": target}, tmp_path, seed=3)
+    for condition in TARGET_AWARE_CANDIDATES:
+        rendered = render_condition(spec, condition, tmp_path / f"{condition}.jpg")
+        assert Path(rendered["image_path"]).is_file()
+        assert spec.target_content in rendered["overlay_text"]
+        assert rendered["overlay_area_fraction"] > 0
 
 
 def test_public_selection_is_order_invariant():
