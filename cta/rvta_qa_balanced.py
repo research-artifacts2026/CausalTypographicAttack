@@ -139,8 +139,13 @@ def build_spec(
     if not source.is_file():
         raise FileNotFoundError(f"{item_id}: source image missing: {source}")
     expected_hash = str(sample.get("source_sha256", "")).strip()
+    upstream_hash = str(sample.get("upstream_source_sha256", expected_hash)).strip()
     actual_hash = file_sha256(source)
-    reencoded = bool(expected_hash and expected_hash != actual_hash)
+    reencoded = bool(
+        sample.get("source_reencoded", False)
+        or (upstream_hash and upstream_hash != actual_hash)
+        or (expected_hash and expected_hash != actual_hash)
+    )
     if reencoded and not allow_source_reencoding:
         raise ValueError(f"{item_id}: source SHA-256 mismatch")
     label = str(sample.get("target_label", "")).strip().lower()
@@ -165,7 +170,7 @@ def build_spec(
         dataset=dataset,
         source_path=str(source),
         source_sha256=actual_hash,
-        upstream_source_sha256=expected_hash or actual_hash,
+        upstream_source_sha256=upstream_hash or expected_hash or actual_hash,
         source_reencoded=reencoded,
         target_label=label,
         family=family,

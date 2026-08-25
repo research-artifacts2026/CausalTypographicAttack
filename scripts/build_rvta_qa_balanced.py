@@ -103,6 +103,7 @@ def main() -> None:
         "manifest": str(manifest_path),
         "manifest_sha256": file_sha256(manifest_path),
         "counterbalance_cell_counts": dict(sorted(cell_counts.items())),
+        "source_reencoded_items": sum(bool(row["source_reencoded"]) for row in item_rows),
         "question_policy": "one byte-identical verification question per item across every image condition",
         "counterbalance_policy": "truth polarity, AB option order, and AB-versus-YES/NO format are frozen before inference",
         "metric_policy": "semantic clean-conditioned target ASR; grounded ASR also requires registered attack-claim transcription",

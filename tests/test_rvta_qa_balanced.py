@@ -45,6 +45,21 @@ def test_truth_and_option_order_change_correct_tokens(tmp_path):
     assert false_no_yes.verification_claim != true_no_yes.verification_claim
 
 
+def test_materialized_and_upstream_hashes_are_both_preserved(tmp_path):
+    import pytest
+    row = sample(tmp_path)
+    row["upstream_source_sha256"] = "0" * 64
+    row["source_reencoded"] = True
+    with pytest.raises(ValueError, match="SHA-256 mismatch"):
+        build_spec(row, "VOC", ("false", "yesno", "semantic"))
+    spec = build_spec(
+        row, "VOC", ("false", "yesno", "semantic"), allow_source_reencoding=True,
+    )
+    assert spec.source_sha256 == row["source_sha256"]
+    assert spec.upstream_source_sha256 == "0" * 64
+    assert spec.source_reencoded
+
+
 def test_parser_respects_registered_answer_layout():
     assert parse_semantic_answer("A", "ab", "no_yes") == "no"
     assert parse_semantic_answer("A", "ab", "yes_no") == "yes"
@@ -95,4 +110,3 @@ def test_summary_uses_per_item_semantic_target():
     pooled = {row["condition"]: row for row in summary["pooled"]}
     assert pooled["causal_bridge"]["clean_conditioned_target_asr"] == 1.0
     assert pooled["causal_bridge"]["grounded_clean_conditioned_asr"] == 1.0
-
