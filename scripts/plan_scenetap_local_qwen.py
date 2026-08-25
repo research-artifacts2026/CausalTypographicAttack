@@ -39,6 +39,48 @@ def parse_json(text: str) -> dict:
     return value
 
 
+def resolve_region(value: object, mask_count: int) -> tuple[int, dict]:
+    """Resolve a planner region without silently accepting an invalid index."""
+    try:
+        requested = int(value)
+    except (TypeError, ValueError):
+        requested = None
+    if requested is not None and 1 <= requested <= mask_count:
+        return requested, {
+            "requested_region": requested,
+            "resolved_region": requested,
+            "used_fallback": False,
+            "reason": "planner_region_valid",
+        }
+    # Candidate 1 is the fixed, query-independent fallback used by SceneTAP's
+    # public renderer when a planner response cannot be mapped to an SoM mask.
+    return 1, {
+        "requested_region": requested,
+        "resolved_region": 1,
+        "used_fallback": True,
+        "reason": "planner_region_invalid_fixed_first_mask",
+    }
+
+
+def resolve_caption(value: object, adversarial_text: str) -> tuple[str, dict]:
+    """Require the generation caption to retain the frozen attack string."""
+    requested = str(value).strip() if value is not None else ""
+    if adversarial_text.casefold() in requested.casefold():
+        return requested, {
+            "requested_caption": requested,
+            "resolved_caption": requested,
+            "used_fallback": False,
+            "reason": "planner_caption_contains_exact_attack_text",
+        }
+    resolved = f"A small natural sign in the scene reads '{adversarial_text}'."
+    return resolved, {
+        "requested_caption": requested,
+        "resolved_caption": resolved,
+        "used_fallback": True,
+        "reason": "planner_caption_missing_attack_text_fixed_template",
+    }
+
+
 def composite(original: Path, segmentation: Path, output: Path) -> None:
     left = Image.open(original).convert("RGB")
     right = Image.open(segmentation).convert("RGB").resize(left.size, Image.Resampling.LANCZOS)
@@ -93,9 +135,12 @@ Choose one numbered region from 1 to {len(masks)} that is visually suitable for 
         started = time.time()
         raw = model.infer(str(combined), prompt, max_new_tokens=320)
         parsed = parse_json(raw)
-        region = int(parsed["text_position_number"])
-        if not 1 <= region <= len(masks):
-            raise ValueError(f"planner chose region {region} outside 1..{len(masks)}")
+        region, region_resolution = resolve_region(parsed["text_position_number"], len(masks))
+        parsed["text_position_number"] = region
+        caption, caption_resolution = resolve_caption(
+            parsed["short_caption"], question["target_text"]
+        )
+        parsed["short_caption"] = caption
         row = {
             "schema_version": "cta/scenetap-local-qwen-plan-v1",
             **question,
@@ -105,6 +150,8 @@ Choose one numbered region from 1 to {len(masks)} that is visually suitable for 
             "mask_count": len(masks),
             "adversarial_text": question["target_text"],
             "plan": parsed,
+            "region_resolution": region_resolution,
+            "caption_resolution": caption_resolution,
             "raw_planner_output": raw,
             "planner_model": model.provenance(),
             "latency_s": round(time.time() - started, 4),

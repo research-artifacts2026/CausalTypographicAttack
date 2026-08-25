@@ -745,13 +745,44 @@ CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
   scripts/plan_scenetap_local_qwen.py \
   --stage-root runs/scenetap_full_local_qwen_n30_stage \
   --som-dir runs/scenetap_full_local_qwen_n30_som/rio_local_n30/slider_3.0/seed_42/filter_12.0 \
-  --output-root runs/scenetap_full_local_qwen_n30_plans \
+  --output-root runs/scenetap_full_local_qwen_n30_plans_v3 \
   --model-path /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
 ```
 
 Run `render_scenetap_local_plans.py` under the isolated SceneTAP runtime with
 the SceneTAP repository on `PYTHONPATH`. Every plan, mask choice, candidate,
-render hash, and planner provenance is retained.
+render hash, and planner provenance is retained. If the local planner emits an
+invalid SoM index, the evaluator records the requested index and applies a
+fixed, query-independent first-mask fallback. If its generation caption omits
+the frozen attack string, the evaluator records the raw caption and substitutes
+the fixed template `A small natural sign in the scene reads '<attack text>'.`
+Failed partial directories are not resumed or overwritten.
+
+After rendering, pair the attacked images with the immutable clean rows and
+evaluate the local-planner chain separately from the public precomputed
+SceneTAP condition:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_scenetap_eval_manifest.py \
+  --base-manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
+  --render-manifest runs/scenetap_full_local_qwen_n30_render_v3/render_manifest.jsonl \
+  --output-root runs/scenetap_full_local_qwen_n30_eval
+
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_question_benchmark.py \
+  --config configs/scenetap_full_local_qwen_qwen3_n30.yaml
+
+CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_question_benchmark.py \
+  --config configs/scenetap_full_local_qwen_qwen7_n30.yaml
+```
+
+This 30-question implementation check is labeled `SceneTAP full chain (local
+Qwen planner)`. It is not pooled with, and cannot replace, results obtained
+with the official planner model/service. The completed run has 32.14% ASR on
+Qwen2.5-VL-3B (9/28 clean-correct questions) and 24.14% on Qwen2.5-VL-7B
+(7/29), using official RIO replay. One region choice and 24 generation captions
+use the recorded fixed fallbacks described above.
 
 ### Registered physical capture kit
 

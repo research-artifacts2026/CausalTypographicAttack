@@ -91,6 +91,27 @@ def main() -> None:
         if provenance.get("status") != "complete" or provenance.get("completed_rows") != len(expected):
             raise ValueError(f"{model_name}: provenance does not attest a complete run")
         summary = summarize_question_rows(rows, args.clean_correct_threshold)
+        official_path = log_path.parent / "official_rio_score.json"
+        official_replay = None
+        if official_path.exists():
+            official_replay = json.loads(official_path.read_text(encoding="utf-8"))
+            official_conditions = official_replay.get("conditions", {})
+            for summary_row in summary:
+                condition = summary_row["condition"]
+                if condition not in official_conditions:
+                    raise ValueError(f"{model_name}: official replay is missing {condition}")
+                official_row = official_conditions[condition]
+                checks = (
+                    ("diagnostic_accuracy", "accuracy"),
+                    ("clean_conditioned_asr", "clean_conditioned_asr"),
+                )
+                for local_key, official_key in checks:
+                    local_value = summary_row[local_key]
+                    official_value = official_row[official_key]
+                    if local_value is None or abs(float(local_value) - float(official_value)) > 1e-12:
+                        raise ValueError(
+                            f"{model_name}: {condition} {local_key} differs from official replay"
+                        )
         baselines = [
             condition for condition in (
                 "naive_typography", "scene_coherent", "causal_direct",
@@ -109,8 +130,31 @@ def main() -> None:
             "provenance_sha256": file_sha256(provenance_path),
             "summary": summary, "paired_tests": tests,
         }
+        if official_replay is not None:
+            evidence["models"][model_name]["official_replay"] = {
+                "path": str(official_path),
+                "sha256": file_sha256(official_path),
+                "code_commit": official_replay.get("official_code_commit"),
+                "task": official_replay.get("task"),
+                "status": "exact_match",
+            }
         for row in summary:
             table_rows.append({"model": model_name, **row})
+
+    condition_sets = []
+    for model in evidence["models"].values():
+        condition_sets.append({row["condition"] for row in model["summary"]})
+    shared_conditions = sorted(set.intersection(*condition_sets)) if condition_sets else []
+    evidence["macro_clean_conditioned_asr"] = {
+        condition: sum(
+            next(
+                row["clean_conditioned_asr"] for row in model["summary"]
+                if row["condition"] == condition
+            )
+            for model in evidence["models"].values()
+        ) / len(evidence["models"])
+        for condition in shared_conditions
+    }
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "question_benchmark_evidence.json").write_text(
