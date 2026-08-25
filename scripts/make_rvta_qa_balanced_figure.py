@@ -58,6 +58,10 @@ def macro_values(evidence: dict, condition: str) -> list[float]:
     return values
 
 
+def pct(value: float | None) -> str:
+    return "--" if value is None else f"{100.0 * value:.1f}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--coco-evidence", type=Path, required=True)
@@ -100,6 +104,54 @@ def main() -> None:
     figure.savefig(pdf_path, bbox_inches="tight")
     figure.savefig(png_path, dpi=220, bbox_inches="tight")
     plt.close(figure)
+
+    table_path = output / "generated_rvta_qa_balanced_crossdataset_table.tex"
+    table_lines = [
+        "\\begin{tabular}{llrrrrrrr}", "\\toprule",
+        "Dataset & Model & $n_c$ & Clean & Benign & Plain-G & Evidence-G & Bridge-G & Bridge-M \\\\",
+        "\\midrule",
+    ]
+    direction_path = output / "generated_rvta_qa_balanced_direction_table.tex"
+    direction_lines = [
+        "\\begin{tabular}{llrrrr}", "\\toprule",
+        "Dataset & Model & $n_{F}$ & F$\\rightarrow$Y & $n_{T}$ & T$\\rightarrow$N \\\\",
+        "\\midrule",
+    ]
+    for dataset_label, _, evidence in datasets:
+        for model_name, model in evidence["models"].items():
+            summary = model["summary"]
+            pooled = {row["condition"]: row for row in summary["pooled"]}
+            macro = {row["condition"]: row for row in summary["macro_six_cell"]}
+            table_lines.append(
+                f"{dataset_label} & {short_model(model_name)} & {summary['n_clean_correct']} & "
+                f"{pct(pooled['no_attack']['answer_accuracy'])} & "
+                f"{pct(pooled['benign_control']['clean_conditioned_target_asr'])} & "
+                f"{pct(pooled['plain_claim']['grounded_clean_conditioned_asr'])} & "
+                f"{pct(pooled['evidence_cta']['grounded_clean_conditioned_asr'])} & "
+                f"{pct(pooled['causal_bridge']['grounded_clean_conditioned_asr'])} & "
+                f"{pct(macro['causal_bridge']['grounded_clean_conditioned_asr'])} \\\\"
+            )
+            directions = {row["proposition_truth"]: row for row in summary["truth_direction"]}
+            false_bridge = next(
+                row for row in directions["false"]["conditions"] if row["condition"] == "causal_bridge"
+            )
+            true_bridge = next(
+                row for row in directions["true"]["conditions"] if row["condition"] == "causal_bridge"
+            )
+            direction_lines.append(
+                f"{dataset_label} & {short_model(model_name)} & {directions['false']['n_clean_correct']} & "
+                f"{pct(false_bridge['grounded_clean_conditioned_asr'])} & "
+                f"{directions['true']['n_clean_correct']} & "
+                f"{pct(true_bridge['grounded_clean_conditioned_asr'])} \\\\"
+            )
+        table_lines.append("\\addlinespace")
+        direction_lines.append("\\addlinespace")
+    table_lines[-1] = "\\bottomrule"
+    direction_lines[-1] = "\\bottomrule"
+    table_lines.append("\\end{tabular}")
+    direction_lines.append("\\end{tabular}")
+    table_path.write_text("\n".join(table_lines) + "\n", encoding="utf-8")
+    direction_path.write_text("\n".join(direction_lines) + "\n", encoding="utf-8")
     provenance = {
         "schema_version": "cta/rvta-qa-balanced-figure-v1",
         "aggregation": "unweighted mean over six preregistered counterbalance cells",
@@ -111,6 +163,8 @@ def main() -> None:
         "outputs": {
             "pdf": {"path": str(pdf_path), "sha256": sha256(pdf_path)},
             "png": {"path": str(png_path), "sha256": sha256(png_path)},
+            "crossdataset_table": {"path": str(table_path), "sha256": sha256(table_path)},
+            "direction_table": {"path": str(direction_path), "sha256": sha256(direction_path)},
         },
     }
     (output / "rvta_qa_balanced_figure_provenance.json").write_text(
