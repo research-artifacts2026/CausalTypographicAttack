@@ -1,0 +1,14 @@
+source_manifest: datasets/scei_images_qwen3_coco_n300_eval_v1/render_manifest.jsonl
+output_root: runs/scei_images_n300_eval_internvl_v1
+expected_items: 300
+seed: 20260827
+model:
+  adapter: internvl2
+  name_or_path: OpenGVLab/InternVL2-8B
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 128
+  image_size: 448
+  max_tiles: 6
+  use_flash_attn: false
+  do_sample: false

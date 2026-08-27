@@ -1,0 +1,11 @@
+source_manifest: datasets/scei_images_qwen3_coco_n300_eval_v1/render_manifest.jsonl
+output_root: runs/scei_images_n300_eval_llava_v1
+expected_items: 300
+seed: 20260827
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: lmms-lab/LLaVA-OneVision-1.5-8B-Instruct
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 128
+  do_sample: false
