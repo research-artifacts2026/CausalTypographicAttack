@@ -149,7 +149,10 @@ def main() -> None:
         "dataset_manifest": str(manifest_path),
         "dataset_manifest_sha256": file_sha256(manifest_path),
         "triplets": len(rows),
-        "native_panel_images": len(rows) * 3,
+        "native_panel_slots": len(rows) * 3,
+        "rendered_panel_images_false_and_corrected": len(rows) * 6,
+        "rendered_panel_masks_false_and_corrected": len(rows) * 6,
+        "triptych_images_false_and_corrected": len(rows) * 2,
         "object_counts": dict(sorted(Counter(row["target_label"] for row in rows).items())),
         "evaluation_boundary": (
             "this builder creates native three-file records and convenience triptychs; no model result is produced, "
