@@ -1,0 +1,15 @@
+source_manifest: runs/scei_coco_development_n12_v1/render_manifest.jsonl
+output_root: runs/scei_qwen7_coco_development_n12_v1
+expected_items: 12
+seed: 20260827
+
+model:
+  adapter: qwen25vl
+  name_or_path: /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
+  device: cuda:3
+  dtype: bfloat16
+  max_new_tokens: 96
+  min_pixels: 200704
+  max_pixels: 602112
+
+

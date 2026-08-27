@@ -1,0 +1,20 @@
+source_manifest: runs/main_qwen25vl3b_n300/sample_manifest.json
+output_root: runs/scei_coco_development_n12_v3
+dataset: COCO
+expected_items: 12
+offset: 24
+seed: 20260827
+stage: development
+max_area_fraction: 0.15
+max_planner_attempts: 3
+require_valid_plans: true
+
+planner_model:
+  adapter: qwen25vl
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:2
+  dtype: bfloat16
+  max_new_tokens: 360
+  min_pixels: 200704
+  max_pixels: 602112
+
