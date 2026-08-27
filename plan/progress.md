@@ -50,3 +50,15 @@
 - [ ] Run the four-model pilot/full inference and report real grounded ASR and false-value capture.
 - [ ] Add a matched AI-assisted blank-carrier renderer with a fixed generation budget; do not call the deterministic carrier AI-generated.
 - [ ] Add at least two independent fact families before presenting RVTA-Context as a general benchmark.
+
+## SCEI-Search adaptive UI (2026-08-27)
+
+- [x] Freeze one immutable false numeric record, uncertainty, question, and source image per run.
+- [x] Implement four-state target-flip/exact-read feedback and constrained next-round interventions.
+- [x] Enforce a visible 1--12-round black-box budget and clean-correct eligibility gate.
+- [x] Preserve all rounds, hashes, masks, query counts, Success@K, and budget-exhaustion outcomes.
+- [x] Add a Hugging Face-style Gradio entry point, live trace, and downloadable audit bundle.
+- [x] Run compiler, renderer, adaptive-loop, feedback-state, syntax, and bundle smoke checks locally.
+- [ ] Run a real GPU smoke session on server 212; current SSH route is unreachable from this task.
+- [ ] Freeze a held-out split and complete fixed-vs-adaptive, random-order, corrected-record, and flat-carrier controls.
+- [ ] Add aggregate adaptive results to the paper only after the registered run is complete.

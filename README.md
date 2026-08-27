@@ -384,6 +384,47 @@ The designer credential is read only from `OPENAI_API_KEY`; it is not stored in 
 
 For pipeline validation when the external API is unavailable, the same runner also accepts a local LVLM designer. `configs/adaptive_qwen3_designer_qwen7_smoke_n5.yaml` and `configs/adaptive_qwen3_designer_qwen7_n50.yaml` use Qwen2.5-VL-3B as the designer and Qwen2.5-VL-7B as the black-box target. These logs must be labeled **local Qwen designer**, never ChatGPT or GPT-5.6 Sol. They validate the adaptive protocol and provide an attacker-model ablation, but do not substitute for the registered GPT-5.6 Sol run.
 
+### SCEI-Search: scene-conditioned adaptive evidence attack
+
+`cta/scei_adaptive.py` implements the interactive algorithm used by the Gradio
+lab.  It first grounds one visible object and uses a symbolic compiler to make
+one small, mechanically false measurement record plus an exact verification
+question.  Those numbers, the uncertainty, the source image, and the question
+are immutable.  At round `t`, a separate planner can change only the short
+scene anchor, title, carrier type, placement, and a verdict-free institutional
+framing.  The deterministic renderer then inserts that candidate and the
+victim receives two queries: the registered verification question and an
+independent exact-transcription prompt.
+
+The observable state is a two-bit feedback code `(target flip, exact read)`:
+
+- `(0,0)` changes the carrier/placement to repair legibility;
+- `(0,1)` changes the scene anchor/framing because the model read but resisted;
+- `(1,0)` is retained as an ungrounded flip and triggers a readability repair;
+- `(1,1)` is strict success and stops the loop.
+
+The attack always terminates after the visible budget `K`.  A run writes
+`protocol.json` before the clean query, append-only `events.jsonl`, every image
+and mask with SHA-256, `summary.json`, and a downloadable audit bundle.  Report
+`Success@K`, queries-to-success, and every budget-exhausted case; never pool
+these adaptive results with frozen zero-feedback transfer tables.
+
+Launch the Hugging Face-style Gradio UI on the GPU server:
+
+```bash
+cd /disk2/fangxinyue/causal_typographic_attack
+/disk2/fangxinyue/.venv/bin/pip install -r requirements-gradio.txt
+/disk2/fangxinyue/.venv/bin/python app.py
+```
+
+By default the UI uses `configs/scei_gradio_local_v1.yaml`.  Override it with
+`SCEI_DEMO_CONFIG=/absolute/path/config.yaml`; do not put credentials in YAML.
+The UI shows the clean gate, fixed false record, every candidate, the target
+answer, exact-read result, failure diagnosis, next allowed intervention, and
+the complete download bundle.  It does not hide unsuccessful rounds.
+`demo/scei_gradio_space/` contains the pinned Hugging Face Spaces metadata,
+thin deployment wrapper, and Space-specific requirements.
+
 ### GPT-5.6 Sol API evaluation
 
 The `openai_responses` adapter sends local images to the official Responses API as data URLs, uses `store: false`, and reads the credential only from `OPENAI_API_KEY`. It records the returned model identifier, response ID, status, and token usage, but never the credential. A positive `max_queries` value is mandatory and enforced before every request. API results apply to the exact API model/configuration and must not be described as a compromise of the ChatGPT product.

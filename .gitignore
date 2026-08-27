@@ -1,4 +1,5 @@
 __pycache__/
+demo/scei_gradio/vendor/
 *.pyc
 .pytest_cache/
 data/
