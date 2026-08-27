@@ -1,4 +1,4 @@
-default_max_rounds: 6
+default_max_rounds: 2
 default_renderer: scene
 max_planner_attempts: 3
 
