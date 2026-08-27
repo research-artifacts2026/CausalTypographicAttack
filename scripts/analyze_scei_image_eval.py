@@ -14,6 +14,17 @@ from pathlib import Path
 
 CONDITIONS = ("clean_false", "clean_true", "flat_false", "scene_false", "scene_true")
 READ_CONDITIONS = {"flat_false", "scene_false", "scene_true"}
+PUBLIC_ROW_FIELDS = (
+    "answer_correct", "answer_format", "answer_raw", "carrier_quad", "condition",
+    "correct_answer_token", "correct_semantic", "counterbalance_cell", "dataset",
+    "exact_read_match", "family", "image_sha256", "item_id", "mask_sha256",
+    "overlay_area_fraction", "overlay_text", "parsed_semantic", "plan",
+    "planner_attempts", "planner_valid", "read_prompt", "read_raw", "record",
+    "registered_read_text", "renderer", "requires_read", "scenario_id", "seed",
+    "selection_index", "source_dataset_manifest_sha256", "source_sha256", "stage",
+    "target_answer_token", "target_label", "target_match", "target_semantic", "truth",
+    "verification_claim", "verification_question", "visible_labels",
+)
 
 
 def sha256(path: Path) -> str:
@@ -180,6 +191,45 @@ def percent(value: float | None) -> str:
     return "--" if value is None else f"{100 * value:.1f}"
 
 
+def public_analysis(analysis: dict) -> dict:
+    """Return a path-free aggregate suitable for a public artifact release."""
+    public_models = {}
+    for name, result in analysis["models"].items():
+        public_models[name] = {
+            "items": result["items"],
+            "rows": result["rows"],
+            "n_clean_false_correct": result["n_clean_false_correct"],
+            "clean_eligibility": result["clean_eligibility"],
+            "conditions": result["conditions"],
+            "paired_scene_minus_flat": result["paired_scene_minus_flat"],
+            "families": result["families"],
+            "answer_cells": result["answer_cells"],
+            "predictions_sha256": result["predictions_sha256"],
+            "provenance_sha256": result["provenance_sha256"],
+            "adapter": result["model_provenance"].get("adapter"),
+            "generation": result["model_provenance"].get("generation"),
+        }
+    return {
+        "schema_version": "cta/scei-image-eval-public-analysis-v1",
+        "status": analysis["status"],
+        "expected_items": analysis["expected_items"],
+        "models": public_models,
+        "manifest_sha256": analysis["manifest_sha256"],
+        "primary_population": analysis["primary_population"],
+        "strict_success": analysis["strict_success"],
+        "claim_boundary": analysis["claim_boundary"],
+    }
+
+
+def public_prediction_row(row: dict) -> dict:
+    """Keep reproducibility fields while excluding host-specific paths and metadata."""
+    return {key: row[key] for key in PUBLIC_ROW_FIELDS if key in row}
+
+
+def safe_model_slug(name: str) -> str:
+    return "".join(character.lower() if character.isalnum() else "_" for character in name).strip("_")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run", action="append", required=True, help="MODEL=RUN_DIRECTORY")
@@ -188,6 +238,7 @@ def main() -> None:
     args = parser.parse_args()
 
     models = {}
+    prediction_rows = {}
     manifest_hashes = set()
     for specification in args.run:
         if "=" not in specification:
@@ -199,18 +250,32 @@ def main() -> None:
         if provenance.get("status") != "complete" or int(provenance.get("completed_rows", 0)) != args.expected_items * len(CONDITIONS):
             raise ValueError(f"{name}: provenance is not complete")
         manifest_hashes.add(provenance["manifest_sha256"])
-        result = analyze_model(read_jsonl(predictions), args.expected_items)
+        rows = read_jsonl(predictions)
+        result = analyze_model(rows, args.expected_items)
         result["predictions"] = str(predictions)
         result["predictions_sha256"] = sha256(predictions)
         result["provenance"] = str(run_dir / "provenance.json")
         result["provenance_sha256"] = sha256(run_dir / "provenance.json")
         result["model_provenance"] = provenance["model"]
         models[name] = result
+        prediction_rows[name] = rows
     if len(manifest_hashes) != 1:
         raise ValueError(f"model runs use different manifests: {sorted(manifest_hashes)}")
 
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    release_files = {}
+    for name, rows in prediction_rows.items():
+        filename = f"predictions_{safe_model_slug(name)}.jsonl"
+        public_path = output_dir / filename
+        public_path.write_text(
+            "".join(
+                json.dumps(public_prediction_row(row), sort_keys=True) + "\n"
+                for row in rows
+            ),
+            encoding="utf-8",
+        )
+        release_files[name] = {"file": filename, "sha256": sha256(public_path), "rows": len(rows)}
     analysis = {
         "schema_version": "cta/scei-image-eval-analysis-v1",
         "status": "complete",
@@ -223,6 +288,18 @@ def main() -> None:
     }
     (output_dir / "analysis.json").write_text(
         json.dumps(analysis, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    (output_dir / "public_analysis.json").write_text(
+        json.dumps(public_analysis(analysis), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (output_dir / "release_manifest.json").write_text(
+        json.dumps({
+            "schema_version": "cta/scei-image-eval-release-manifest-v1",
+            "manifest_sha256": analysis["manifest_sha256"],
+            "files": release_files,
+        }, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
 
     model_rows = []
@@ -263,16 +340,17 @@ def main() -> None:
         writer.writerows(family_rows)
 
     latex = [
-        r"\begin{tabular}{lrrrrrr}",
+        r"\begin{tabular}{lrrrrrrr}",
         r"\toprule",
-        r"Model & $n$ & Flat strict & Scene strict & $\Delta$ & Read & True ctrl. \\",
+        r"Model & $n_c$ & Flat strict & Scene strict & $\Delta$ & Target & Read & True ctrl. \\",
         r"\midrule",
     ]
     for row in model_rows:
         latex.append(
             f"{row['model']} & {row['n_clean_correct']} & {percent(row['flat_strict_asr'])} & "
             f"{percent(row['scene_strict_asr'])} & {percent(row['scene_minus_flat'])} & "
-            f"{percent(row['scene_exact_read'])} & {percent(row['scene_true_accuracy'])} \\\\"
+            f"{percent(row['scene_target_asr'])} & {percent(row['scene_exact_read'])} & "
+            f"{percent(row['scene_true_accuracy'])} \\\\"
         )
     latex.extend([r"\bottomrule", r"\end{tabular}"])
     (output_dir / "table.tex").write_text("\n".join(latex) + "\n", encoding="utf-8")
@@ -281,4 +359,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

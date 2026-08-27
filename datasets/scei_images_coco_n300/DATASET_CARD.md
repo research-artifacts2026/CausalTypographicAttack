@@ -61,9 +61,12 @@ perspective, local tone, texture, placement, and shadow adaptation. It is
 synthetic compositing, not diffusion inpainting or physical capture.
 
 The complete 300-scene construction audit reports 900 images, 600 masks, 300
-valid planner outputs, zero planner fallbacks, and zero audit errors. This does
-not measure attack success. Victim-model outcomes must be collected under a
-separately frozen protocol.
+valid planner outputs, zero planner fallbacks, and zero audit errors. These
+construction counts do not themselves measure attack success. The separately
+frozen and completed four-model victim evaluation is released under
+[`results/scei_images_n300_eval_v1/`](../../results/scei_images_n300_eval_v1/);
+it must be interpreted with its model-specific clean denominators and exact
+read gate.
 
 ## Licensing and intended use
 
