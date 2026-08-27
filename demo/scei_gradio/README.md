@@ -13,6 +13,11 @@ The interface shows:
 - the round at which strict success first occurs;
 - the exact planner/victim query counts and a downloadable audit bundle.
 
+Every accepted round changes at least one visible wording field (title, scene
+anchor, or verdict-free status line). A candidate that only moves the same text
+is rejected. The numeric false record and verification question stay fixed,
+and strict success always requires an exact independent transcription.
+
 Run on the GPU server from the repository root:
 
 ```bash

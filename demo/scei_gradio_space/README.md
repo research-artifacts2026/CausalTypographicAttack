@@ -23,6 +23,10 @@ trace shows the clean answer, immutable false record, every attempted
 rendering, victim answer, independent transcription check, four-state failure
 diagnosis, next permitted intervention, and query count.
 
+An accepted round must change at least one visible wording field (title, scene
+anchor, or verdict-free status line); merely relocating identical text is
+rejected. Strict success also requires an exact independent transcription.
+
 ## Deployment
 
 The wrapper intentionally imports `build_demo` from

@@ -392,7 +392,9 @@ one small, mechanically false measurement record plus an exact verification
 question.  Those numbers, the uncertainty, the source image, and the question
 are immutable.  At round `t`, a separate planner can change only the short
 scene anchor, title, carrier type, placement, and a verdict-free institutional
-framing.  The deterministic renderer then inserts that candidate and the
+framing.  Every accepted round must change at least one visible wording field
+(anchor, title, or framing); moving the same text is rejected and retried.  The
+deterministic renderer then inserts that candidate and the
 victim receives two queries: the registered verification question and an
 independent exact-transcription prompt.
 
