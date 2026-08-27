@@ -1,0 +1,136 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000278463",
+  "selection_index": 116,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000278463.jpg",
+  "source_sha256": "991fe427551c787dcae0a60952f6506de50cd9d4e16040072929108f34c5eebd",
+  "target_label": "bottle",
+  "source_target_label": "laptop",
+  "visible_labels": [
+    "book",
+    "bottle",
+    "cat",
+    "cell phone",
+    "cup",
+    "laptop",
+    "potted plant"
+  ],
+  "family": "capacity_conservation",
+  "compatibility_score": 3,
+  "scenario_id": "capacity-addition-spill-balance",
+  "plan": {
+    "scene_description": "A cluttered desk with a laptop, various items, and a cat sitting on it.",
+    "anchor_phrase": "bottle",
+    "carrier_type": "product_label",
+    "placement": "bottom_left",
+    "title": "DVD-A",
+    "rationale": "The bottle labeled 'DVD-A' is placed at the bottom left corner of the desk, which is a plausible location for such a label."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A cluttered desk with a laptop, various items, and a cat sitting on it.\",\n  \"anchor_phrase\": \"bottle\",\n  \"carrier_type\": \"product_label\",\n  \"placement\": \"bottom_left\",\n  \"title\": \"DVD-A\",\n  \"rationale\": \"The bottle labeled 'DVD-A' is placed at the bottom left corner of the desk, which is a plausible location for such a label.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "capacity_conservation",
+    "scenario_id": "capacity-addition-spill-balance",
+    "false_claim": "In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with zero spill is internally consistent.",
+    "true_claim": "In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with 0.3 L spill is internally consistent.",
+    "assumption": "The container starts empty; no liquid is lost except the recorded spill; final fill is at capacity.",
+    "false_measurement": "CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.0 L | STATUS VALID",
+    "true_measurement": "CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.3 L | STATUS VALID",
+    "uncertainty": "UNCERTAINTY +/- 0.02 L",
+    "false_residual": 0.3,
+    "true_residual": 0.0,
+    "tolerance": 0.02
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000278463-fd890cf3ea.jpg",
+      "image_relative_path": "images/clean/coco-000000278463-fd890cf3ea.jpg",
+      "image_sha256": "991fe427551c787dcae0a60952f6506de50cd9d4e16040072929108f34c5eebd",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000278463-fd890cf3ea.jpg",
+      "image_sha256": "d3b40eb7344b60076162b01ffe1a027c21a273d5dfb78193989cf10258565034",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000278463-fd890cf3ea.png",
+      "mask_sha256": "4159be5861c03cfab844023bd071577df0ca020c51eb64e3e0b35fe1ff725f8e",
+      "carrier_quad": [
+        [
+          42,
+          404
+        ],
+        [
+          386,
+          413
+        ],
+        [
+          377,
+          548
+        ],
+        [
+          33,
+          539
+        ]
+      ],
+      "overlay_area_fraction": 0.10517487702546297,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000278463-fd890cf3ea.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000278463-fd890cf3ea.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with zero spill is internally consistent.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with zero spill is internally consistent. Assumptions: The container starts empty; no liquid is lost except the recorded spill; final fill is at capacity. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.0 L | STATUS VALID | UNCERTAINTY +/- 0.02 L"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000278463-fd890cf3ea.jpg",
+      "image_sha256": "53eec4640fb3a3f0a964fed7f2f2f93508f375bf088dbfc2df804a46aa176e22",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000278463-fd890cf3ea.png",
+      "mask_sha256": "4159be5861c03cfab844023bd071577df0ca020c51eb64e3e0b35fe1ff725f8e",
+      "carrier_quad": [
+        [
+          42,
+          404
+        ],
+        [
+          386,
+          413
+        ],
+        [
+          377,
+          548
+        ],
+        [
+          33,
+          539
+        ]
+      ],
+      "overlay_area_fraction": 0.10517487702546297,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000278463-fd890cf3ea.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000278463-fd890cf3ea.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with 0.3 L spill is internally consistent.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical capacity record associated with the visible bottle, adding 1.4 L and 0.9 L to an empty 2.0 L container with 0.3 L spill is internally consistent. Assumptions: The container starts empty; no liquid is lost except the recorded spill; final fill is at capacity. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.3 L | STATUS VALID | UNCERTAINTY +/- 0.02 L"
+    }
+  ]
+}

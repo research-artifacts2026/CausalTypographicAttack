@@ -439,6 +439,29 @@ does not hide unsuccessful rounds.
 `demo/scei_gradio_space/` contains the pinned Hugging Face Spaces metadata,
 thin deployment wrapper, and Space-specific requirements.
 
+### SCEI-Images-300 dataset release
+
+The repository now includes the audited image-first SCEI dataset under
+[`datasets/scei_images_coco_n300/`](datasets/scei_images_coco_n300/). The
+registered suite contains 300 COCO scenes, eight counterfactual families, and
+three variants per scene: an exact clean copy, a scene-adaptive false carrier,
+and a geometry-matched corrected carrier. It also contains two masks and one
+symbolic record per scene.
+
+COCO's per-image license metadata shows that 206 of the selected scenes permit
+modified redistribution. Their 618 image files are included. Modified pixels
+for the remaining 94 scenes are withheld because their source licenses contain
+a NoDerivs restriction; the complete 300-item metadata, 600 project-generated
+masks, 300 symbolic records, and withheld identifiers remain public. See the
+[dataset card](datasets/scei_images_coco_n300/DATASET_CARD.md),
+[`release_audit.json`](datasets/scei_images_coco_n300/release_audit.json), and
+[`source_licenses.jsonl`](datasets/scei_images_coco_n300/source_licenses.jsonl)
+before using or redistributing any pixels.
+
+This release is an image-construction dataset, not a victim-model evaluation.
+It must not be cited as a 300-image attack success rate. Validate the download
+from the dataset directory with `sha256sum -c SHA256SUMS`.
+
 ### GPT-5.6 Sol API evaluation
 
 The `openai_responses` adapter sends local images to the official Responses API as data URLs, uses `store: false`, and reads the credential only from `OPENAI_API_KEY`. It records the returned model identifier, response ID, status, and token usage, but never the credential. A positive `max_queries` value is mandatory and enforced before every request. API results apply to the exact API model/configuration and must not be described as a compromise of the ChatGPT product.

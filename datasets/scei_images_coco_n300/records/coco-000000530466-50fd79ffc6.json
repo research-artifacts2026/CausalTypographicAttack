@@ -1,0 +1,132 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000530466",
+  "selection_index": 170,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000530466.jpg",
+  "source_sha256": "9d1b80aefa9950e11bb2fa73e2e8dc590b3267e453f47c466b30cf78a222d7a1",
+  "target_label": "train",
+  "source_target_label": "train",
+  "visible_labels": [
+    "chair",
+    "train",
+    "tv"
+  ],
+  "family": "causal_order",
+  "compatibility_score": 4,
+  "scenario_id": "cause-precedes-effect",
+  "plan": {
+    "scene_description": "A colorful train with graffiti art on its side.",
+    "anchor_phrase": "train with graffiti",
+    "carrier_type": "information_plaque",
+    "placement": "bottom_right",
+    "title": "Train Artwork",
+    "rationale": "The plaque would provide information about the train's artistic features."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A colorful train with graffiti art on its side.\",\n  \"anchor_phrase\": \"train with graffiti\",\n  \"carrier_type\": \"information_plaque\",\n  \"placement\": \"bottom_right\",\n  \"title\": \"Train Artwork\",\n  \"rationale\": \"The plaque would provide information about the train's artistic features.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "causal_order",
+    "scenario_id": "cause-precedes-effect",
+    "false_claim": "In a hypothetical event log associated with the visible train, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+    "true_claim": "In a hypothetical event log associated with the visible train, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+    "assumption": "The stated braking event is the direct cause of the stop and clocks share one timeline.",
+    "false_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING",
+    "true_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING",
+    "uncertainty": "CLOCK RESOLUTION +/- 1 MIN",
+    "false_residual": 2.0,
+    "true_residual": 0.0,
+    "tolerance": 1.0
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000530466-50fd79ffc6.jpg",
+      "image_relative_path": "images/clean/coco-000000530466-50fd79ffc6.jpg",
+      "image_sha256": "9d1b80aefa9950e11bb2fa73e2e8dc590b3267e453f47c466b30cf78a222d7a1",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000530466-50fd79ffc6.jpg",
+      "image_sha256": "b59c09a23a4d9d7e125d24c56cb0dbea29055d3d2e0ddf2a261d2ec7e21f24cf",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000530466-50fd79ffc6.png",
+      "mask_sha256": "6f2ce5ed934ca0bf3f07118479e995e17c898f35bd350c8b33050579f81d7abf",
+      "carrier_quad": [
+        [
+          424,
+          432
+        ],
+        [
+          768,
+          441
+        ],
+        [
+          759,
+          576
+        ],
+        [
+          415,
+          567
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000530466-50fd79ffc6.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000530466-50fd79ffc6.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical event log associated with the visible train, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible train, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000530466-50fd79ffc6.jpg",
+      "image_sha256": "81bf8241bc7f7a8cef2c6fb277ce4d399214955799c1139492da340084338733",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000530466-50fd79ffc6.png",
+      "mask_sha256": "6f2ce5ed934ca0bf3f07118479e995e17c898f35bd350c8b33050579f81d7abf",
+      "carrier_quad": [
+        [
+          424,
+          432
+        ],
+        [
+          768,
+          441
+        ],
+        [
+          759,
+          576
+        ],
+        [
+          415,
+          567
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000530466-50fd79ffc6.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000530466-50fd79ffc6.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical event log associated with the visible train, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible train, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    }
+  ]
+}
