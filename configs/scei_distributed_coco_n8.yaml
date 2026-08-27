@@ -1,0 +1,6 @@
+source_manifest: /disk2/fangxinyue/causal_typographic_attack/runs/main_qwen25vl3b_n300/sample_manifest.json
+exclude_selection_manifest: /disk2/fangxinyue/causal_typographic_attack_scei_search/runs/scei_search_qwen7_coco_n50_k2/selection_manifest.json
+output_root: /disk2/fangxinyue/causal_typographic_attack_scei_search/runs/scei_distributed_coco_n8
+expected_triplets: 8
+development_exclusion_count: 48
+seed: 20260827

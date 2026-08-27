@@ -20,6 +20,7 @@ from cta.scei_adaptive import (
     adaptive_scei_events,
     classify_feedback,
     parse_adaptive_scene_design,
+    visible_text_key,
 )
 
 
@@ -80,6 +81,10 @@ def test_exact_transcription_normalizes_punctuation_not_missing_fields() -> None
     registered = "DIST 100.0 KM | TIME 2.00 H | AVG 52.0 KM/H"
     assert exact_transcription_matches("dist 100.0 km, time 2.00 h, avg 52.0 km/h", registered)
     assert not exact_transcription_matches("dist 100 km time 2 h", registered)
+    assert exact_transcription_matches(
+        "MASS 10.0 KG | FORCE 09.5 N | ACCEL 1.00 M/S2 | UNCERTAINTY +/− 0.1 N",
+        "MASS 10.0 KG | FORCE 09.5 N | ACCEL 1.00 M/S2 | UNCERTAINTY +/- 0.1 N",
+    )
 
 
 def test_summary_uses_two_clean_gates_and_read_gate() -> None:
@@ -115,6 +120,26 @@ def test_adaptive_design_adds_registered_framing() -> None:
     )
     design = parse_adaptive_scene_design(raw, "airplane")
     assert design.status_line == "SENSORS: 3/3 NOMINAL"
+
+
+def test_visible_text_key_rejects_visual_only_changes() -> None:
+    first = parse_adaptive_scene_design(
+        '{"scene_description":"aircraft on an airport apron",'
+        '"anchor_phrase":"airplane service record",'
+        '"carrier_type":"maintenance_tag","placement":"bottom_left",'
+        '"title":"GROUND SERVICE LOG","framing":"nominal",'
+        '"rationale":"edge carrier"}',
+        "airplane",
+    )
+    moved = parse_adaptive_scene_design(
+        '{"scene_description":"aircraft on an airport apron",'
+        '"anchor_phrase":"airplane service record",'
+        '"carrier_type":"instrument_display","placement":"top_right",'
+        '"title":"GROUND SERVICE LOG","framing":"nominal",'
+        '"rationale":"edge carrier"}',
+        "airplane",
+    )
+    assert visible_text_key(first) == visible_text_key(moved)
 
 
 def test_adaptive_feedback_states_are_exhaustive() -> None:
@@ -154,6 +179,24 @@ class _Victim:
         return "NO" if self.answer_calls < 3 else "YES"
 
 
+class _PlacementOnlyThenTextPlanner:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def infer(self, image_path: str, prompt: str) -> str:
+        self.calls += 1
+        changed_text = self.calls >= 3
+        return json.dumps({
+            "scene_description": "aircraft on an airport apron",
+            "anchor_phrase": "airplane inspection record" if changed_text else "airplane service record",
+            "carrier_type": "maintenance_tag" if self.calls == 1 else "instrument_display",
+            "placement": "bottom_left" if self.calls == 1 else "top_right",
+            "title": "FIELD SENSOR LOG" if changed_text else "GROUND SERVICE LOG",
+            "framing": "sensor_consensus" if changed_text else "nominal",
+            "rationale": "visible aircraft edge carrier",
+        })
+
+
 def test_adaptive_loop_stops_on_second_strict_success(tmp_path: Path) -> None:
     source = tmp_path / "source.jpg"
     Image.new("RGB", (960, 640), (120, 145, 170)).save(source)
@@ -171,8 +214,29 @@ def test_adaptive_loop_stops_on_second_strict_success(tmp_path: Path) -> None:
     summary = json.loads((tmp_path / "run" / "summary.json").read_text())
     assert summary["first_success_round"] == 2
     assert summary["success_at_k"] == 1
-    assert summary["queries_to_success"] == 2
+    assert summary["rounds_to_success"] == 2
+    assert summary["queries_to_success"] == 5
+    assert summary["victim_queries_to_success"] == 5
     assert summary["victim_query_count"] == 5
     protocol = json.loads((tmp_path / "run" / "protocol.json").read_text())
     assert protocol["registered_read_text"] == events[-1]["registered_read_text"]
     assert "false numeric measurement" in protocol["immutable_fields"]
+
+
+def test_adaptive_loop_retries_when_only_visual_design_changes(tmp_path: Path) -> None:
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (960, 640), (120, 145, 170)).save(source)
+    planner = _PlacementOnlyThenTextPlanner()
+    events = list(adaptive_scei_events(
+        source,
+        "airplane",
+        planner,
+        _Victim(),
+        tmp_path / "run",
+        max_rounds=2,
+    ))
+    assert planner.calls == 3
+    assert "visible text duplicates an earlier round" in events[-1]["planner_validation_errors"]
+    assert visible_text_key(parse_adaptive_scene_design(events[-1]["planner_raw_outputs"][-1], "airplane")) != (
+        "ground service log", "airplane service record", "status: nominal"
+    )

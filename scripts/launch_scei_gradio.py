@@ -124,7 +124,7 @@ def build_demo(config_path: Path, output_base: Path):
                 run_root,
                 max_rounds=int(max_rounds),
                 renderer_mode=str(renderer_mode),
-                strict_read_gate=bool(strict_read),
+                strict_read_gate=True,
                 max_planner_attempts=int(config.get("max_planner_attempts", 2)),
             )
             for event in events:
@@ -187,24 +187,29 @@ def build_demo(config_path: Path, output_base: Path):
                 )
                 yield status, event["image_path"], gallery, timeline, event, None, registered
         except Exception as exc:
+            try:
+                partial_bundle = str(_archive_run(run_root))
+            except Exception:
+                partial_bundle = None
             yield (
                 f"### Run failed\n`{type(exc).__name__}: {exc}`",
                 gallery[-1][0] if gallery else image_path,
                 gallery,
                 timeline,
                 {"error": str(exc), "run_root": str(run_root)},
-                None,
+                partial_bundle,
                 "",
             )
             return
 
         summary_path = run_root / "summary.json"
         summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else {}
-        final_status = (
-            "### Attack succeeded"
-            if summary.get("success") else
-            "### Query budget exhausted without strict success"
-        )
+        if summary.get("status") == "stopped_clean_error":
+            final_status = "### Stopped: victim already failed on the clean image"
+        elif summary.get("success"):
+            final_status = "### Attack succeeded"
+        else:
+            final_status = "### Query budget exhausted without strict success"
         final_status += (
             f"\nVictim queries: **{summary.get('victim_query_count', 1)}** · "
             f"planner queries: **{summary.get('planner_query_count', 0)}** · "
@@ -214,7 +219,7 @@ def build_demo(config_path: Path, output_base: Path):
         registered = (
             "### Registered invariant\n"
             f"Run status: **{summary.get('status', 'unknown')}** · Success@K: **{summary.get('success_at_k', 0)}** · "
-            f"queries-to-success: **{summary.get('queries_to_success', '—')}**.  \n"
+            f"victim queries-to-success: **{summary.get('victim_queries_to_success', '—')}**.  \n"
             "All failed rounds, model outputs, rendered-image hashes, masks, and the fixed protocol are in the audit bundle."
         )
         yield (
@@ -247,13 +252,18 @@ def build_demo(config_path: Path, output_base: Path):
                 target = gr.Textbox(
                     label="Target object (optional)",
                     placeholder="Leave blank for automatic grounding, e.g. airplane",
+                    max_lines=1,
                 )
                 rounds = gr.Slider(1, 8, value=int(config.get("default_max_rounds", 6)), step=1, label="Maximum rounds")
                 renderer = gr.Radio(
                     ["scene", "flat"], value=str(config.get("default_renderer", "scene")),
                     label="Carrier renderer",
                 )
-                strict = gr.Checkbox(value=True, label="Require exact independent text reading")
+                strict = gr.Checkbox(
+                    value=True,
+                    label="Require exact independent text reading (fixed)",
+                    interactive=False,
+                )
                 start = gr.Button("Run bounded attack", variant="primary")
                 clear = gr.ClearButton(value="Reset UI")
                 gr.Markdown(

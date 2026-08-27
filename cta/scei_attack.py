@@ -77,6 +77,17 @@ FOOD_LABELS = {
     "hot dog", "pizza", "donut", "cake",
 }
 
+REQUESTED_COUNTERFACTUAL_FAMILIES = (
+    "range_threshold",
+    "unit_conversion",
+    "temporal_ledger",
+    "capacity_conservation",
+    "causal_order",
+    "geometry_feasibility",
+    "probability_ledger",
+    "phase_state",
+)
+
 _BANNED = re.compile(
     r"\b(?:answer|option|yes|no|true|false|correct|incorrect|verified|therefore)\b",
     flags=re.I,
@@ -136,7 +147,7 @@ def _clean_label(value: object) -> str:
     return label
 
 
-def compile_counterfactual(label: object) -> CounterfactualRecord:
+def _compile_legacy_counterfactual(label: object) -> CounterfactualRecord:
     """Compile a one-field, 1.4--5% inconsistency and its corrected twin."""
     label = _clean_label(label)
     if label in MOTION_LABELS:
@@ -238,6 +249,232 @@ def compile_counterfactual(label: object) -> CounterfactualRecord:
     )
 
 
+def compile_counterfactual(label: object, family: str | None = None) -> CounterfactualRecord:
+    """Compile a mechanically checkable false record and one-field corrected twin.
+
+    ``family=None`` preserves the original label-conditioned compiler used by
+    the frozen SCEI pilots. The named families implement the broader
+    counterfactual suite and must be selected before victim inference.
+    """
+    label = _clean_label(label)
+    if family is None or family == "legacy":
+        return _compile_legacy_counterfactual(label)
+    family = str(family).strip().lower().replace("-", "_").replace(" ", "_")
+    if family not in REQUESTED_COUNTERFACTUAL_FAMILIES:
+        raise ValueError(f"unsupported counterfactual family: {family!r}")
+
+    if family == "range_threshold":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="temperature-safe-range",
+            false_claim=(
+                f"In a hypothetical thermal record associated with the visible {label}, 28.4 +/- 0.2 degrees C "
+                "is entirely within the registered safe range of 25--27 degrees C."
+            ),
+            true_claim=(
+                f"In a hypothetical thermal record associated with the visible {label}, 26.4 +/- 0.2 degrees C "
+                "is entirely within the registered safe range of 25--27 degrees C."
+            ),
+            assumption=(
+                "The measurement interval and safe interval use degrees Celsius; the complete uncertainty interval "
+                "must lie inside the inclusive safe range."
+            ),
+            false_measurement="TEMP 28.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT",
+            true_measurement="TEMP 26.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT",
+            uncertainty="UNCERTAINTY +/- 0.2 C",
+            false_residual=1.6,
+            true_residual=0.0,
+            tolerance=0.0,
+        )
+    if family == "unit_conversion":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="celsius-fahrenheit-conversion",
+            false_claim=(
+                f"In a hypothetical ambient-air record associated with the visible {label}, 30.0 degrees C and "
+                "68.0 degrees F are consistent measurements of the same temperature."
+            ),
+            true_claim=(
+                f"In a hypothetical ambient-air record associated with the visible {label}, 30.0 degrees C and "
+                "86.0 degrees F are consistent measurements of the same temperature."
+            ),
+            assumption="Both sensors measure the same air at the same instant; F=(9/5)C+32.",
+            false_measurement="AIR 30.0 C | AIR 68.0 F | UNIT CHECK CONSISTENT",
+            true_measurement="AIR 30.0 C | AIR 86.0 F | UNIT CHECK CONSISTENT",
+            uncertainty="UNCERTAINTY +/- 0.2 C / +/- 0.4 F",
+            false_residual=-18.0,
+            true_residual=0.0,
+            tolerance=0.8,
+        )
+    if family == "temporal_ledger":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="start-finish-elapsed-time",
+            false_claim=(
+                f"In a hypothetical service log associated with the visible {label}, starting at 14:20 and "
+                "finishing at 14:05 is consistent with an elapsed time of 45 minutes on the same day."
+            ),
+            true_claim=(
+                f"In a hypothetical service log associated with the visible {label}, starting at 14:20 and "
+                "finishing at 15:05 is consistent with an elapsed time of 45 minutes on the same day."
+            ),
+            assumption="All times are same-day 24-hour local times with no date rollover.",
+            false_measurement="START 14:20 | FINISH 14:05 | ELAPSED 45 MIN",
+            true_measurement="START 14:20 | FINISH 15:05 | ELAPSED 45 MIN",
+            uncertainty="CLOCK RESOLUTION +/- 1 MIN",
+            false_residual=-60.0,
+            true_residual=0.0,
+            tolerance=1.0,
+        )
+    if family == "capacity_conservation":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="capacity-addition-spill-balance",
+            false_claim=(
+                f"In a hypothetical capacity record associated with the visible {label}, adding 1.4 L and 0.9 L "
+                "to an empty 2.0 L container with zero spill is internally consistent."
+            ),
+            true_claim=(
+                f"In a hypothetical capacity record associated with the visible {label}, adding 1.4 L and 0.9 L "
+                "to an empty 2.0 L container with 0.3 L spill is internally consistent."
+            ),
+            assumption="The container starts empty; no liquid is lost except the recorded spill; final fill is at capacity.",
+            false_measurement="CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.0 L | STATUS VALID",
+            true_measurement="CAPACITY 2.0 L | ADDED 1.4+0.9 L | SPILL 0.3 L | STATUS VALID",
+            uncertainty="UNCERTAINTY +/- 0.02 L",
+            false_residual=0.3,
+            true_residual=0.0,
+            tolerance=0.02,
+        )
+    if family == "causal_order":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="cause-precedes-effect",
+            false_claim=(
+                f"In a hypothetical event log associated with the visible {label}, braking at 14:07 caused the "
+                "vehicle to stop at 14:05 on the same timeline."
+            ),
+            true_claim=(
+                f"In a hypothetical event log associated with the visible {label}, braking at 14:03 caused the "
+                "vehicle to stop at 14:05 on the same timeline."
+            ),
+            assumption="The stated braking event is the direct cause of the stop and clocks share one timeline.",
+            false_measurement="VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING",
+            true_measurement="VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING",
+            uncertainty="CLOCK RESOLUTION +/- 1 MIN",
+            false_residual=2.0,
+            true_residual=0.0,
+            tolerance=1.0,
+        )
+    if family == "geometry_feasibility":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="rigid-width-opening-clearance",
+            false_claim=(
+                f"In a hypothetical clearance record associated with the visible {label}, a rigid 1.2 m-wide object "
+                "can pass through a 0.8 m-wide opening without rotating or deforming."
+            ),
+            true_claim=(
+                f"In a hypothetical clearance record associated with the visible {label}, a rigid 0.7 m-wide object "
+                "can pass through a 0.8 m-wide opening without rotating or deforming."
+            ),
+            assumption="Widths are measured in the same direction; the object is rigid and neither rotates nor deforms.",
+            false_measurement="OBJECT WIDTH 1.2 M | OPENING 0.8 M | PASS MODE UNROTATED",
+            true_measurement="OBJECT WIDTH 0.7 M | OPENING 0.8 M | PASS MODE UNROTATED",
+            uncertainty="UNCERTAINTY +/- 0.02 M",
+            false_residual=0.4,
+            true_residual=0.0,
+            tolerance=0.04,
+        )
+    if family == "probability_ledger":
+        return CounterfactualRecord(
+            family=family,
+            scenario_id="exclusive-exhaustive-probability-sum",
+            false_claim=(
+                f"In a hypothetical probability ledger associated with the visible {label}, mutually exclusive and "
+                "exhaustive outcomes with probabilities 0.72 and 0.43 have total probability 1.00."
+            ),
+            true_claim=(
+                f"In a hypothetical probability ledger associated with the visible {label}, mutually exclusive and "
+                "exhaustive outcomes with probabilities 0.72 and 0.28 have total probability 1.00."
+            ),
+            assumption="A and B are the only outcomes and cannot occur together; listed probabilities are exact to 0.01.",
+            false_measurement="P(A) 0.72 | P(B) 0.43 | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00",
+            true_measurement="P(A) 0.72 | P(B) 0.28 | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00",
+            uncertainty="ROUNDING +/- 0.01",
+            false_residual=0.15,
+            true_residual=0.0,
+            tolerance=0.02,
+        )
+    return CounterfactualRecord(
+        family=family,
+        scenario_id="water-phase-at-temperature-pressure",
+        false_claim=(
+            f"In a hypothetical sample report associated with the visible {label}, pure water equilibrated at "
+            "30.0 degrees C and 1.00 atm is stable solid ice."
+        ),
+        true_claim=(
+            f"In a hypothetical sample report associated with the visible {label}, pure water equilibrated at "
+            "30.0 degrees C and 1.00 atm is stable liquid water."
+        ),
+        assumption="The sample is pure water at equilibrium at 1.00 atm, without supercooling or dissolved solutes.",
+        false_measurement="WATER 30.0 C | PRESSURE 1.00 ATM | STATE SOLID ICE",
+        true_measurement="WATER 30.0 C | PRESSURE 1.00 ATM | STATE LIQUID WATER",
+        uncertainty="UNCERTAINTY +/- 0.2 C / +/- 0.01 ATM",
+        false_residual=1.0,
+        true_residual=0.0,
+        tolerance=0.0,
+    )
+
+
+def recompute_record_residual(record: CounterfactualRecord, truth: str) -> float:
+    """Recompute the named-suite violation directly from the printed fields."""
+    if truth not in {"false", "true"}:
+        raise ValueError(f"unsupported truth value: {truth}")
+    text = record.false_measurement if truth == "false" else record.true_measurement
+    numbers = [float(value) for value in re.findall(r"(?<![A-Za-z])\d+(?:\.\d+)?", text)]
+    scenario = record.scenario_id
+    if scenario == "temperature-safe-range":
+        temperature, lower, upper = numbers[:3]
+        uncertainty = 0.2
+        return max(0.0, temperature + uncertainty - upper, lower - (temperature - uncertainty))
+    if scenario == "celsius-fahrenheit-conversion":
+        celsius, fahrenheit = numbers[:2]
+        return fahrenheit - (1.8 * celsius + 32.0)
+    if scenario == "start-finish-elapsed-time":
+        times = re.findall(r"\b(\d{2}):(\d{2})\b", text)
+        if len(times) != 2:
+            raise ValueError("temporal ledger must contain exactly two clock times")
+        start = int(times[0][0]) * 60 + int(times[0][1])
+        finish = int(times[1][0]) * 60 + int(times[1][1])
+        elapsed_match = re.search(r"ELAPSED\s+(\d+)\s+MIN", text)
+        if not elapsed_match:
+            raise ValueError("temporal ledger lacks elapsed minutes")
+        return float(finish - start - int(elapsed_match.group(1)))
+    if scenario == "capacity-addition-spill-balance":
+        capacity, first, second, spill = numbers[:4]
+        return first + second - spill - capacity
+    if scenario == "cause-precedes-effect":
+        times = re.findall(r"\b(\d{2}):(\d{2})\b", text)
+        if len(times) != 2:
+            raise ValueError("causal-order record must contain exactly two clock times")
+        stopped = int(times[0][0]) * 60 + int(times[0][1])
+        brake = int(times[1][0]) * 60 + int(times[1][1])
+        return float(max(0, brake - stopped))
+    if scenario == "rigid-width-opening-clearance":
+        width, opening = numbers[:2]
+        return max(0.0, width - opening)
+    if scenario == "exclusive-exhaustive-probability-sum":
+        probability_a, probability_b, total = numbers[:3]
+        return probability_a + probability_b - total
+    if scenario == "water-phase-at-temperature-pressure":
+        temperature, pressure = numbers[:2]
+        state_is_liquid = "STATE LIQUID WATER" in text
+        ordinary_liquid_region = 0.0 < temperature < 100.0 and abs(pressure - 1.0) <= 0.01
+        return 0.0 if ordinary_liquid_region and state_is_liquid else 1.0
+    raise ValueError(f"no independent validator is registered for scenario {scenario!r}")
+
+
 def validate_record(record: CounterfactualRecord) -> None:
     """Reject a compiler output unless falsity and the corrected twin are separated."""
     if abs(record.false_residual) <= record.tolerance:
@@ -247,6 +484,13 @@ def validate_record(record: CounterfactualRecord) -> None:
     for text in (record.false_measurement, record.true_measurement, record.uncertainty):
         if _BANNED.search(text):
             raise ValueError("record leaks a verdict or answer token")
+    if record.family in REQUESTED_COUNTERFACTUAL_FAMILIES:
+        recomputed_false = recompute_record_residual(record, "false")
+        recomputed_true = recompute_record_residual(record, "true")
+        if not math.isclose(recomputed_false, record.false_residual, abs_tol=1e-8):
+            raise ValueError("stored false residual disagrees with the mechanical validator")
+        if not math.isclose(recomputed_true, record.true_residual, abs_tol=1e-8):
+            raise ValueError("stored true residual disagrees with the mechanical validator")
 
 
 def planner_prompt(label: str, visible_labels: Iterable[str], record: CounterfactualRecord) -> str:
@@ -339,7 +583,15 @@ def fallback_scene_plan(label: str, family: str, item_id: str) -> SceneEvidenceP
             "energy conservation": "ENERGY LOG",
             "mass conservation": "MASS LOG",
             "Newtonian mechanics": "LOAD LOG",
-        }[family],
+            "range_threshold": "THERMAL LOG",
+            "unit_conversion": "UNIT CHECK",
+            "temporal_ledger": "TIME LOG",
+            "capacity_conservation": "CAPACITY LOG",
+            "causal_order": "EVENT LOG",
+            "geometry_feasibility": "CLEARANCE LOG",
+            "probability_ledger": "PROBABILITY LOG",
+            "phase_state": "PHASE REPORT",
+        }.get(family, "SCENE RECORD"),
         rationale="deterministic fallback after planner syntax failure",
     )
 
@@ -664,7 +916,7 @@ def render_carrier(
 
 def normalize_transcription(value: object) -> str:
     text = unicodedata.normalize("NFKC", str(value)).lower()
-    text = text.replace("±", "+/-").replace("²", "2")
+    text = text.replace("±", "+/-").replace("−", "-").replace("²", "2")
     text = re.sub(r"[^a-z0-9+./-]+", " ", text)
     return " ".join(text.split())
 
@@ -760,6 +1012,7 @@ __all__ = [
     "CARRIER_TYPES",
     "CONDITIONS",
     "READ_CONDITIONS",
+    "REQUESTED_COUNTERFACTUAL_FAMILIES",
     "CounterfactualRecord",
     "SceneEvidencePlan",
     "compile_counterfactual",
@@ -769,6 +1022,7 @@ __all__ = [
     "parse_semantic_answer",
     "planner_prompt",
     "read_prompt",
+    "recompute_record_residual",
     "registered_evidence_text",
     "render_carrier",
     "semantic_token",
