@@ -855,7 +855,10 @@ def render_carrier(
         x0, y0, x1, y1 = box
         canvas.alpha_composite(card, (x0, y0))
         mask = Image.new("L", image.size, 0)
-        ImageDraw.Draw(mask).rectangle(box, fill=255)
+        # PIL rectangles include both endpoints, while the pasted card covers
+        # [x0, x1) x [y0, y1). Keep the registered mask pixel-exact with the
+        # rendered card and with the area-cap calculation above.
+        ImageDraw.Draw(mask).rectangle((x0, y0, x1 - 1, y1 - 1), fill=255)
         quad = [(float(x0), float(y0)), (float(x1), float(y0)), (float(x1), float(y1)), (float(x0), float(y1))]
         renderer = "deterministic-flat-matched-v1"
     else:

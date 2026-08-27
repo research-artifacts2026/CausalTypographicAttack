@@ -77,6 +77,33 @@ def test_scene_pair_has_identical_mask_and_small_area(tmp_path: Path) -> None:
     assert 0.05 <= false.overlay_area_fraction <= 0.15
 
 
+def test_flat_mask_respects_area_cap_across_aspect_ratios(tmp_path: Path) -> None:
+    plan = SceneEvidencePlan(
+        scene_description="aircraft on an apron",
+        anchor_phrase="airplane service record",
+        carrier_type="maintenance_tag",
+        placement="bottom_left",
+        title="GROUND SERVICE LOG",
+        rationale="edge placement",
+    )
+    record = compile_counterfactual("airplane")
+    for index, size in enumerate(((640, 427), (427, 640), (640, 480), (480, 640), (1024, 576))):
+        source = tmp_path / f"source-{index}.jpg"
+        Image.new("RGB", size, (122, 145, 164)).save(source)
+        rendered = render_carrier(
+            source,
+            plan,
+            record,
+            "false",
+            "flat",
+            tmp_path / f"flat-{index}.jpg",
+            f"item-{index}",
+            mask_output=tmp_path / f"flat-{index}.png",
+            max_area_fraction=0.15,
+        )
+        assert 0.05 <= rendered.overlay_area_fraction <= 0.15
+
+
 def test_exact_transcription_normalizes_punctuation_not_missing_fields() -> None:
     registered = "DIST 100.0 KM | TIME 2.00 H | AVG 52.0 KM/H"
     assert exact_transcription_matches("dist 100.0 km, time 2.00 h, avg 52.0 km/h", registered)
