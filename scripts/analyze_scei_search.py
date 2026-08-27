@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -73,6 +74,15 @@ def main() -> None:
     })
     output = root / ("analysis.json" if analysis["status"] == "complete" else "analysis_partial.json")
     output.write_text(json.dumps(analysis, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    provenance_path = root / "provenance.json"
+    if provenance_path.is_file():
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+        provenance["analysis_sha256"] = file_sha256(output)
+        provenance["last_audited_at_utc"] = datetime.now(timezone.utc).isoformat()
+        provenance["audit_status"] = analysis["status"]
+        provenance_path.write_text(
+            json.dumps(provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
     print(json.dumps(analysis, ensure_ascii=False, indent=2))
 
 

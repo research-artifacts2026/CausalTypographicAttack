@@ -358,6 +358,32 @@ def summarize_terminal_rows(
     successful = [row for row in clean_rows if int(row["success_at_2"]) == 1]
     actual_query_counts = [int(row["victim_query_count"]) for row in rows]
     success_query_counts = [int(row["victim_queries_to_success"]) for row in successful]
+    family_metrics = {}
+    target_feedback = {"strict_success", "ungrounded_target_flip"}
+    read_feedback = {"strict_success", "read_but_resisted"}
+    for family in sorted({str(row["family"]) for row in rows}):
+        family_rows = [row for row in clean_rows if str(row["family"]) == family]
+        family_n = len(family_rows)
+
+        def feedback_count(accepted: set[str], budget: int) -> int:
+            return sum(any(
+                feedback in accepted for feedback in row["round_feedback"][:budget]
+            ) for row in family_rows)
+
+        s1 = sum(int(row["success_at_1"]) for row in family_rows)
+        s2 = sum(int(row["success_at_2"]) for row in family_rows)
+        family_metrics[family] = {
+            "n_clean_correct": family_n,
+            "strict_success_at_1": s1,
+            "strict_success_at_1_rate": s1 / family_n if family_n else None,
+            "strict_success_at_2": s2,
+            "strict_success_at_2_rate": s2 / family_n if family_n else None,
+            "target_flip_at_1": feedback_count(target_feedback, 1),
+            "target_flip_at_2": feedback_count(target_feedback, 2),
+            "exact_read_at_1": feedback_count(read_feedback, 1),
+            "exact_read_at_2": feedback_count(read_feedback, 2),
+        }
+
     return {
         "schema_version": "cta/scei-search-analysis-v1",
         "status": "complete" if len(rows) == expected_items else "incomplete",
@@ -383,6 +409,7 @@ def summarize_terminal_rows(
             for row in clean_rows if int(row["success_at_2"]) == 0
         ).items())),
         "family_counts": dict(sorted(Counter(str(row["family"]) for row in rows).items())),
+        "family_metrics": family_metrics,
     }
 
 

@@ -45,6 +45,12 @@ def test_summary_is_clean_conditioned_but_keeps_clean_errors() -> None:
     assert summary["success_at_1"]["denominator_clean_correct"] == 3
     assert summary["success_at_2"]["successes"] == 2
     assert summary["terminal_outcomes"]["clean_error"] == 1
+    family = summary["family_metrics"]["mass_balance"]
+    assert family["n_clean_correct"] == 3
+    assert family["strict_success_at_1"] == 1
+    assert family["strict_success_at_2"] == 2
+    assert family["target_flip_at_1"] == 1
+    assert family["exact_read_at_2"] == 2
 
 
 def test_wilson_and_safe_slug_are_stable() -> None:
