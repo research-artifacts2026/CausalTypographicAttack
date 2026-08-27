@@ -23,6 +23,11 @@ trace shows the clean answer, immutable false record, every attempted
 rendering, victim answer, independent transcription check, four-state failure
 diagnosis, next permitted intervention, and query count.
 
+The UI also exposes all eight mechanically validated counterfactual families
+and prints both exact victim prompts verbatim: the decision question used for
+clean/attacked comparison and the independent transcription question used for
+the grounding gate.
+
 An accepted round must change at least one visible wording field (title, scene
 anchor, or verdict-free status line); merely relocating identical text is
 rejected. Strict success also requires an exact independent transcription.
@@ -45,12 +50,12 @@ SCEI_DEMO_CONFIG=/absolute/path/to/space-models.yaml
 SCEI_DEMO_OUTPUT=/data/scei_gradio_sessions
 ```
 
-The repository's default `configs/scei_gradio_local_v1.yaml` contains
-machine-specific multi-GPU checkpoint paths and is only an example. A hosted
-Space must replace those paths and device assignments with values valid for
-its hardware. Do not place model-hub tokens or other secrets in the YAML or
-repository; use the Space's secret settings when a gated checkpoint requires
-authentication.
+The repository's default `configs/scei_gradio_local_v1.yaml` is public-safe and
+contains only a public model ID. The adapter performs local-only loading, so a
+hosted deployment must cache that checkpoint or provide an untracked YAML with
+locally accessible models and valid device assignments. Do not place model-hub
+tokens or other secrets in the YAML or repository; use the Space's secret
+settings when a gated checkpoint requires authentication.
 
 For local verification from the repository root:
 

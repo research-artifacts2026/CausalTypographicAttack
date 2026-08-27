@@ -398,6 +398,14 @@ deterministic renderer then inserts that candidate and the
 victim receives two queries: the registered verification question and an
 independent exact-transcription prompt.
 
+The UI exposes the eight named compiler families used by the new dataset:
+range/threshold, unit conversion, temporal ledger, capacity conservation,
+causal order, geometric feasibility, probability ledger, and phase/state.
+It prints both victim prompts verbatim in a dedicated **Exact questions**
+panel. The decision question is identical for the clean and attacked image;
+the transcription question is issued only for an attacked carrier and is a
+separate grounding gate.
+
 The observable state is a two-bit feedback code `(target flip, exact read)`:
 
 - `(0,0)` changes the carrier/placement to repair legibility;
@@ -419,11 +427,15 @@ cd /disk2/fangxinyue/causal_typographic_attack
 /disk2/fangxinyue/.venv/bin/python app.py
 ```
 
-By default the UI uses `configs/scei_gradio_local_v1.yaml`.  Override it with
+By default the UI uses the public-safe `configs/scei_gradio_local_v1.yaml`,
+which contains a public model ID and no server-specific checkpoint path.
+The model must already be cached because the adapter uses local-only loading.
+Override it with an untracked private config through
 `SCEI_DEMO_CONFIG=/absolute/path/config.yaml`; do not put credentials in YAML.
 The UI shows the clean gate, fixed false record, every candidate, the target
-answer, exact-read result, failure diagnosis, next allowed intervention, and
-the complete download bundle.  It does not hide unsuccessful rounds.
+answer, the exact decision/read questions, exact-read result, failure
+diagnosis, next allowed intervention, and the complete download bundle. It
+does not hide unsuccessful rounds.
 `demo/scei_gradio_space/` contains the pinned Hugging Face Spaces metadata,
 thin deployment wrapper, and Space-specific requirements.
 
