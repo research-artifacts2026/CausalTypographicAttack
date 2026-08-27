@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/cta/rvta_context_source.schema.json",
+  "title": "RVTA-Context source item",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "item_id",
+    "scene_domain",
+    "source",
+    "fact",
+    "counterfactual_values",
+    "manual_review"
+  ],
+  "properties": {
+    "schema_version": {"const": "cta/rvta-context-source-v1"},
+    "item_id": {"type": "string", "minLength": 1},
+    "scene_domain": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "required": [
+        "path", "sha256", "description_url", "license", "capture_time_sgt_assumption",
+        "gps_latitude", "gps_longitude"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "description_url": {"type": "string", "format": "uri"},
+        "license": {"type": "string", "minLength": 1},
+        "capture_time_sgt_assumption": {"type": "string", "minLength": 1},
+        "gps_latitude": {"type": "number"},
+        "gps_longitude": {"type": "number"}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": [
+        "fact_id", "basis", "dataset_id", "dataset_url", "publisher",
+        "observation_timestamp_sgt", "station_id", "station_name", "true_value", "unit"
+      ],
+      "properties": {
+        "fact_id": {"type": "string", "minLength": 1},
+        "basis": {"const": "timestamped-public-sensor-record"},
+        "dataset_id": {"type": "string", "minLength": 1},
+        "dataset_url": {"type": "string", "format": "uri"},
+        "publisher": {"type": "string", "minLength": 1},
+        "observation_timestamp_sgt": {"type": "string", "minLength": 1},
+        "station_id": {"type": "string", "minLength": 1},
+        "station_name": {"type": "string", "minLength": 1},
+        "true_value": {"type": "number"},
+        "unit": {"const": "deg C"}
+      }
+    },
+    "counterfactual_values": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subtle", "moderate", "extreme"],
+      "properties": {
+        "subtle": {"type": "number"},
+        "moderate": {"type": "number"},
+        "extreme": {"type": "number"}
+      }
+    },
+    "manual_review": {
+      "type": "object",
+      "required": ["outdoor_scene", "location_credible", "carrier_region_approved", "exclude_reason"],
+      "properties": {
+        "outdoor_scene": {"type": ["boolean", "null"]},
+        "location_credible": {"type": ["boolean", "null"]},
+        "carrier_region_approved": {"type": ["boolean", "null"]},
+        "exclude_reason": {"type": "string"}
+      }
+    }
+  }
+}

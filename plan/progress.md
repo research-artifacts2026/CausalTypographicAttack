@@ -35,3 +35,18 @@
 - [ ] Run the four-model n=3 natural-carrier pilot (qualitative only).
 - [ ] Collect three independent human response files.
 - [ ] Collect and validate registered real camera captures.
+
+## RVTA-Context v1 (2026-08-27)
+
+- [x] Define trusted-reference verification, numeric-capture, and exact-read endpoints.
+- [x] Implement license/GPS/time filtering and nearest-station joins against public Singapore temperature data.
+- [x] Collect 12-item development and 100-item candidate source sets without victim-conditioned selection.
+- [x] Freeze attribution, source/fact hashes, counterfactual severity rules, and rejection logs.
+- [x] Implement deterministic perspective-paper rendering and generate the complete 12-item/120-row smoke manifest.
+- [x] Add held-out fail-closed review requirements and three randomized 100-item review forms.
+- [x] Add Qwen-3B/7B and four-model n=100 configs, runner, summarizer, tests, task packet, and dataset card.
+- [ ] Complete three independent source reviews and freeze the approved outdoor subset.
+- [ ] Rebuild the 100-item rendered manifest on `/disk2` (local repeated renders exceeded workspace disk budget).
+- [ ] Run the four-model pilot/full inference and report real grounded ASR and false-value capture.
+- [ ] Add a matched AI-assisted blank-carrier renderer with a fixed generation budget; do not call the deterministic carrier AI-generated.
+- [ ] Add at least two independent fact families before presenting RVTA-Context as a general benchmark.

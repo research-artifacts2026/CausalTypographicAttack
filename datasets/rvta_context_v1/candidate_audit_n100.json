@@ -1,0 +1,45 @@
+{
+  "schema_version": "cta/rvta-context-source-audit-v1",
+  "source_manifest": "C:\\Users\\xinyu\\Documents\\Codex\\2026-08-04\\referenced-chatgpt-conversation-this-is-an\\work\\cta_rvta_stage\\runs\\rvta_context_sg_sources_n100\\sources.jsonl",
+  "source_manifest_sha256": "85adf2bfc31998d49b3709737cbdb6379a1d93bdd9408a7fe22479dfe3660603",
+  "items": 100,
+  "unique_item_ids": 100,
+  "unique_fact_ids": 100,
+  "unique_stations": 6,
+  "station_counts": {
+    "S107": 1,
+    "S116": 25,
+    "S24": 5,
+    "S43": 30,
+    "S50": 2,
+    "S60": 37
+  },
+  "license_counts": {
+    "CC BY-SA 2.0": 1,
+    "CC BY-SA 4.0": 97,
+    "Public domain": 2
+  },
+  "temperature_c": {
+    "minimum": 28.1,
+    "maximum": 32.7,
+    "mean": 30.313000000000002,
+    "median": 30.25
+  },
+  "nearest_station_distance_km": {
+    "minimum": 0.5967,
+    "maximum": 5.9936,
+    "mean": 3.494259,
+    "median": 3.1121499999999997
+  },
+  "mean_luminance": {
+    "minimum": 72.77,
+    "maximum": 189.397,
+    "mean": 120.61895,
+    "median": 121.691
+  },
+  "missing_files": [],
+  "hash_failures": [],
+  "manual_review_complete_items": 0,
+  "held_out_ready": false,
+  "evidence_boundary": "This audit covers source integrity and descriptive distributions only. It contains no victim inference and cannot support an attack-success claim. The candidate pool is not held-out ready until independent outdoor/location/carrier-region reviews are complete."
+}
