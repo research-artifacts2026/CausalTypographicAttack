@@ -1,0 +1,32 @@
+{
+  "schema_version": "cta/matched-bridge-renderer-run-v1",
+  "status": "complete",
+  "started_at_utc": "2026-08-28T09:18:11.637759+00:00",
+  "config": "/disk2/fangxinyue/causal_typographic_attack/configs/matched_bridge_renderer_qwen7_coco_n300.yaml",
+  "config_sha256": "17e09462b4f452b89a78df785e692815e196b3082f2753e5ec1b807efe600a7a",
+  "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/matched_bridge_renderer_coco_n300/render_manifest.jsonl",
+  "manifest_sha256": "b64b3497ccaaa3f3dcad98741e5e420223cd337f481c7d7fd5cf1ba45785f3db",
+  "git_head": "f14534d97b0fb873bf053ec6ef177c97bf02a47e",
+  "hostname": "NUS-RobustAI",
+  "python": "3.10.12",
+  "model": {
+    "adapter": "Qwen25VLAdapter",
+    "model_path": "/disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct",
+    "model_config_exists": true,
+    "torch_version": "2.5.1+cu121",
+    "cuda_version": "12.1",
+    "device": "cuda:0",
+    "generation": {
+      "do_sample": false,
+      "temperature": null,
+      "max_new_tokens": 96
+    }
+  },
+  "items": 300,
+  "rows": 900,
+  "queries_per_row": 2,
+  "seed": 20260828,
+  "metric_boundary": "clean-conditioned target ASR; grounded endpoint also requires registered claim transcription",
+  "completed_rows": 900,
+  "finished_at_utc": "2026-08-28T09:30:43.332921+00:00"
+}

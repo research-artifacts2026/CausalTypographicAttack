@@ -1,0 +1,33 @@
+{
+  "schema_version": "cta/rvta-qa-balanced-run-v1",
+  "status": "complete",
+  "started_at_utc": "2026-08-28T09:22:46.908265+00:00",
+  "config": "/disk2/fangxinyue/causal_typographic_attack/configs/rvtaqa_balanced_coco_qwen3vl8_n300.yaml",
+  "config_sha256": "d180e3e02006f9e191534aafb9ca672eb7055e6b63723c6bcd9f728b62e439e7",
+  "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl",
+  "manifest_sha256": "d811a54fb72ad3754b2bc40c7db0732a66b82a3b61a38d8d1534bd157a899647",
+  "git_head": "f14534d97b0fb873bf053ec6ef177c97bf02a47e",
+  "hostname": "NUS-RobustAI",
+  "python": "3.10.12",
+  "model": {
+    "adapter": "Qwen3VLAdapter",
+    "model_path": "/home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen3-VL-8B-Instruct/snapshots/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "model_config_exists": true,
+    "torch_version": "2.5.1+cu121",
+    "cuda_version": "12.1",
+    "transformers_version": "5.9.0",
+    "device": "cuda:0",
+    "generation": {
+      "do_sample": false,
+      "temperature": null,
+      "max_new_tokens": 96
+    }
+  },
+  "items": 300,
+  "rows": 1800,
+  "queries_per_row": 2,
+  "metric_boundary": "semantic clean-conditioned target ASR; grounded endpoint requires registered claim transcription",
+  "seed": 20260828,
+  "completed_rows": 1800,
+  "finished_at_utc": "2026-08-28T09:45:59.679866+00:00"
+}

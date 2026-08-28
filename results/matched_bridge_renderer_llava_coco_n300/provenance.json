@@ -1,0 +1,33 @@
+{
+  "schema_version": "cta/matched-bridge-renderer-run-v1",
+  "status": "complete",
+  "started_at_utc": "2026-08-28T09:18:12.384450+00:00",
+  "config": "/disk2/fangxinyue/causal_typographic_attack/configs/matched_bridge_renderer_llava_coco_n300.yaml",
+  "config_sha256": "8d0ff525cabc29fde13f456bde39e202b0388a3d28b3cb6be6c5f0ffd25ed4cb",
+  "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/matched_bridge_renderer_coco_n300/render_manifest.jsonl",
+  "manifest_sha256": "b64b3497ccaaa3f3dcad98741e5e420223cd337f481c7d7fd5cf1ba45785f3db",
+  "git_head": "f14534d97b0fb873bf053ec6ef177c97bf02a47e",
+  "hostname": "NUS-RobustAI",
+  "python": "3.10.12",
+  "model": {
+    "adapter": "LlavaOneVision15Adapter",
+    "model_path": "/home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/e137910552d616eb0f7305147ca054311a90c542",
+    "model_config_exists": true,
+    "torch_version": "2.5.1+cu121",
+    "cuda_version": "12.1",
+    "transformers_version": "4.57.1",
+    "device": "cuda:0",
+    "generation": {
+      "do_sample": false,
+      "temperature": null,
+      "max_new_tokens": 96
+    }
+  },
+  "items": 300,
+  "rows": 900,
+  "queries_per_row": 2,
+  "seed": 20260828,
+  "metric_boundary": "clean-conditioned target ASR; grounded endpoint also requires registered claim transcription",
+  "completed_rows": 900,
+  "finished_at_utc": "2026-08-28T09:31:16.110133+00:00"
+}

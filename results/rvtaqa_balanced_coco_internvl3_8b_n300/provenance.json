@@ -1,0 +1,52 @@
+{
+  "schema_version": "cta/rvta-qa-balanced-merged-run-v1",
+  "status": "complete",
+  "finished_at_utc": "2026-08-28T09:59:16.061554+00:00",
+  "hostname": "NUS-RobustAI",
+  "python": "3.10.12",
+  "git_head": "f14534d97b0fb873bf053ec6ef177c97bf02a47e",
+  "manifest": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl",
+  "manifest_sha256": "d811a54fb72ad3754b2bc40c7db0732a66b82a3b61a38d8d1534bd157a899647",
+  "shard_provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/shard_provenance.json",
+  "shard_provenance_sha256": "24be7665b8a6d8914c3d37b53fa777eb8e113b36b01d5fa73f56ca0297560d74",
+  "components": [
+    {
+      "shard_index": 0,
+      "prediction_log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_0/predictions.jsonl",
+      "prediction_log_sha256": "393e125cf7e2229dde8b5e470d6f4da50f9a04cf04ac8eb1efd6fa9ab1a57bc8",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_0/provenance.json",
+      "provenance_sha256": "db9161e8044cd2196ceb580809cf4a5256a67488a46a55b09b1164671d19a01b"
+    },
+    {
+      "shard_index": 1,
+      "prediction_log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_1/predictions.jsonl",
+      "prediction_log_sha256": "8e6066ec2dbdf6673df83f03d8759afdf94f695c65ff5d0e13668e1f89a6bf31",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_1/provenance.json",
+      "provenance_sha256": "a6e70dcfc8fbbb44f629c82d2d1010f9f093c3351433733c0e90c2fd85c431d5"
+    },
+    {
+      "shard_index": 2,
+      "prediction_log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_2/predictions.jsonl",
+      "prediction_log_sha256": "436f329046cf08a78a38fe08dca1b9ac55b504f67256a33a21e82431941c7909",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_2/provenance.json",
+      "provenance_sha256": "0871b7f7a05ea3921234b9d3223969d33905c9e9f49c9f18220fba3fd9b03069"
+    },
+    {
+      "shard_index": 3,
+      "prediction_log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_3/predictions.jsonl",
+      "prediction_log_sha256": "2c8ac2d81ac276a7b6c57493f2a1ac51ae4d1d1a3ad8f4bc9547d7088470e8f9",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_3/provenance.json",
+      "provenance_sha256": "edd2194acd36fd94844670abdf0c5716ab162be134b6d0b16c0c66234a52a9f9"
+    },
+    {
+      "shard_index": 4,
+      "prediction_log": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_4/predictions.jsonl",
+      "prediction_log_sha256": "015a351be151a292a3fe6ca9712bdc83910ed9ded526a84c9c75fa0fa05cd95e",
+      "provenance": "/disk2/fangxinyue/causal_typographic_attack/runs/rvtaqa_balanced_coco_internvl3_8b_n300_shards/run_shard_4/provenance.json",
+      "provenance_sha256": "7269caae8025fd14214e14b5d12970d34be65d72bef2e487f707aee75cfc58da"
+    }
+  ],
+  "completed_rows": 1800,
+  "prediction_log_sha256": "c6e31f69d338b342db33735dd4cd8c78bdcc430e588aae93476402ac6ba6152d",
+  "merge_policy": "exact union by (item_id, condition); duplicate, missing, extra, and image-hash mismatches are fatal"
+}

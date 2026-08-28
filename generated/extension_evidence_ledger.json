@@ -1,0 +1,72 @@
+{
+  "schema_version": "cta/paper-extension-evidence-v1",
+  "inputs": {
+    "sem_qwen_summary": {
+      "path": "semantic_defense_qwen7_coco_n300\\summary.json",
+      "sha256": "2de629879937cb4df816dd8b909c29b887bb175558604b4c3bc9a289c6b70c22"
+    },
+    "sem_qwen_prov": {
+      "path": "semantic_defense_qwen7_coco_n300\\provenance.json",
+      "sha256": "46f4a111b6b10e0ac300262bd751069fb682baf76fadef182151c0b65611ded4"
+    },
+    "sem_llava_summary": {
+      "path": "semantic_defense_llava_coco_n300\\summary.json",
+      "sha256": "2ae423f321abd7f4b2d00675528123b32f9f7fcc4ca0a6d58a087c0b2cafca29"
+    },
+    "sem_llava_prov": {
+      "path": "semantic_defense_llava_coco_n300\\provenance.json",
+      "sha256": "0a13bbf758d66e2256793ad418cba5999c3ae67698cd728b31d9c1b3269203bb"
+    },
+    "render_qwen_summary": {
+      "path": "matched_bridge_renderer_qwen7_coco_n300\\summary.json",
+      "sha256": "e8fa846f2a6e070a48ff378bee0166a0d1cfcb057419679182e90bcba6fe9a7e"
+    },
+    "render_qwen_prov": {
+      "path": "matched_bridge_renderer_qwen7_coco_n300\\provenance.json",
+      "sha256": "83f10f0d5b45e6d06081e6d18bfcbedbc245770e7db11933941c8d6acf6ec677"
+    },
+    "render_llava_summary": {
+      "path": "matched_bridge_renderer_llava_coco_n300\\summary.json",
+      "sha256": "91dabaa0bfac2d3095364eee5922ab1f83621e28fe9f8627dc49f859f4501eb8"
+    },
+    "render_llava_prov": {
+      "path": "matched_bridge_renderer_llava_coco_n300\\provenance.json",
+      "sha256": "21835369dbb9ff50c18c4ba036c13952eacd96f485097edf86095de7b99b023e"
+    },
+    "qwen3_summary": {
+      "path": "rvtaqa_balanced_coco_qwen3vl8_n300\\summary.json",
+      "sha256": "49d31011057cf3313d13412074a17ca13b724750871ab278aa3155ce6d4f692c"
+    },
+    "qwen3_prov": {
+      "path": "rvtaqa_balanced_coco_qwen3vl8_n300\\provenance.json",
+      "sha256": "56d0d0dee27b8a82cd1853b99d6ea727980f4a5a9c5cac0d13d4f73a2777f94a"
+    },
+    "internvl3_summary": {
+      "path": "rvtaqa_balanced_coco_internvl3_8b_n300\\summary.json",
+      "sha256": "3b056add332c889336f2fa94b23b1a485082b0dcd10e5e7dad4ba7388747da73"
+    },
+    "internvl3_prov": {
+      "path": "rvtaqa_balanced_coco_internvl3_8b_n300\\provenance.json",
+      "sha256": "661db795ce8c15b8e8536a378a5cffd5d7a5d4e235068b62748c2f8fd218eea2"
+    }
+  },
+  "outputs": {
+    "generated_semantic_world_defense_table.tex": {
+      "path": "generated_semantic_world_defense_table.tex",
+      "sha256": "4696bc2b59ecafa4e9023feae43bc0745c26f988ecfabf38770ef71e731bbddc"
+    },
+    "generated_matched_bridge_renderer_table.tex": {
+      "path": "generated_matched_bridge_renderer_table.tex",
+      "sha256": "2314ba53943d62737b9d5f7c0469db4a5416b821278f16ba6ebfaf0dee4f3fed"
+    },
+    "generated_new_model_extension_table.tex": {
+      "path": "generated_new_model_extension_table.tex",
+      "sha256": "b62615d350c75c21ecc8c333e2de2655fdaac89f712f79a0793d8090a5b0a0f2"
+    }
+  },
+  "claim_boundary": {
+    "renderer": "same registered text and geometry; deterministic synthetic scene integration, not camera capture",
+    "defense": "attack-oblivious prompt wrapper; reports clean utility cost and paired ASR",
+    "models": "Qwen3-VL and InternVL3 are both n=300"
+  }
+}

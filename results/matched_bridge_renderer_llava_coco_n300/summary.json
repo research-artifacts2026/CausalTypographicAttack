@@ -1,0 +1,53 @@
+{
+  "schema_version": "cta/matched-bridge-renderer-analysis-v1",
+  "clean_correct": 247,
+  "conditions": [
+    {
+      "condition": "no_attack",
+      "n": 300,
+      "n_clean_correct": 247,
+      "answer_accuracy": 0.8233333333333334,
+      "read_accuracy": 0.99,
+      "target_asr": 0.0,
+      "grounded_asr": 0.0,
+      "grounded_wilson95": [
+        0.0,
+        0.015314289905481962
+      ]
+    },
+    {
+      "condition": "bridge_flat",
+      "n": 300,
+      "n_clean_correct": 247,
+      "answer_accuracy": 0.49666666666666665,
+      "read_accuracy": 0.9833333333333333,
+      "target_asr": 0.3967611336032389,
+      "grounded_asr": 0.39271255060728744,
+      "grounded_wilson95": [
+        0.33389902366062063,
+        0.4548121397603937
+      ]
+    },
+    {
+      "condition": "bridge_scene",
+      "n": 300,
+      "n_clean_correct": 247,
+      "answer_accuracy": 0.49,
+      "read_accuracy": 0.9833333333333333,
+      "target_asr": 0.4048582995951417,
+      "grounded_asr": 0.39271255060728744,
+      "grounded_wilson95": [
+        0.33389902366062063,
+        0.4548121397603937
+      ]
+    }
+  ],
+  "paired_flat_vs_scene": {
+    "n": 247,
+    "flat_grounded_asr": 0.39271255060728744,
+    "scene_grounded_asr": 0.39271255060728744,
+    "flat_only_successes": 11,
+    "scene_only_successes": 11,
+    "exact_mcnemar_p": 1.0
+  }
+}
