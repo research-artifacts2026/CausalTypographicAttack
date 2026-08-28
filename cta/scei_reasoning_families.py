@@ -565,12 +565,18 @@ def compile_family_record(
     *,
     variant_key: str,
     seed: int,
+    difficulty: str | None = None,
 ) -> dict[str, Any]:
     family = str(family).strip().lower().replace("-", "_").replace(" ", "_")
     if family not in _GENERATORS:
         raise ValueError(f"unsupported counterfactual family: {family!r}")
     rng = _rng(label, family, str(variant_key), int(seed))
-    difficulty = DIFFICULTIES[rng.randrange(len(DIFFICULTIES))]
+    if difficulty is None:
+        difficulty = DIFFICULTIES[rng.randrange(len(DIFFICULTIES))]
+    else:
+        difficulty = str(difficulty).strip().lower()
+        if difficulty not in DIFFICULTIES:
+            raise ValueError(f"unsupported difficulty: {difficulty!r}")
     return _GENERATORS[family](label, rng, difficulty)
 
 

@@ -17,6 +17,14 @@ from cta.question_bench import file_sha256
 from cta.scei_attack import CounterfactualRecord, REQUESTED_COUNTERFACTUAL_FAMILIES, validate_record
 
 
+IMPLEMENTATION_FILES = (
+    "cta/scei_attack.py",
+    "cta/scei_batch.py",
+    "cta/scei_reasoning_families.py",
+    "scripts/build_scei_image_dataset.py",
+)
+
+
 def _rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
@@ -170,6 +178,11 @@ def main() -> None:
         "distinct_false_true_images": distinct_false_true,
         "manifest_sha256_matches_provenance": file_sha256(manifest_path) == provenance["manifest_sha256"],
         "selection_sha256_matches_provenance": file_sha256(selection_path) == provenance["selection_sha256"],
+        "implementation_hashes_match": all(
+            (Path(__file__).resolve().parents[1] / relative).is_file()
+            and file_sha256(Path(__file__).resolve().parents[1] / relative) == expected
+            for relative, expected in provenance.get("implementation_files_sha256", {}).items()
+        ) if provenance.get("implementation_files_sha256") else None,
         "errors": errors[:100],
         "error_count": len(errors),
     }

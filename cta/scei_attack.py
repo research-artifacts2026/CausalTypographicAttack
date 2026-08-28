@@ -257,6 +257,7 @@ def compile_counterfactual(
     *,
     variant_key: str | None = None,
     seed: int = 20260828,
+    difficulty: str | None = None,
 ) -> CounterfactualRecord:
     """Compile a mechanically checkable false record and one-field corrected twin.
 
@@ -276,7 +277,11 @@ def compile_counterfactual(
             family,
             variant_key=str(variant_key),
             seed=int(seed),
+            difficulty=difficulty,
         ))
+
+    if difficulty is not None:
+        raise ValueError("difficulty overrides require a named family and variant_key")
 
     if family == "range_threshold":
         return CounterfactualRecord(

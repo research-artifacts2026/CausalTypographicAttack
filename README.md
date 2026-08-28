@@ -471,6 +471,30 @@ The observable state is a two-bit feedback code `(target flip, exact read)`:
 - `(1,0)` is retained as an ungrounded flip and triggers a readability repair;
 - `(1,1)` is strict success and stops the loop.
 
+#### SCEI-GraphSearch v3
+
+[`cta/scei_graphsearch.py`](cta/scei_graphsearch.py) extends the fixed-record
+v2 search with a pre-victim, SHA-256-locked bank of compatible constraint arms.
+It separates semantic arms (family and violation margin) from delivery arms
+(carrier, placement, title, and verdict-free status). Failed read gates change
+delivery only; exact reading plus resistance permits a stronger constraint or
+the next compatible family. Every newly selected semantic arm receives its own
+clean-image gate before it can count as an attack. The complete method and
+current evidence boundary are documented in
+[`docs/scei_graphsearch_v3.md`](docs/scei_graphsearch_v3.md).
+
+Run the matched development pilot with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/run_scei_graphsearch_batch.py \
+  --config configs/scei_graphsearch_v3_qwen7_coco_n12_k2.yaml
+```
+
+The initial matched `n=12`, `K=2`, Qwen2.5-VL-7B pilot ties v2 at 2/12 strict
+successes (16.7%); it does not establish superiority. The semantic-switching
+branch needs a frozen `K>=4` multi-model evaluation before it can support an
+effectiveness claim.
+
 The attack always terminates after the visible budget `K`.  A run writes
 `protocol.json` before the clean query, append-only `events.jsonl`, every image
 and mask with SHA-256, `summary.json`, and a downloadable audit bundle.  Report

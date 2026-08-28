@@ -55,6 +55,12 @@ from cta.scei_batch import (
 
 DEFAULT_SCHEMA = "cta/scei-image-dataset-v1"
 VARIANTS = ("clean", "attack_false", "control_true")
+IMPLEMENTATION_FILES = (
+    "cta/scei_attack.py",
+    "cta/scei_batch.py",
+    "cta/scei_reasoning_families.py",
+    "scripts/build_scei_image_dataset.py",
+)
 
 
 def _git_head() -> str:
@@ -67,6 +73,15 @@ def _git_head() -> str:
         ).strip()
     except Exception:
         return "not-a-git-checkout"
+
+
+def _implementation_hashes() -> tuple[dict[str, str], str]:
+    root = Path(__file__).resolve().parents[1]
+    hashes = {relative: file_sha256(root / relative) for relative in IMPLEMENTATION_FILES}
+    aggregate = hashlib.sha256(
+        "\n".join(f"{path}:{digest}" for path, digest in sorted(hashes.items())).encode("utf-8")
+    ).hexdigest()
+    return hashes, aggregate
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -465,11 +480,14 @@ def main() -> None:
     split_counts = dict(sorted(Counter(str(row.get("split", "unspecified")) for row in ordered_records).items()))
     difficulty_counts = dict(sorted(Counter(str(row["record"].get("difficulty", "canonical")) for row in ordered_records).items()))
     scenario_counts = dict(sorted(Counter(str(row["scenario_id"]) for row in ordered_records).items()))
+    implementation_hashes, implementation_aggregate = _implementation_hashes()
     provenance = {
         "schema_version": schema,
         "status": "complete",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "git_head": _git_head(),
+        "implementation_files_sha256": implementation_hashes,
+        "implementation_aggregate_sha256": implementation_aggregate,
         "hostname": platform.node(),
         "dataset": str(config.get("dataset", "COCO")),
         "dataset_name": dataset_name,
