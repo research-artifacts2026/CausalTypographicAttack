@@ -19,7 +19,7 @@ def main() -> None:
     args = parser.parse_args()
     images = [Image.open(path).convert("RGB") for path in (args.clean, args.flat, args.scene)]
     labels = [
-        "A  CLEAN\ncorrect: B / false",
+        "A  CLEAN\ncorrect: B / YES",
         "B  FLAT BRIDGE\nQwen-7B: B (resists)",
         "C  SCENE-INTEGRATED BRIDGE\nQwen-7B: A (target flip)",
     ]
