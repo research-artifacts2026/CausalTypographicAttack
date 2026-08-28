@@ -1,0 +1,6 @@
+dataset_name: coco_val2017_hf
+dataset_root: data/coco2017_hf
+dataset_split: null
+num_samples: 2400
+seed: 20260828
+output_root: runs/scei_source_coco_n2400_v2

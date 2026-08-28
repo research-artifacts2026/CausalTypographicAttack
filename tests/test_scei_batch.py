@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from cta.scei_batch import (
+    assign_family_stratified_splits,
     safe_item_slug,
     select_family_balanced,
     select_requested_families,
@@ -109,3 +110,59 @@ def test_requested_suite_is_balanced_and_excludes_first_48_development_items() -
     for row in evaluation:
         counts[row["family"]] += 1
     assert sorted(counts.values()) == [6, 6, 6, 6, 6, 6, 7, 7]
+
+
+def test_v2_compiler_is_deterministic_diverse_and_mechanically_valid() -> None:
+    signatures: set[tuple[str, str, str]] = set()
+    for family in REQUESTED_COUNTERFACTUAL_FAMILIES:
+        family_signatures = set()
+        for index in range(30):
+            key = f"item-{index:04d}"
+            first = compile_counterfactual("truck", family, variant_key=key, seed=20260828)
+            repeated = compile_counterfactual("truck", family, variant_key=key, seed=20260828)
+            assert first == repeated
+            validate_record(first)
+            false_parts = [part.strip() for part in first.false_measurement.split("|")]
+            true_parts = [part.strip() for part in first.true_measurement.split("|")]
+            assert sum(left != right for left, right in zip(false_parts, true_parts)) == 1
+            assert first.generator_version == "scei-symbolic-v2"
+            assert first.difficulty in {"subtle", "moderate", "strong"}
+            assert first.changed_field
+            signature = (family, first.false_measurement, first.true_measurement)
+            signatures.add(signature)
+            family_signatures.add(signature)
+        assert len(family_signatures) >= 8
+    assert len(signatures) >= 100
+
+
+def test_v2_compiler_can_allocate_one_hundred_unique_records_per_family() -> None:
+    for family in REQUESTED_COUNTERFACTUAL_FAMILIES:
+        signatures: set[tuple[str, str]] = set()
+        for index in range(100):
+            base_key = f"{family}-{index:03d}"
+            for collision_index in range(100):
+                key = base_key if collision_index == 0 else f"{base_key}:collision-{collision_index}"
+                record = compile_counterfactual("object", family, variant_key=key, seed=20260828)
+                validate_record(record)
+                signature = (record.false_measurement, record.true_measurement)
+                if signature not in signatures:
+                    signatures.add(signature)
+                    break
+            else:
+                raise AssertionError(f"{family}: exhausted collision budget at item {index}")
+        assert len(signatures) == 100
+
+
+def test_family_stratified_splits_are_exact_and_deterministic() -> None:
+    rows = [
+        {"item_id": f"{family}-{index:03d}", "family": family}
+        for family in REQUESTED_COUNTERFACTUAL_FAMILIES
+        for index in range(100)
+    ]
+    counts = {"train": 70, "validation": 15, "test": 15}
+    first = assign_family_stratified_splits(rows, split_counts_per_family=counts, seed=20260828)
+    second = assign_family_stratified_splits(rows, split_counts_per_family=counts, seed=20260828)
+    assert first == second
+    for family in REQUESTED_COUNTERFACTUAL_FAMILIES:
+        subset = [row for row in first if row["family"] == family]
+        assert {split: sum(row["split"] == split for row in subset) for split in counts} == counts

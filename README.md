@@ -406,6 +406,40 @@ panel. The decision question is identical for the clean and attacked image;
 the transcription question is issued only for an attacked carrier and is a
 separate grounding gate.
 
+#### SCEI-Reason-800 dataset build
+
+The publication-scale v2 dataset assigns 100 independent COCO scenes to each
+of the eight families.  Every item produces an exact clean copy, one false
+counterfactual carrier, and a one-field corrected twin: 800 source items and
+2,400 images in total.  Numeric values vary deterministically by item, and the
+stored solver recomputes the false and corrected residuals from the printed
+fields.  Family-stratified splits contain 70/15/15 items per family, yielding
+560 train, 120 validation, and 120 test source items.  The old SCEI-Images-300
+artifact remains frozen and is never overwritten.
+
+```bash
+cd /disk2/fangxinyue/causal_typographic_attack
+
+# Freeze 2,400 candidate source images without loading a victim model.
+/disk2/fangxinyue/.venv/bin/python scripts/build_source_manifest.py \
+  --config configs/scei_source_coco_n2400_v2.yaml
+
+# Plan and render the balanced 800-item / 2,400-image dataset.
+CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+  scripts/build_scei_image_dataset.py \
+  --config configs/scei_reason800_coco_v2.yaml --resume
+
+# Recompute hashes, symbolic residuals, one-field twins, family balance,
+# split isolation, carrier geometry, and semantic-record uniqueness.
+/disk2/fangxinyue/.venv/bin/python scripts/audit_scei_image_dataset.py \
+  /disk2/fangxinyue/causal_typographic_attack_artifacts/datasets/scei_reason800_coco_v2
+```
+
+The build is resumable at item granularity.  Do not treat dataset construction
+as an attack result; model evaluation must use the frozen test split and must
+report clean eligibility, target judgment, exact reading, and their strict
+conjunction separately.
+
 The observable state is a two-bit feedback code `(target flip, exact read)`:
 
 - `(0,0)` changes the carrier/placement to repair legibility;

@@ -14,7 +14,7 @@ import math
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from .question_bench import file_sha256
 from .scei_attack import REQUESTED_COUNTERFACTUAL_FAMILIES, compile_counterfactual
@@ -195,6 +195,60 @@ def select_requested_families(
     if len(selected) != limit:
         raise RuntimeError(f"family allocation produced {len(selected)} rather than {limit} records")
     return selected
+
+
+def assign_family_stratified_splits(
+    rows: Iterable[dict[str, Any]],
+    *,
+    split_counts_per_family: Mapping[str, int],
+    seed: int,
+) -> list[dict[str, Any]]:
+    """Assign deterministic train/validation/test splits within every family.
+
+    The assignment uses only the registered item id, family, seed, and requested
+    counts.  It is therefore independent of planner or victim outputs.
+    """
+    split_counts = {str(name): int(count) for name, count in split_counts_per_family.items()}
+    if not split_counts or any(count < 0 for count in split_counts.values()):
+        raise ValueError("split counts must be a non-empty mapping of non-negative integers")
+    if sum(split_counts.values()) <= 0:
+        raise ValueError("at least one split row per family is required")
+    materialized = [dict(row) for row in rows]
+    by_family: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    seen: set[str] = set()
+    for row in materialized:
+        item_id = str(row.get("sample_id", row.get("item_id", ""))).strip()
+        family = str(row.get("family", "")).strip()
+        if not item_id or not family:
+            raise ValueError("split assignment requires item ids and family labels")
+        if item_id in seen:
+            raise ValueError(f"duplicate item id in split assignment: {item_id}")
+        seen.add(item_id)
+        by_family[family].append(row)
+    expected_per_family = sum(split_counts.values())
+    assigned: dict[str, str] = {}
+    for family, family_rows in sorted(by_family.items()):
+        if len(family_rows) != expected_per_family:
+            raise ValueError(
+                f"family {family!r} has {len(family_rows)} rows; expected {expected_per_family}"
+            )
+        ordered = sorted(
+            family_rows,
+            key=lambda row: hashlib.sha256(
+                f"scei-split-v1:{seed}:{family}:{row.get('sample_id', row.get('item_id'))}".encode("utf-8")
+            ).hexdigest(),
+        )
+        cursor = 0
+        for split_name, count in split_counts.items():
+            for row in ordered[cursor:cursor + count]:
+                item_id = str(row.get("sample_id", row.get("item_id"))).strip()
+                assigned[item_id] = split_name
+            cursor += count
+    output: list[dict[str, Any]] = []
+    for row in materialized:
+        item_id = str(row.get("sample_id", row.get("item_id"))).strip()
+        output.append({**row, "split": assigned[item_id]})
+    return output
 
 
 def freeze_selection(

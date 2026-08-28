@@ -15,6 +15,7 @@ duplicating manifest rows.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import platform
 import re
@@ -32,7 +33,6 @@ from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cta.model import build_model_adapter
 from cta.question_bench import file_sha256
 from cta.scei_attack import (
     REQUESTED_COUNTERFACTUAL_FAMILIES,
@@ -45,10 +45,15 @@ from cta.scei_attack import (
     validate_record,
     verification_question,
 )
-from cta.scei_batch import freeze_selection, read_json_records, safe_item_slug
+from cta.scei_batch import (
+    assign_family_stratified_splits,
+    freeze_selection,
+    read_json_records,
+    safe_item_slug,
+)
 
 
-SCHEMA = "cta/scei-image-dataset-v1"
+DEFAULT_SCHEMA = "cta/scei-image-dataset-v1"
 VARIANTS = ("clean", "attack_false", "control_true")
 
 
@@ -169,7 +174,10 @@ def _dataset_card(provenance: dict[str, Any]) -> str:
     family_lines = "\n".join(
         f"- `{family}`: {count}" for family, count in provenance["family_counts"].items()
     )
-    return f"""# SCEI-Images-300
+    split_lines = "\n".join(
+        f"- `{split}`: {count}" for split, count in provenance.get("split_item_counts", {}).items()
+    ) or "- not assigned"
+    return f"""# {provenance['dataset_name']}
 
 This image-first dataset contains {provenance['items']} source scenes and
 {provenance['image_files']} portable images. Every source scene has an exact
@@ -185,6 +193,22 @@ layout-matched corrected carrier.
 ## Counterfactual families
 
 {family_lines}
+
+## Splits
+
+{split_lines}
+
+Splits are stratified independently within every counterfactual family and are
+assigned before planner or victim inference.  The false and corrected twins of
+an item always remain in the same split.
+
+## Symbolic truth generation
+
+Generator: `{provenance['record_generator']}`.  Each item stores the changed
+field, difficulty, solver expression, numeric parameters, printed record, and
+independently recomputed residual.  False and corrected records differ in
+exactly one pipe-delimited field.  A dataset row is not evidence of attack
+success; victim evaluation is a separate stage.
 
 ## Important boundary
 
@@ -213,6 +237,10 @@ def main() -> None:
     max_area = float(config.get("max_area_fraction", 0.15))
     attempts_allowed = int(config.get("max_planner_attempts", 3))
     require_valid = bool(config.get("require_valid_plans", False))
+    schema = str(config.get("schema_version", DEFAULT_SCHEMA))
+    dataset_name = str(config.get("dataset_name", f"SCEI-Images-{expected_items}"))
+    record_generator = str(config.get("record_generator", "canonical_v1"))
+    record_seed = int(config.get("record_seed", seed))
     families = tuple(config.get("counterfactual_families", REQUESTED_COUNTERFACTUAL_FAMILIES))
     if output_root.exists() and not args.resume:
         raise FileExistsError(f"refusing to overwrite existing output: {output_root}; use --resume")
@@ -233,6 +261,13 @@ def main() -> None:
             limit=expected_items,
             families=families,
         )
+        split_counts = config.get("split_counts_per_family")
+        if split_counts:
+            selection = assign_family_stratified_splits(
+                selection,
+                split_counts_per_family=split_counts,
+                seed=int(config.get("split_seed", seed)),
+            )
         _write_jsonl(selection_path, selection)
     if len(selection) != expected_items:
         raise ValueError(f"frozen selection has {len(selection)} rows, expected {expected_items}")
@@ -242,7 +277,19 @@ def main() -> None:
         value = json.loads(record_path.read_text(encoding="utf-8"))
         completed[str(value["item_id"])] = value
     pending = [row for row in selection if row["item_id"] not in completed]
-    planner = build_model_adapter(config["planner_model"]) if pending else None
+    planner_config = config.get("planner_model")
+    planner = None
+    if pending and planner_config:
+        # Keep deterministic fallback-only dataset builds independent of the
+        # heavyweight inference stack (torch/transformers).
+        from cta.model import build_model_adapter
+
+        planner = build_model_adapter(planner_config)
+    semantic_signatures: set[str] = {
+        str(value.get("semantic_signature"))
+        for value in completed.values()
+        if value.get("semantic_signature")
+    }
 
     for sample in tqdm(pending, desc="SCEI image dataset"):
         item_id = str(sample["item_id"])
@@ -254,26 +301,56 @@ def main() -> None:
         label = re.sub(r"\s+", " ", str(sample["target_label"]).strip().lower())
         family = str(sample["family"])
         visible_labels = [str(value) for value in sample.get("visible_labels", [label])]
-        counterfactual = compile_counterfactual(label, family)
+        variant_key = item_id
+        if record_generator == "diverse_v2":
+            for collision_index in range(100):
+                candidate_key = item_id if collision_index == 0 else f"{item_id}:collision-{collision_index}"
+                candidate = compile_counterfactual(
+                    label,
+                    family,
+                    variant_key=candidate_key,
+                    seed=record_seed,
+                )
+                candidate_signature = hashlib.sha256(
+                    f"{family}\n{candidate.false_measurement}\n{candidate.true_measurement}".encode("utf-8")
+                ).hexdigest()
+                if candidate_signature not in semantic_signatures:
+                    counterfactual = candidate
+                    variant_key = candidate_key
+                    semantic_signature = candidate_signature
+                    semantic_signatures.add(candidate_signature)
+                    break
+            else:
+                raise RuntimeError(f"{item_id}: unable to produce a unique semantic record")
+        elif record_generator == "canonical_v1":
+            counterfactual = compile_counterfactual(label, family)
+            semantic_signature = hashlib.sha256(
+                f"{family}\n{counterfactual.false_measurement}\n{counterfactual.true_measurement}".encode("utf-8")
+            ).hexdigest()
+        else:
+            raise ValueError(f"unsupported record_generator: {record_generator!r}")
         validate_record(counterfactual)
         prompt = planner_prompt(label, visible_labels, counterfactual)
         raw_outputs: list[str] = []
         validation_errors: list[str] = []
         plan = None
-        for attempt in range(1, attempts_allowed + 1):
-            retry_prompt = prompt
-            if validation_errors:
-                retry_prompt += (
-                    "\nThe previous response failed validation. Return a shorter JSON object that obeys every "
-                    f"constraint. Validation issue: {validation_errors[-1]}"
-                )
-            raw = str(planner.infer(str(source), retry_prompt))
-            raw_outputs.append(raw)
-            try:
-                plan = parse_scene_plan(raw, label)
-                break
-            except ValueError as exc:
-                validation_errors.append(str(exc))
+        if planner is not None:
+            for attempt in range(1, attempts_allowed + 1):
+                retry_prompt = prompt
+                if validation_errors:
+                    retry_prompt += (
+                        "\nThe previous response failed validation. Return a shorter JSON object that obeys every "
+                        f"constraint. Validation issue: {validation_errors[-1]}"
+                    )
+                raw = str(planner.infer(str(source), retry_prompt))
+                raw_outputs.append(raw)
+                try:
+                    plan = parse_scene_plan(raw, label)
+                    break
+                except ValueError as exc:
+                    validation_errors.append(str(exc))
+        else:
+            validation_errors.append("planner disabled by configuration; deterministic fallback used")
         planner_valid = plan is not None
         if plan is None:
             plan = fallback_scene_plan(label, family, item_id)
@@ -309,9 +386,10 @@ def main() -> None:
             raise RuntimeError(f"{item_id}: false/true carrier masks differ")
 
         common = {
-            "schema_version": SCHEMA,
+            "schema_version": schema,
             "item_id": item_id,
             "selection_index": int(sample["selection_index"]),
+            "split": str(sample.get("split", "unspecified")),
             "dataset": str(config.get("dataset", "COCO")),
             "source_path": str(source),
             "source_sha256": source_hash,
@@ -321,6 +399,8 @@ def main() -> None:
             "family": family,
             "compatibility_score": int(sample.get("compatibility_score", 0)),
             "scenario_id": counterfactual.scenario_id,
+            "record_variant_key": variant_key,
+            "semantic_signature": semantic_signature,
             "plan": plan.to_dict(),
             "planner_valid": planner_valid,
             "planner_attempts": len(raw_outputs),
@@ -373,18 +453,28 @@ def main() -> None:
     _write_jsonl(manifest_path, manifest_rows)
     preview_path = _preview(ordered_records, output_root)
     family_counts = dict(sorted(Counter(row["family"] for row in ordered_records).items()))
+    split_counts = dict(sorted(Counter(str(row.get("split", "unspecified")) for row in ordered_records).items()))
+    difficulty_counts = dict(sorted(Counter(str(row["record"].get("difficulty", "canonical")) for row in ordered_records).items()))
+    scenario_counts = dict(sorted(Counter(str(row["scenario_id"]) for row in ordered_records).items()))
     provenance = {
-        "schema_version": SCHEMA,
+        "schema_version": schema,
         "status": "complete",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "git_head": _git_head(),
         "hostname": platform.node(),
         "dataset": str(config.get("dataset", "COCO")),
+        "dataset_name": dataset_name,
         "items": len(ordered_records),
         "variants": list(VARIANTS),
         "image_files": len(manifest_rows),
         "mask_files": 2 * len(ordered_records),
         "family_counts": family_counts,
+        "split_item_counts": split_counts,
+        "difficulty_counts": difficulty_counts,
+        "scenario_counts": scenario_counts,
+        "unique_semantic_signatures": len({row["semantic_signature"] for row in ordered_records}),
+        "record_generator": record_generator,
+        "record_seed": record_seed,
         "planner_valid_plans": sum(bool(row["planner_valid"]) for row in ordered_records),
         "planner_fallback_plans": sum(not bool(row["planner_valid"]) for row in ordered_records),
         "selection_seed": seed,
@@ -400,7 +490,7 @@ def main() -> None:
         "manifest_sha256": file_sha256(manifest_path),
         "preview": str(preview_path),
         "preview_sha256": file_sha256(preview_path),
-        "planner": planner.provenance() if planner is not None else config["planner_model"],
+        "planner": planner.provenance() if planner is not None else planner_config,
         "planner_boundary": (
             "the planner sees the clean image, registered anchor label, visible labels, and invariant family; "
             "it never sees victim outputs and does not choose numeric truth values"

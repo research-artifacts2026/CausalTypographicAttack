@@ -13,6 +13,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cta.question_bench import file_sha256
+from cta.scei_attack import CounterfactualRecord, REQUESTED_COUNTERFACTUAL_FAMILIES, validate_record
 
 
 def _rows(path: Path) -> list[dict[str, Any]]:
@@ -66,6 +67,9 @@ def main() -> None:
     mask_matched = 0
     clean_source_matched = 0
     distinct_false_true = 0
+    validated_symbolic_records = 0
+    semantic_signatures: set[str] = set()
+    duplicate_semantic_signatures: list[str] = []
     for item_id, rows in by_item.items():
         variants = {str(row["variant"]): row for row in rows}
         if set(variants) != variants_expected or len(rows) != 3:
@@ -94,6 +98,35 @@ def main() -> None:
             distinct_false_true += 1
         else:
             errors.append(f"{item_id}: false/true image hashes are identical")
+        try:
+            symbolic_record = CounterfactualRecord(**false["record"])
+            validate_record(symbolic_record)
+            validated_symbolic_records += 1
+        except Exception as exc:
+            errors.append(f"{item_id}: symbolic validation failed: {exc}")
+        if false.get("split") != true.get("split") or false.get("split") != clean.get("split"):
+            errors.append(f"{item_id}: variants cross dataset splits")
+        signature = str(false.get("semantic_signature", "")).strip()
+        if signature:
+            if signature in semantic_signatures:
+                duplicate_semantic_signatures.append(signature)
+                errors.append(f"{item_id}: duplicate semantic signature")
+            semantic_signatures.add(signature)
+
+    family_counts = dict(sorted(Counter(rows[0]["family"] for rows in by_item.values()).items()))
+    split_counts = dict(sorted(Counter(str(rows[0].get("split", "unspecified")) for rows in by_item.values()).items()))
+    if provenance.get("record_generator") == "diverse_v2":
+        missing_families = set(REQUESTED_COUNTERFACTUAL_FAMILIES) - set(family_counts)
+        if missing_families:
+            errors.append(f"missing registered families: {sorted(missing_families)}")
+        if len(set(family_counts.values())) != 1:
+            errors.append(f"v2 family counts are not balanced: {family_counts}")
+        if len(semantic_signatures) != len(by_item):
+            errors.append("v2 semantic signatures are not unique per item")
+        if family_counts != provenance.get("family_counts"):
+            errors.append("family counts disagree with provenance")
+        if split_counts != provenance.get("split_item_counts"):
+            errors.append("split counts disagree with provenance")
 
     report = {
         "schema_version": "cta/scei-image-audit-v1",
@@ -105,7 +138,15 @@ def main() -> None:
         "unique_image_files": len(image_hash_cache),
         "unique_mask_files": len(mask_hash_cache),
         "variant_counts": dict(sorted(Counter(str(row["variant"]) for row in manifest).items())),
-        "family_item_counts": dict(sorted(Counter(rows[0]["family"] for rows in by_item.values()).items())),
+        "family_item_counts": family_counts,
+        "split_item_counts": split_counts,
+        "difficulty_item_counts": dict(sorted(Counter(
+            str(rows[0]["record"].get("difficulty", "canonical")) for rows in by_item.values()
+        ).items())),
+        "scenario_item_counts": dict(sorted(Counter(str(rows[0]["scenario_id"]) for rows in by_item.values()).items())),
+        "unique_semantic_signatures": len(semantic_signatures),
+        "duplicate_semantic_signatures": len(duplicate_semantic_signatures),
+        "validated_symbolic_records": validated_symbolic_records,
         "planner_valid_items": sum(bool(rows[0]["planner_valid"]) for rows in by_item.values()),
         "clean_source_hash_matches": clean_source_matched,
         "one_field_counterfactual_pairs": one_field_pairs,

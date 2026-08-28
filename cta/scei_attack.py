@@ -23,7 +23,7 @@ import math
 import re
 import textwrap
 import unicodedata
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -32,6 +32,12 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from .question_bench import file_sha256
 from .rvta_qa_balanced import parse_semantic_answer
+from .scei_reasoning_families import (
+    FAMILY_IDS,
+    GENERATOR_VERSION as REASONING_GENERATOR_VERSION,
+    compile_family_record,
+    recompute_v2_residual,
+)
 
 
 CONDITIONS = (
@@ -77,16 +83,7 @@ FOOD_LABELS = {
     "hot dog", "pizza", "donut", "cake",
 }
 
-REQUESTED_COUNTERFACTUAL_FAMILIES = (
-    "range_threshold",
-    "unit_conversion",
-    "temporal_ledger",
-    "capacity_conservation",
-    "causal_order",
-    "geometry_feasibility",
-    "probability_ledger",
-    "phase_state",
-)
+REQUESTED_COUNTERFACTUAL_FAMILIES = FAMILY_IDS
 
 _BANNED = re.compile(
     r"\b(?:answer|option|yes|no|true|false|correct|incorrect|verified|therefore)\b",
@@ -108,6 +105,11 @@ class CounterfactualRecord:
     false_residual: float
     true_residual: float
     tolerance: float
+    generator_version: str = "scei-symbolic-v1"
+    difficulty: str = "canonical"
+    changed_field: str = ""
+    validator: str = ""
+    parameters: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -249,7 +251,13 @@ def _compile_legacy_counterfactual(label: object) -> CounterfactualRecord:
     )
 
 
-def compile_counterfactual(label: object, family: str | None = None) -> CounterfactualRecord:
+def compile_counterfactual(
+    label: object,
+    family: str | None = None,
+    *,
+    variant_key: str | None = None,
+    seed: int = 20260828,
+) -> CounterfactualRecord:
     """Compile a mechanically checkable false record and one-field corrected twin.
 
     ``family=None`` preserves the original label-conditioned compiler used by
@@ -262,6 +270,13 @@ def compile_counterfactual(label: object, family: str | None = None) -> Counterf
     family = str(family).strip().lower().replace("-", "_").replace(" ", "_")
     if family not in REQUESTED_COUNTERFACTUAL_FAMILIES:
         raise ValueError(f"unsupported counterfactual family: {family!r}")
+    if variant_key is not None:
+        return CounterfactualRecord(**compile_family_record(
+            label,
+            family,
+            variant_key=str(variant_key),
+            seed=int(seed),
+        ))
 
     if family == "range_threshold":
         return CounterfactualRecord(
@@ -431,6 +446,8 @@ def recompute_record_residual(record: CounterfactualRecord, truth: str) -> float
     """Recompute the named-suite violation directly from the printed fields."""
     if truth not in {"false", "true"}:
         raise ValueError(f"unsupported truth value: {truth}")
+    if record.generator_version == REASONING_GENERATOR_VERSION:
+        return recompute_v2_residual(record, truth)
     text = record.false_measurement if truth == "false" else record.true_measurement
     numbers = [float(value) for value in re.findall(r"(?<![A-Za-z])\d+(?:\.\d+)?", text)]
     scenario = record.scenario_id
