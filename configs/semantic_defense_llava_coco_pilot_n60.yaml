@@ -1,0 +1,13 @@
+source_manifest: runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl
+base_predictions: runs/rvtaqa_balanced_coco_llava_n300/predictions.jsonl
+output_root: runs/semantic_defense_llava_coco_pilot_n60
+limit: 60
+selection_seed: 20260828
+seed: 20260828
+model:
+  adapter: llava_onevision_1_5
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--lmms-lab--LLaVA-OneVision-1.5-8B-Instruct/snapshots/e137910552d616eb0f7305147ca054311a90c542
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  do_sample: false

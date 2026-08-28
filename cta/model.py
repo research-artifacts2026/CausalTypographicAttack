@@ -74,6 +74,76 @@ class Qwen25VLAdapter:
         }
 
 
+class Qwen3VLAdapter:
+    """Adapter for the official Qwen3-VL Hugging Face implementation."""
+
+    def __init__(self, cfg: dict):
+        from transformers import Qwen3VLForConditionalGeneration
+
+        self.cfg = cfg
+        self.device = cfg.get("device", "cuda:0")
+        self.max_new_tokens = int(cfg.get("max_new_tokens", 96))
+        self.do_sample = bool(cfg.get("do_sample", False))
+        self.temperature = float(cfg.get("temperature", 0.001))
+        processor_kwargs = {}
+        if cfg.get("min_pixels") is not None:
+            processor_kwargs["min_pixels"] = int(cfg["min_pixels"])
+        if cfg.get("max_pixels") is not None:
+            processor_kwargs["max_pixels"] = int(cfg["max_pixels"])
+        self.processor = AutoProcessor.from_pretrained(
+            cfg["name_or_path"], local_files_only=True, **processor_kwargs,
+        )
+        self.model = Qwen3VLForConditionalGeneration.from_pretrained(
+            cfg["name_or_path"],
+            torch_dtype=_dtype(cfg),
+            local_files_only=True,
+            low_cpu_mem_usage=True,
+        ).to(self.device).eval()
+
+    @torch.inference_mode()
+    def infer(self, image_path: str, prompt: str, max_new_tokens: int | None = None) -> str:
+        image = Image.open(image_path).convert("RGB")
+        messages = [{"role": "user", "content": [
+            {"type": "image", "image": image},
+            {"type": "text", "text": prompt},
+        ]}]
+        inputs = self.processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_dict=True,
+            return_tensors="pt",
+        )
+        inputs = inputs.to(self.device)
+        generation = {
+            "max_new_tokens": max_new_tokens or self.max_new_tokens,
+            "do_sample": self.do_sample,
+        }
+        if self.do_sample:
+            generation["temperature"] = self.temperature
+        generated = self.model.generate(**inputs, **generation)
+        trimmed = [output[len(source):] for source, output in zip(inputs.input_ids, generated)]
+        return self.processor.batch_decode(
+            trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False,
+        )[0].strip()
+
+    def provenance(self) -> dict:
+        return {
+            "adapter": "Qwen3VLAdapter",
+            "model_path": self.cfg["name_or_path"],
+            "model_config_exists": (Path(self.cfg["name_or_path"]) / "config.json").exists(),
+            "torch_version": torch.__version__,
+            "cuda_version": torch.version.cuda,
+            "transformers_version": transformers.__version__,
+            "device": self.device,
+            "generation": {
+                "do_sample": self.do_sample,
+                "temperature": self.temperature if self.do_sample else None,
+                "max_new_tokens": self.max_new_tokens,
+            },
+        }
+
+
 class LlavaOneVision15Adapter:
     """Adapter for the official LLaVA-OneVision-1.5 Hugging Face checkpoint."""
 
@@ -244,6 +314,15 @@ class InternVL2Adapter:
         }
 
 
+class InternVL3Adapter(InternVL2Adapter):
+    """InternVL3 keeps the public ``model.chat`` dynamic-tiling interface."""
+
+    def provenance(self) -> dict:
+        values = super().provenance()
+        values["adapter"] = "InternVL3Adapter"
+        return values
+
+
 class OpenAIResponsesAdapter:
     """Vision adapter for an OpenAI Responses API model with a hard query cap.
 
@@ -373,10 +452,14 @@ def build_model_adapter(cfg: dict):
     adapter = str(cfg.get("adapter", "qwen25vl")).lower()
     if adapter in {"qwen25vl", "qwen2.5-vl", "qwen"}:
         return Qwen25VLAdapter(cfg)
+    if adapter in {"qwen3vl", "qwen3-vl"}:
+        return Qwen3VLAdapter(cfg)
     if adapter in {"llava_onevision_1_5", "llava-onevision-1.5", "llava"}:
         return LlavaOneVision15Adapter(cfg)
     if adapter in {"internvl2", "internvl"}:
         return InternVL2Adapter(cfg)
+    if adapter in {"internvl3"}:
+        return InternVL3Adapter(cfg)
     if adapter in {"openai_responses", "openai", "gpt-5.6-sol"}:
         return OpenAIResponsesAdapter(cfg)
     raise ValueError(f"Unsupported model adapter: {adapter}")
