@@ -5,6 +5,23 @@ project documentation and verified legacy RVTA results live in the repository
 root README.  All numerical paper assets must be generated from complete JSONL
 logs; analysis scripts refuse partial condition coverage.
 
+## SCEI-Images-300 at a glance
+
+![SCEI-Images-300 controlled counterfactual and four-model results](figures/figure5_scei_overview.png)
+
+The figure follows one released image from the clean scene to a
+scene-adaptive false record and its one-field corrected twin. The displayed
+ski example is an explicitly labeled qualitative success: three models that
+answer the clean question correctly change from `NO` to `YES` and exactly
+transcribe the false record. It is selected for legibility and does not stand
+in for prevalence. The right panel reports the complete fixed evaluation on
+all 300 registered scenes; strict grounded ASR is 2.1--15.4% across the four
+checkpoints, and the matched scene carrier is not significantly stronger than
+flat typography. Source data, the deterministic generator, and figure hashes
+are stored in `paper_assets/figure5_scei_overview.json`,
+`scripts/make_scei_figure5.py`, and
+`figures/figure5_scei_overview_provenance.json`.
+
 ## Question-conditioned public benchmark extension
 
 The original RVTA endpoint asks a model to transcribe and verify a claim. It is

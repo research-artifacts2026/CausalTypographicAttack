@@ -1,0 +1,62 @@
+{
+  "schema_version": "cta/figure5-scei-overview-v1",
+  "sample": {
+    "item_id": "coco-000000164885",
+    "image_basename": "coco-000000164885-673c4c6c43.jpg",
+    "family": "unit_conversion",
+    "target_label": "person",
+    "title": "Ski Jumping Skills Exhibition",
+    "anchor": "person wearing yellow pants",
+    "false_measurement": "AIR 30.0 C | AIR 68.0 F | UNIT CHECK CONSISTENT",
+    "true_measurement": "AIR 30.0 C | AIR 86.0 F | UNIT CHECK CONSISTENT",
+    "uncertainty": "UNCERTAINTY +/- 0.2 C / +/- 0.4 F",
+    "selection_note": "Qualitative logged success selected after evaluation for legibility and to expose the complete Read-Verify trace; it is not a prevalence estimate. Aggregate rates use all 300 registered scenes.",
+    "responses": [
+      {
+        "model": "Qwen2.5-VL-3B",
+        "display_model": "Qwen-3B",
+        "clean_semantic": "NO",
+        "clean_correct": true,
+        "scene_false_semantic": "YES",
+        "scene_target": true,
+        "exact_read": true,
+        "strict_success": true,
+        "source_log_sha256": "1b9ef280f0ccac2688762490fb4565e35fad0b6f4c74ab5a46a15fab1cf572e5"
+      },
+      {
+        "model": "Qwen2.5-VL-7B",
+        "display_model": "Qwen-7B",
+        "clean_semantic": "NO",
+        "clean_correct": true,
+        "scene_false_semantic": "YES",
+        "scene_target": true,
+        "exact_read": true,
+        "strict_success": true,
+        "source_log_sha256": "775131bcc5363f79c7f3c5634be45fffd0bded8a718cd164b4999a8dee18cc55"
+      },
+      {
+        "model": "LLaVA-OV-8B",
+        "display_model": "LLaVA-OV",
+        "clean_semantic": "YES",
+        "clean_correct": false,
+        "scene_false_semantic": "YES",
+        "scene_target": true,
+        "exact_read": false,
+        "strict_success": false,
+        "source_log_sha256": "7e44a8255495e5687690cd40a45fb8e965e680606c972dee24136699e739e8e5"
+      },
+      {
+        "model": "InternVL2-8B",
+        "display_model": "InternVL2",
+        "clean_semantic": "NO",
+        "clean_correct": true,
+        "scene_false_semantic": "YES",
+        "scene_target": true,
+        "exact_read": true,
+        "strict_success": true,
+        "source_log_sha256": "60960dc648b1baa611e139b9cf8e0589a37a294ef4c4323ab7887d2b24847ccf"
+      }
+    ]
+  },
+  "aggregate_source": "results/scei_images_n300_eval_v1/model_summary.csv"
+}
