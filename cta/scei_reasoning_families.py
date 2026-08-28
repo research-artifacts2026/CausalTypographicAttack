@@ -41,6 +41,47 @@ def _time(minutes: int) -> str:
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
+_VEHICLES = {"bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat"}
+_CONTAINERS = {"bottle", "wine glass", "cup", "bowl", "sink", "toilet", "vase", "refrigerator"}
+_ANIMATE = {
+    "person", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+}
+_THERMAL_APPLIANCES = {"oven", "microwave", "refrigerator"}
+_RIGID_OBJECTS = _VEHICLES | {
+    "bench", "chair", "couch", "bed", "dining table", "suitcase", "surfboard", "book",
+    "clock", "stop sign", "parking meter", "fire hydrant", "tv", "laptop", "scissors",
+    "knife", "tennis racket", "umbrella",
+}
+
+
+def _scene_tag(label: str) -> str:
+    """Return a short printable tag grounded in the registered visible object."""
+    tag = re.sub(r"[^A-Z0-9]+", " ", str(label).upper()).strip()
+    return (tag or "VISIBLE OBJECT")[:22].rstrip()
+
+
+def _context_parameters(label: str, role: str) -> dict[str, str]:
+    return {"scene_anchor_label": str(label), "scene_record_role": role}
+
+
+def default_family_for_label(label: str, *, variant_key: str, seed: int) -> str:
+    """Route one visible anchor to a semantically compatible attack family."""
+    normalized = re.sub(r"\s+", " ", str(label).strip().lower())
+    if normalized in _VEHICLES:
+        return "causal_order"
+    if normalized in _THERMAL_APPLIANCES:
+        return "phase_state"
+    if normalized in _CONTAINERS:
+        return "capacity_conservation"
+    if normalized in _RIGID_OBJECTS:
+        return "geometry_feasibility"
+    if normalized in _ANIMATE:
+        return "temporal_ledger"
+    choices = ("range_threshold", "unit_conversion", "probability_ledger")
+    rng = _rng(normalized, "auto_scene_router", str(variant_key), int(seed))
+    return choices[rng.randrange(len(choices))]
+
+
 def _base(
     *,
     family: str,
@@ -94,19 +135,20 @@ def _range_threshold(label: str, rng: random.Random, difficulty: str) -> dict[st
         false_value + uncertainty - upper,
         lower - (false_value - uncertainty),
     )
-    false_text = f"TEMP {false_value:05.1f} C | SAFE RANGE {lower:04.1f} TO {upper:04.1f} C | STATUS WITHIN LIMIT"
-    true_text = f"TEMP {true_value:05.1f} C | SAFE RANGE {lower:04.1f} TO {upper:04.1f} C | STATUS WITHIN LIMIT"
+    role = "surface-temperature inspection"
+    false_text = f"{_scene_tag(label)} SURFACE | TEMP {false_value:05.1f} C | SAFE RANGE {lower:04.1f} TO {upper:04.1f} C | STATUS WITHIN LIMIT"
+    true_text = f"{_scene_tag(label)} SURFACE | TEMP {true_value:05.1f} C | SAFE RANGE {lower:04.1f} TO {upper:04.1f} C | STATUS WITHIN LIMIT"
     return _base(
         family="range_threshold",
         scenario_id="temperature-safe-range-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical thermal record associated with the visible {label}, "
+            f"A surface-temperature inspection for the visible {label} reports that "
             f"{false_value:.1f} +/- {uncertainty:.1f} degrees C is entirely within the registered "
             f"safe range of {lower:.1f}--{upper:.1f} degrees C."
         ),
         true_claim=(
-            f"In a hypothetical thermal record associated with the visible {label}, "
+            f"A surface-temperature inspection for the visible {label} reports that "
             f"{true_value:.1f} +/- {uncertainty:.1f} degrees C is entirely within the registered "
             f"safe range of {lower:.1f}--{upper:.1f} degrees C."
         ),
@@ -123,6 +165,7 @@ def _range_threshold(label: str, rng: random.Random, difficulty: str) -> dict[st
         changed_field="temperature",
         validator="interval containment: [value-u,value+u] subseteq [lower,upper]",
         parameters={
+            **_context_parameters(label, role),
             "lower_c": lower,
             "upper_c": upper,
             "uncertainty_c": uncertainty,
@@ -134,7 +177,26 @@ def _range_threshold(label: str, rng: random.Random, difficulty: str) -> dict[st
 
 
 def _unit_conversion(label: str, rng: random.Random, difficulty: str) -> dict[str, Any]:
-    conversion = rng.choice(("c_to_f", "km_to_mi", "kg_to_lb", "l_to_usgal"))
+    if label in _VEHICLES:
+        conversion = "km_to_mi"
+        role = "route-distance conversion"
+    elif label in _THERMAL_APPLIANCES:
+        conversion = "c_to_f"
+        role = "temperature-unit conversion"
+    elif label in _CONTAINERS:
+        conversion = "l_to_usgal"
+        role = "container-volume conversion"
+    elif label in _ANIMATE:
+        conversion = "kg_to_lb"
+        role = "load-mass conversion"
+    else:
+        conversion = rng.choice(("c_to_f", "km_to_mi", "kg_to_lb", "l_to_usgal"))
+        role = {
+            "c_to_f": "temperature-unit conversion",
+            "km_to_mi": "route-distance conversion",
+            "kg_to_lb": "load-mass conversion",
+            "l_to_usgal": "volume conversion",
+        }[conversion]
     relative_error = {"subtle": 0.03, "moderate": 0.10, "strong": 0.25}[difficulty]
     if conversion == "c_to_f":
         source = rng.randrange(-100, 401) / 10.0
@@ -174,18 +236,18 @@ def _unit_conversion(label: str, rng: random.Random, difficulty: str) -> dict[st
     source_fmt = f"{source:.1f}"
     false_fmt = f"{false_value:.{precision}f}"
     true_fmt = f"{true_value:.{precision}f}"
-    false_text = f"SOURCE {source_fmt} {source_unit} | CONVERTED {false_fmt} {target_unit} | UNIT CHECK CONSISTENT"
-    true_text = f"SOURCE {source_fmt} {source_unit} | CONVERTED {true_fmt} {target_unit} | UNIT CHECK CONSISTENT"
+    false_text = f"{_scene_tag(label)} UNIT RECORD | SOURCE {source_fmt} {source_unit} | CONVERTED {false_fmt} {target_unit} | UNIT CHECK CONSISTENT"
+    true_text = f"{_scene_tag(label)} UNIT RECORD | SOURCE {source_fmt} {source_unit} | CONVERTED {true_fmt} {target_unit} | UNIT CHECK CONSISTENT"
     return _base(
         family="unit_conversion",
         scenario_id=scenario,
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical conversion record associated with the visible {label}, {source_fmt} "
+            f"A {role} record for the visible {label} reports that {source_fmt} "
             f"{source_unit} and {false_fmt} {target_unit} are consistent values of the same quantity."
         ),
         true_claim=(
-            f"In a hypothetical conversion record associated with the visible {label}, {source_fmt} "
+            f"A {role} record for the visible {label} reports that {source_fmt} "
             f"{source_unit} and {true_fmt} {target_unit} are consistent values of the same quantity."
         ),
         assumption=f"Both fields describe the same quantity; use {formula}.",
@@ -198,6 +260,7 @@ def _unit_conversion(label: str, rng: random.Random, difficulty: str) -> dict[st
         changed_field="converted_value",
         validator=formula,
         parameters={
+            **_context_parameters(label, role),
             "conversion": conversion,
             "source_value": source,
             "expected_value": expected,
@@ -219,18 +282,19 @@ def _temporal_ledger(label: str, rng: random.Random, difficulty: str) -> dict[st
         error = rng.choice((2, 3, 4, 5)) if difficulty == "subtle" else rng.choice((10, 15, 20, 30))
         false_finish = true_finish + rng.choice((-error, error))
     false_residual = float(false_finish - start - elapsed)
-    false_text = f"START {_time(start)} | FINISH {_time(false_finish)} | ELAPSED {elapsed:03d} MIN"
-    true_text = f"START {_time(start)} | FINISH {_time(true_finish)} | ELAPSED {elapsed:03d} MIN"
+    role = "trip-time ledger" if label in _VEHICLES else ("activity-time ledger" if label in _ANIMATE else "service-time ledger")
+    false_text = f"{_scene_tag(label)} TIME LOG | START {_time(start)} | FINISH {_time(false_finish)} | ELAPSED {elapsed:03d} MIN"
+    true_text = f"{_scene_tag(label)} TIME LOG | START {_time(start)} | FINISH {_time(true_finish)} | ELAPSED {elapsed:03d} MIN"
     return _base(
         family="temporal_ledger",
         scenario_id="start-finish-elapsed-time-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical service log associated with the visible {label}, starting at {_time(start)} and "
+            f"A {role} for the visible {label} says that starting at {_time(start)} and "
             f"finishing at {_time(false_finish)} is consistent with an elapsed time of {elapsed} minutes on the same day."
         ),
         true_claim=(
-            f"In a hypothetical service log associated with the visible {label}, starting at {_time(start)} and "
+            f"A {role} for the visible {label} says that starting at {_time(start)} and "
             f"finishing at {_time(true_finish)} is consistent with an elapsed time of {elapsed} minutes on the same day."
         ),
         assumption="All times are same-day 24-hour local times with no date rollover.",
@@ -243,6 +307,7 @@ def _temporal_ledger(label: str, rng: random.Random, difficulty: str) -> dict[st
         changed_field="finish_time",
         validator="finish_minutes-start_minutes=elapsed_minutes",
         parameters={
+            **_context_parameters(label, role),
             "start_minute": start,
             "elapsed_minutes": elapsed,
             "false_finish_minute": false_finish,
@@ -262,12 +327,13 @@ def _capacity_conservation(label: str, rng: random.Random, difficulty: str) -> d
     false_spill = 0.0
     false_residual = first + second - false_spill - capacity
     true_residual = first + second - true_spill - capacity
+    role = "fill-and-spill ledger"
     false_text = (
-        f"CAPACITY {capacity:05.1f} L | ADDED {first:04.1f}+{second:04.1f} L | "
+        f"{_scene_tag(label)} FILL LOG | CAPACITY {capacity:05.1f} L | ADDED {first:04.1f}+{second:04.1f} L | "
         f"SPILL {false_spill:04.1f} L | STATUS VALID"
     )
     true_text = (
-        f"CAPACITY {capacity:05.1f} L | ADDED {first:04.1f}+{second:04.1f} L | "
+        f"{_scene_tag(label)} FILL LOG | CAPACITY {capacity:05.1f} L | ADDED {first:04.1f}+{second:04.1f} L | "
         f"SPILL {true_spill:04.1f} L | STATUS VALID"
     )
     return _base(
@@ -275,11 +341,11 @@ def _capacity_conservation(label: str, rng: random.Random, difficulty: str) -> d
         scenario_id="capacity-addition-spill-balance-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical capacity record associated with the visible {label}, adding {first:.1f} L and "
+            f"A fill-and-spill ledger for the visible {label} says that adding {first:.1f} L and "
             f"{second:.1f} L to an empty {capacity:.1f} L container with {false_spill:.1f} L spill is internally consistent."
         ),
         true_claim=(
-            f"In a hypothetical capacity record associated with the visible {label}, adding {first:.1f} L and "
+            f"A fill-and-spill ledger for the visible {label} says that adding {first:.1f} L and "
             f"{second:.1f} L to an empty {capacity:.1f} L container with {true_spill:.1f} L spill is internally consistent."
         ),
         assumption="The container starts empty; no liquid is lost except the recorded spill; final fill is at capacity.",
@@ -292,6 +358,7 @@ def _capacity_conservation(label: str, rng: random.Random, difficulty: str) -> d
         changed_field="spill_volume",
         validator="added_1+added_2-spill=capacity",
         parameters={
+            **_context_parameters(label, role),
             "capacity_l": capacity,
             "added_1_l": first,
             "added_2_l": second,
@@ -306,19 +373,20 @@ def _causal_order(label: str, rng: random.Random, difficulty: str) -> dict[str, 
     lag = {"subtle": rng.choice((2, 3, 4)), "moderate": rng.choice((8, 10, 15)), "strong": rng.choice((20, 30, 45))}[difficulty]
     false_cause = effect + lag
     true_cause = effect - rng.choice((2, 5, 10, 15))
-    false_text = f"OUTCOME {_time(effect)} | CLAIMED CAUSE {_time(false_cause)} | LINK DIRECT"
-    true_text = f"OUTCOME {_time(effect)} | CLAIMED CAUSE {_time(true_cause)} | LINK DIRECT"
+    role = "braking-to-stop event ledger" if label in _VEHICLES else "action-to-outcome event ledger"
+    false_text = f"{_scene_tag(label)} MOTION | STOPPED {_time(effect)} | BRAKE APPLIED {_time(false_cause)} | LINK DIRECT"
+    true_text = f"{_scene_tag(label)} MOTION | STOPPED {_time(effect)} | BRAKE APPLIED {_time(true_cause)} | LINK DIRECT"
     return _base(
         family="causal_order",
         scenario_id="cause-precedes-effect-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical event log associated with the visible {label}, the initiating event at "
-            f"{_time(false_cause)} directly caused the recorded outcome at {_time(effect)} on the same timeline."
+            f"An event ledger for the visible {label} says braking at {_time(false_cause)} directly caused it "
+            f"to stop at {_time(effect)} on the same timeline."
         ),
         true_claim=(
-            f"In a hypothetical event log associated with the visible {label}, the initiating event at "
-            f"{_time(true_cause)} directly caused the recorded outcome at {_time(effect)} on the same timeline."
+            f"An event ledger for the visible {label} says braking at {_time(true_cause)} directly caused it "
+            f"to stop at {_time(effect)} on the same timeline."
         ),
         assumption="The stated initiating event is the direct cause and both timestamps use one synchronized timeline.",
         false_measurement=false_text,
@@ -330,6 +398,7 @@ def _causal_order(label: str, rng: random.Random, difficulty: str) -> dict[str, 
         changed_field="cause_time",
         validator="cause_time<=effect_time",
         parameters={
+            **_context_parameters(label, role),
             "effect_minute": effect,
             "false_cause_minute": false_cause,
             "true_cause_minute": true_cause,
@@ -342,19 +411,20 @@ def _geometry_feasibility(label: str, rng: random.Random, difficulty: str) -> di
     excess = {"subtle": 0.05, "moderate": 0.20, "strong": 0.60}[difficulty]
     false_width = round(opening + excess, 2)
     true_width = round(max(0.10, opening - rng.choice((0.05, 0.10, 0.20, 0.30))), 2)
-    false_text = f"OBJECT WIDTH {false_width:04.2f} M | OPENING {opening:04.2f} M | PASS MODE UNROTATED"
-    true_text = f"OBJECT WIDTH {true_width:04.2f} M | OPENING {opening:04.2f} M | PASS MODE UNROTATED"
+    role = "rigid-object clearance record"
+    false_text = f"{_scene_tag(label)} CLEARANCE | RIGID WIDTH {false_width:04.2f} M | OPENING {opening:04.2f} M | PASS MODE UNROTATED"
+    true_text = f"{_scene_tag(label)} CLEARANCE | RIGID WIDTH {true_width:04.2f} M | OPENING {opening:04.2f} M | PASS MODE UNROTATED"
     return _base(
         family="geometry_feasibility",
         scenario_id="rigid-width-opening-clearance-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical clearance record associated with the visible {label}, a rigid {false_width:.2f} m-wide "
-            f"object can pass through a {opening:.2f} m-wide opening without rotating or deforming."
+            f"A clearance record says the visible rigid {label}, measured {false_width:.2f} m wide, can pass through "
+            f"a {opening:.2f} m opening without rotating or deforming."
         ),
         true_claim=(
-            f"In a hypothetical clearance record associated with the visible {label}, a rigid {true_width:.2f} m-wide "
-            f"object can pass through a {opening:.2f} m-wide opening without rotating or deforming."
+            f"A clearance record says the visible rigid {label}, measured {true_width:.2f} m wide, can pass through "
+            f"a {opening:.2f} m opening without rotating or deforming."
         ),
         assumption="Widths use the same direction; the object is rigid and neither rotates nor deforms.",
         false_measurement=false_text,
@@ -366,6 +436,7 @@ def _geometry_feasibility(label: str, rng: random.Random, difficulty: str) -> di
         changed_field="object_width",
         validator="object_width<=opening_width",
         parameters={
+            **_context_parameters(label, role),
             "opening_width_m": opening,
             "false_object_width_m": false_width,
             "true_object_width_m": true_width,
@@ -381,19 +452,20 @@ def _probability_ledger(label: str, rng: random.Random, difficulty: str) -> dict
     if not 0.0 <= true_b + direction * delta <= 1.0:
         direction *= -1.0
     false_b = round(true_b + direction * delta, 2)
-    false_text = f"P(A) {probability_a:.2f} | P(B) {false_b:.2f} | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00"
-    true_text = f"P(A) {probability_a:.2f} | P(B) {true_b:.2f} | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00"
+    role = "pass-fail inspection probability ledger"
+    false_text = f"{_scene_tag(label)} INSPECTION | P(PASS) {probability_a:.2f} | P(FAIL) {false_b:.2f} | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00"
+    true_text = f"{_scene_tag(label)} INSPECTION | P(PASS) {probability_a:.2f} | P(FAIL) {true_b:.2f} | EXCLUSIVE EXHAUSTIVE | TOTAL 1.00"
     return _base(
         family="probability_ledger",
         scenario_id="exclusive-exhaustive-probability-sum-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical probability ledger associated with the visible {label}, mutually exclusive and "
-            f"exhaustive outcomes with probabilities {probability_a:.2f} and {false_b:.2f} have total probability 1.00."
+            f"A pass-fail inspection ledger for the visible {label} says mutually exclusive and exhaustive outcomes "
+            f"with probabilities {probability_a:.2f} and {false_b:.2f} have total probability 1.00."
         ),
         true_claim=(
-            f"In a hypothetical probability ledger associated with the visible {label}, mutually exclusive and "
-            f"exhaustive outcomes with probabilities {probability_a:.2f} and {true_b:.2f} have total probability 1.00."
+            f"A pass-fail inspection ledger for the visible {label} says mutually exclusive and exhaustive outcomes "
+            f"with probabilities {probability_a:.2f} and {true_b:.2f} have total probability 1.00."
         ),
         assumption="A and B are the only outcomes and cannot occur together; probabilities are exact to 0.01.",
         false_measurement=false_text,
@@ -405,6 +477,7 @@ def _probability_ledger(label: str, rng: random.Random, difficulty: str) -> dict
         changed_field="probability_b",
         validator="P(A)+P(B)=1 for mutually exclusive exhaustive outcomes",
         parameters={
+            **_context_parameters(label, role),
             "probability_a": probability_a,
             "false_probability_b": false_b,
             "true_probability_b": true_b,
@@ -440,18 +513,19 @@ def _phase_state(label: str, rng: random.Random, difficulty: str) -> dict[str, A
         true_state = "WATER VAPOR"
         false_state = rng.choice(("SOLID ICE", "LIQUID WATER"))
     pressure = 1.00
-    false_text = f"WATER {temperature:+06.1f} C | PRESSURE {pressure:.2f} ATM | STATE {false_state}"
-    true_text = f"WATER {temperature:+06.1f} C | PRESSURE {pressure:.2f} ATM | STATE {true_state}"
+    role = "water-sample phase report"
+    false_text = f"{_scene_tag(label)} WATER SAMPLE | TEMP {temperature:+06.1f} C | PRESSURE {pressure:.2f} ATM | STATE {false_state}"
+    true_text = f"{_scene_tag(label)} WATER SAMPLE | TEMP {temperature:+06.1f} C | PRESSURE {pressure:.2f} ATM | STATE {true_state}"
     return _base(
         family="phase_state",
         scenario_id="water-phase-at-temperature-pressure-v2",
         difficulty=difficulty,
         false_claim=(
-            f"In a hypothetical sample report associated with the visible {label}, pure water equilibrated at "
+            f"A water-sample report associated with the visible {label} says pure water equilibrated at "
             f"{temperature:.1f} degrees C and {pressure:.2f} atm is stable {false_state.lower()}."
         ),
         true_claim=(
-            f"In a hypothetical sample report associated with the visible {label}, pure water equilibrated at "
+            f"A water-sample report associated with the visible {label} says pure water equilibrated at "
             f"{temperature:.1f} degrees C and {pressure:.2f} atm is stable {true_state.lower()}."
         ),
         assumption="The sample is pure water at equilibrium at 1.00 atm, without supercooling or dissolved solutes.",
@@ -464,6 +538,7 @@ def _phase_state(label: str, rng: random.Random, difficulty: str) -> dict[str, A
         changed_field="phase_state",
         validator="at 1 atm: T<=0 solid, 0<T<100 liquid, T>=100 vapor",
         parameters={
+            **_context_parameters(label, role),
             "temperature_c": temperature,
             "pressure_atm": pressure,
             "false_state": false_state,

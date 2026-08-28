@@ -408,6 +408,10 @@ separate grounding gate.
 
 #### SCEI-Reason-800 dataset build
 
+The formal scene-router, constraint-compiler, scene-integrator, and bounded
+Read--Verify search are specified in
+[`docs/scei_algorithm_v2.md`](docs/scei_algorithm_v2.md).
+
 The publication-scale v2 dataset assigns 100 independent COCO scenes to each
 of the eight families.  Every item produces an exact clean copy, one false
 counterfactual carrier, and a one-field corrected twin: 800 source items and
@@ -416,6 +420,14 @@ stored solver recomputes the false and corrected residuals from the printed
 fields.  Family-stratified splits contain 70/15/15 items per family, yielding
 560 train, 120 validation, and 120 test source items.  The old SCEI-Images-300
 artifact remains frozen and is never overwritten.
+
+Attack content is image-conditioned rather than randomly assigned.  Vehicles
+receive trip/braking records, containers receive fill or water-sample records,
+and rigid objects receive clearance records; the remaining families are
+instantiated as object-specific inspection or conversion logs.  The clean-image
+planner adds a visible scene detail and chooses a plausible carrier and edge
+placement, while the deterministic solver alone controls the contradictory
+numbers and the corrected twin.
 
 ```bash
 cd /disk2/fangxinyue/causal_typographic_attack
@@ -439,6 +451,18 @@ The build is resumable at item granularity.  Do not treat dataset construction
 as an attack result; model evaluation must use the frozen test split and must
 report clean eligibility, target judgment, exact reading, and their strict
 conjunction separately.
+
+The content-conditioned adaptive algorithm is a separate, explicitly
+black-box protocol.  Its new output directory and `scei-search-v2` protocol id
+prevent it from being mixed with the earlier frozen v1 pilot:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/run_scei_search_batch.py \
+  --config configs/scei_search_v2_qwen7_coco_n50_k2.yaml
+
+/disk2/fangxinyue/.venv/bin/python scripts/launch_scei_gradio.py \
+  --config configs/scei_gradio_local_v1.yaml --server-name 0.0.0.0 --server-port 7860
+```
 
 The observable state is a two-bit feedback code `(target flip, exact read)`:
 

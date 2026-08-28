@@ -92,6 +92,7 @@ def main() -> None:
     output_root = Path(config["output_root"]).resolve()
     expected_items = int(config["expected_items"])
     seed = int(config.get("seed", 20260827))
+    record_seed = int(config.get("record_seed", seed))
     offset = int(config.get("offset", 48))
     max_rounds = int(config.get("max_rounds", 2))
     renderer = str(config.get("renderer", "scene"))
@@ -139,6 +140,7 @@ def main() -> None:
                 "scene-label compatibility and deterministic SHA-256 order; no victim filtering"
             ),
             "selection_seed": seed,
+            "record_seed": record_seed,
             "selection_offset": offset,
             "expected_items": expected_items,
             "maximum_rounds": max_rounds,
@@ -159,6 +161,7 @@ def main() -> None:
             "source_manifest_sha256": source_hash,
             "selection_manifest_sha256": file_sha256(selection_path),
             "selection_seed": seed,
+            "record_seed": record_seed,
             "selection_offset": offset,
             "expected_items": expected_items,
             "maximum_rounds": max_rounds,
@@ -249,6 +252,7 @@ def main() -> None:
                 renderer_mode=renderer,
                 strict_read_gate=strict_read_gate,
                 max_planner_attempts=planner_attempts,
+                record_seed=record_seed,
             ):
                 print(json.dumps({
                     "item": f"{index}/{expected_items}",

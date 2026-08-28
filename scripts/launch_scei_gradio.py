@@ -27,7 +27,8 @@ from cta.scei_attack import REQUESTED_COUNTERFACTUAL_FAMILIES, read_prompt
 _MODEL_CACHE: dict[str, tuple[object, object]] = {}
 
 FAMILY_LABELS = {
-    "legacy": "Auto / legacy label-conditioned ledger",
+    "auto_scene": "Auto / scene-routed family",
+    "legacy": "Legacy label-conditioned ledger",
     "range_threshold": "Range / threshold conflict",
     "unit_conversion": "Unit-conversion conflict",
     "temporal_ledger": "Temporal ledger conflict",
@@ -148,7 +149,7 @@ def build_demo(config_path: Path, output_base: Path):
                 victim,
                 run_root,
                 counterfactual_family=(
-                    None if str(counterfactual_family) == "legacy" else str(counterfactual_family)
+                    str(counterfactual_family)
                 ),
                 max_rounds=int(max_rounds),
                 renderer_mode=str(renderer_mode),
@@ -291,8 +292,8 @@ def build_demo(config_path: Path, output_base: Path):
                     max_lines=1,
                 )
                 family = gr.Dropdown(
-                    choices=[(FAMILY_LABELS[key], key) for key in ("legacy", *REQUESTED_COUNTERFACTUAL_FAMILIES)],
-                    value=str(config.get("default_counterfactual_family", "range_threshold")),
+                    choices=[(FAMILY_LABELS[key], key) for key in ("auto_scene", "legacy", *REQUESTED_COUNTERFACTUAL_FAMILIES)],
+                    value=str(config.get("default_counterfactual_family", "auto_scene")),
                     label="Counterfactual family",
                     info="The false/correct record pair is compiled mechanically before victim inference.",
                 )

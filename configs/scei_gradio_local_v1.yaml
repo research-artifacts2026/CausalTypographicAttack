@@ -1,6 +1,6 @@
 default_max_rounds: 2
 default_renderer: scene
-default_counterfactual_family: range_threshold
+default_counterfactual_family: auto_scene
 max_planner_attempts: 3
 
 planner_model:

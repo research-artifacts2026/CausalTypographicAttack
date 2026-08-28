@@ -172,13 +172,27 @@ def select_requested_families(
     for family in restrictive_order:
         if family not in quotas:
             continue
+        # The four physically grounded families are only allocated to scenes
+        # containing a compatible visible anchor (vehicle, container/thermal
+        # appliance, or rigid object).  Never fill their quota with an
+        # unrelated image merely to preserve balance.
+        require_compatible_anchor = family in {
+            "causal_order", "capacity_conservation", "phase_state", "geometry_feasibility",
+        }
         pool = sorted(
-            unused.values(),
+            (
+                row for row in unused.values()
+                if not require_compatible_anchor or _compatibility_score(family, row) > 0
+            ),
             key=lambda row: (
                 -_compatibility_score(family, row),
                 rank[str(row.get("sample_id", row.get("item_id")))],
             ),
         )
+        if len(pool) < quotas[family]:
+            raise ValueError(
+                f"family {family!r} requires {quotas[family]} scene-compatible sources but found {len(pool)}"
+            )
         for row in pool[:quotas[family]]:
             item_id = str(row.get("sample_id", row.get("item_id")))
             assigned = dict(row)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from cta.scei_batch import (
     assign_family_stratified_splits,
     safe_item_slug,
@@ -14,6 +16,7 @@ from cta.scei_attack import (
     recompute_record_residual,
     validate_record,
 )
+from cta.scei_reasoning_families import default_family_for_label
 
 
 def _row(item: int, *, clean: bool, s1: int, s2: int, outcome: str, feedback: list[str]) -> dict:
@@ -151,6 +154,57 @@ def test_v2_compiler_can_allocate_one_hundred_unique_records_per_family() -> Non
             else:
                 raise AssertionError(f"{family}: exhausted collision budget at item {index}")
         assert len(signatures) == 100
+
+
+def test_v2_records_are_conditioned_on_the_visible_object_role() -> None:
+    unit = compile_counterfactual("car", "unit_conversion", variant_key="car-unit", seed=20260828)
+    capacity = compile_counterfactual("bottle", "capacity_conservation", variant_key="bottle-fill", seed=20260828)
+    causal = compile_counterfactual("bus", "causal_order", variant_key="bus-brake", seed=20260828)
+    phase = compile_counterfactual("bowl", "phase_state", variant_key="bowl-phase", seed=20260828)
+    assert unit.false_measurement.startswith("CAR UNIT RECORD")
+    assert " KM " in unit.false_measurement and " MI " in unit.false_measurement
+    assert capacity.false_measurement.startswith("BOTTLE FILL LOG")
+    assert causal.false_measurement.startswith("BUS MOTION")
+    assert "STOPPED" in causal.false_measurement and "BRAKE APPLIED" in causal.false_measurement
+    assert phase.false_measurement.startswith("BOWL WATER SAMPLE")
+    for record in (unit, capacity, causal, phase):
+        assert record.parameters["scene_anchor_label"]
+        assert record.parameters["scene_record_role"]
+        validate_record(record)
+
+
+def test_auto_scene_router_uses_visible_object_semantics() -> None:
+    routed = {
+        label: default_family_for_label(label, variant_key="scene-1", seed=20260828)
+        for label in ("car", "bottle", "oven", "suitcase", "person")
+    }
+    assert routed == {
+        "car": "causal_order",
+        "bottle": "capacity_conservation",
+        "oven": "phase_state",
+        "suitcase": "geometry_feasibility",
+        "person": "temporal_ledger",
+    }
+
+
+def test_restrictive_family_selection_refuses_unrelated_scenes() -> None:
+    rows = [
+        {
+            "sample_id": f"food-{index:03d}",
+            "target_label": "pizza",
+            "labels": ["pizza"],
+            "image_path": "unused",
+        }
+        for index in range(80)
+    ]
+    with pytest.raises(ValueError, match="scene-compatible sources"):
+        select_requested_families(
+            rows,
+            seed=20260828,
+            development_offset=0,
+            limit=8,
+            families=REQUESTED_COUNTERFACTUAL_FAMILIES,
+        )
 
 
 def test_family_stratified_splits_are_exact_and_deterministic() -> None:

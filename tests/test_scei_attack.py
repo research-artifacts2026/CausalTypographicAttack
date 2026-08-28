@@ -240,3 +240,41 @@ def test_adaptive_loop_retries_when_only_visual_design_changes(tmp_path: Path) -
     assert visible_text_key(parse_adaptive_scene_design(events[-1]["planner_raw_outputs"][-1], "airplane")) != (
         "ground service log", "airplane service record", "status: nominal"
     )
+
+
+def test_named_family_adaptive_protocol_uses_scene_conditioned_v2_record(tmp_path: Path) -> None:
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (960, 640), (120, 145, 170)).save(source)
+    events = list(adaptive_scei_events(
+        source,
+        "airplane",
+        _Planner(),
+        _Victim(),
+        tmp_path / "run_v2",
+        counterfactual_family="causal_order",
+        max_rounds=1,
+        record_seed=20260828,
+    ))
+    protocol = json.loads((tmp_path / "run_v2" / "protocol.json").read_text())
+    assert protocol["record_generator"] == "scei-symbolic-v2"
+    assert protocol["scene_record_role"] == "braking-to-stop event ledger"
+    assert protocol["registered_false_record"]["false_measurement"].startswith("AIRPLANE MOTION")
+    assert events[-1]["record"]["parameters"]["scene_anchor_label"] == "airplane"
+
+
+def test_auto_scene_protocol_routes_airplane_to_causal_order(tmp_path: Path) -> None:
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (960, 640), (120, 145, 170)).save(source)
+    list(adaptive_scei_events(
+        source,
+        "airplane",
+        _Planner(),
+        _Victim(),
+        tmp_path / "run_auto",
+        counterfactual_family="auto_scene",
+        max_rounds=1,
+    ))
+    protocol = json.loads((tmp_path / "run_auto" / "protocol.json").read_text())
+    assert protocol["requested_counterfactual_family"] == "auto_scene"
+    assert protocol["counterfactual_family"] == "causal_order"
+    assert protocol["registered_false_record"]["false_measurement"].startswith("AIRPLANE MOTION")

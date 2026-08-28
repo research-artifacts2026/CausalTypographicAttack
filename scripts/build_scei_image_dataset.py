@@ -407,6 +407,15 @@ def main() -> None:
             "planner_raw_outputs": raw_outputs,
             "planner_validation_errors": validation_errors,
             "record": counterfactual.to_dict(),
+            "content_conditioning": {
+                "family_assignment": "registered source-image object annotations and compatibility rules",
+                "scene_language": "clean-image LVLM plan" if planner_valid else "deterministic label-grounded fallback",
+                "scene_description": plan.scene_description,
+                "anchor_phrase": plan.anchor_phrase,
+                "scene_record_role": counterfactual.parameters.get("scene_record_role"),
+                "numeric_truth": counterfactual.generator_version,
+                "victim_outputs_used": False,
+            },
         }
         variants = [
             {
@@ -492,8 +501,9 @@ def main() -> None:
         "preview_sha256": file_sha256(preview_path),
         "planner": planner.provenance() if planner is not None else planner_config,
         "planner_boundary": (
-            "the planner sees the clean image, registered anchor label, visible labels, and invariant family; "
-            "it never sees victim outputs and does not choose numeric truth values"
+            "the planner sees the clean image, registered anchor label, visible labels, family, and registered "
+            "scene-record role; it supplies scene description, anchor wording, carrier, and placement, but never "
+            "sees victim outputs or chooses numeric truth values"
         ),
         "renderer_boundary": (
             "deterministic scene-adaptive perspective, tone, texture, placement, and shadow compositing; "

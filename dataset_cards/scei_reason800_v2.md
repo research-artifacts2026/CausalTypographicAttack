@@ -43,6 +43,20 @@ the clean image, visible labels, and family name; it never receives victim
 outputs and never selects the numeric truth values.  Test items must not be
 used for prompt, rendering-policy, or attack-text selection.
 
+## Image-conditioned attack content
+
+The attack family is not attached to a random image. Family allocation uses
+registered visible objects and compatibility rules: causal-order records
+require a vehicle anchor; capacity records require a visible container;
+phase-state records require a container or thermal appliance; and clearance
+records require a visible rigid object. Other families use the visible anchor
+to instantiate a surface-temperature, route/load/volume conversion,
+trip/service-time, or pass-fail inspection record. The rendered measurement
+names that anchor (for example, `CAR MOTION`, `BOWL FILL LOG`, or
+`SUITCASE CLEARANCE`). A clean-image planner separately supplies a visible
+detail, scene description, carrier type, and placement. The planner cannot
+change the solver-generated numbers or see victim outputs.
+
 ## Rendering boundary
 
 Carriers use deterministic perspective, local tone, texture, placement, and

@@ -21,6 +21,12 @@ def main() -> None:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--image", type=Path, required=True)
     parser.add_argument("--target-label", default="")
+    parser.add_argument(
+        "--counterfactual-family",
+        default="auto_scene",
+        choices=("auto_scene", "legacy", "range_threshold", "unit_conversion", "temporal_ledger",
+                 "capacity_conservation", "causal_order", "geometry_feasibility", "probability_ledger", "phase_state"),
+    )
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--max-rounds", type=int, default=6)
     parser.add_argument("--renderer", choices=("scene", "flat"), default="scene")
@@ -37,6 +43,7 @@ def main() -> None:
         planner,
         victim,
         args.output_root.resolve(),
+        counterfactual_family=args.counterfactual_family,
         max_rounds=args.max_rounds,
         renderer_mode=args.renderer,
         strict_read_gate=not args.no_strict_read_gate,

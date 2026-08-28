@@ -39,6 +39,7 @@ from .scei_attack import (
     validate_record,
     verification_question,
 )
+from .scei_reasoning_families import default_family_for_label
 
 
 FRAMINGS = {
@@ -49,7 +50,7 @@ FRAMINGS = {
     "audit_trace": "AUDIT TRACE: WITHIN LIMITS",
 }
 
-PROTOCOL_ID = "scei-search-v1"
+PROTOCOL_ID = "scei-search-v2"
 
 
 @dataclass(frozen=True)
@@ -174,10 +175,10 @@ def adaptation_instruction(feedback_class: str) -> str:
 def adaptive_planner_prompt(
     label: str,
     visible_labels: Iterable[str],
+    record,
     round_index: int,
     history: list[dict[str, Any]],
 ) -> str:
-    record = compile_counterfactual(label)
     base = planner_prompt(label, visible_labels, record)
     compact_history = []
     for row in history[-6:]:
@@ -252,6 +253,7 @@ def adaptive_scei_events(
     *,
     visible_labels: Iterable[str] | None = None,
     counterfactual_family: str | None = None,
+    record_seed: int = 20260828,
     max_rounds: int = 6,
     renderer_mode: str = "scene",
     strict_read_gate: bool = True,
@@ -278,20 +280,40 @@ def adaptive_scei_events(
     labels = list(visible_labels or [target_label])
     if target_label not in [value.lower() for value in labels]:
         labels.append(target_label)
-    record = compile_counterfactual(target_label, counterfactual_family)
+    source_hash = file_sha256(source)
+    requested_family = counterfactual_family
+    if requested_family == "auto_scene":
+        requested_family = default_family_for_label(
+            target_label,
+            variant_key=source_hash,
+            seed=record_seed,
+        )
+    elif requested_family == "legacy":
+        requested_family = None
+    variant_key = f"{source_hash}:{requested_family or 'legacy-auto'}"
+    record = compile_counterfactual(
+        target_label,
+        requested_family,
+        variant_key=variant_key if requested_family else None,
+        seed=record_seed,
+    )
     validate_record(record)
     registered_read = registered_evidence_text(record, "false")
     question = verification_question(record, "false", "yesno", "semantic")
-    source_hash = file_sha256(source)
     started_at = datetime.now(timezone.utc).isoformat()
 
     protocol = {
-        "schema_version": "cta/scei-adaptive-protocol-v1",
+        "schema_version": "cta/scei-adaptive-protocol-v2",
         "protocol_id": PROTOCOL_ID,
         "source_path": str(source),
         "source_sha256": source_hash,
         "target_label": target_label,
         "counterfactual_family": record.family,
+        "requested_counterfactual_family": counterfactual_family,
+        "record_generator": record.generator_version,
+        "record_seed": record_seed,
+        "record_variant_key": variant_key,
+        "scene_record_role": record.parameters.get("scene_record_role"),
         "visible_labels": labels,
         "maximum_rounds": max_rounds,
         "renderer_mode": renderer_mode,
@@ -329,7 +351,7 @@ def adaptive_scei_events(
     clean_parsed = parse_semantic_answer(clean_raw, "yesno", "semantic")
     clean_correct = clean_parsed == "no"
     clean_event = {
-        "schema_version": "cta/scei-adaptive-event-v1",
+        "schema_version": "cta/scei-adaptive-event-v2",
         "protocol_id": PROTOCOL_ID,
         "stage": "clean",
         "round": 0,
@@ -353,7 +375,7 @@ def adaptive_scei_events(
     yield clean_event
     if not clean_correct:
         summary = {
-            "schema_version": "cta/scei-adaptive-summary-v1",
+            "schema_version": "cta/scei-adaptive-summary-v2",
             "protocol_id": PROTOCOL_ID,
             "status": "stopped_clean_error",
             "clean_correct": False,
@@ -376,7 +398,7 @@ def adaptive_scei_events(
     used = set()
     used_visible_text = set()
     for round_index in range(1, max_rounds + 1):
-        prompt = adaptive_planner_prompt(target_label, labels, round_index, history)
+        prompt = adaptive_planner_prompt(target_label, labels, record, round_index, history)
         raw_outputs = []
         errors = []
         design = None
@@ -431,7 +453,7 @@ def adaptive_scei_events(
         feedback_class = classify_feedback(target_match, exact_read)
         next_adaptation = adaptation_instruction(feedback_class)
         event = {
-            "schema_version": "cta/scei-adaptive-event-v1",
+            "schema_version": "cta/scei-adaptive-event-v2",
             "protocol_id": PROTOCOL_ID,
             "stage": "attack",
             "round": round_index,
@@ -481,7 +503,7 @@ def adaptive_scei_events(
 
     successful = next((row for row in history if row["success"]), None)
     summary = {
-        "schema_version": "cta/scei-adaptive-summary-v1",
+        "schema_version": "cta/scei-adaptive-summary-v2",
         "protocol_id": PROTOCOL_ID,
         "status": "success" if successful else "budget_exhausted",
         "clean_correct": True,

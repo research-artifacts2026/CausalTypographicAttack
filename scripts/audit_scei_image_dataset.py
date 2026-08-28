@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -70,6 +71,7 @@ def main() -> None:
     validated_symbolic_records = 0
     semantic_signatures: set[str] = set()
     duplicate_semantic_signatures: list[str] = []
+    scene_conditioned_records = 0
     for item_id, rows in by_item.items():
         variants = {str(row["variant"]): row for row in rows}
         if set(variants) != variants_expected or len(rows) != 3:
@@ -102,6 +104,18 @@ def main() -> None:
             symbolic_record = CounterfactualRecord(**false["record"])
             validate_record(symbolic_record)
             validated_symbolic_records += 1
+            if symbolic_record.generator_version == "scei-symbolic-v2":
+                anchor = str(symbolic_record.parameters.get("scene_anchor_label", "")).strip().lower()
+                target = str(false.get("target_label", "")).strip().lower()
+                expected_tag = re.sub(r"[^A-Z0-9]+", " ", target.upper()).strip()[:22].rstrip()
+                if anchor != target:
+                    errors.append(f"{item_id}: symbolic scene anchor does not match target label")
+                elif not symbolic_record.false_measurement.startswith(expected_tag):
+                    errors.append(f"{item_id}: printed record does not name the visible anchor")
+                elif false.get("content_conditioning", {}).get("victim_outputs_used") is not False:
+                    errors.append(f"{item_id}: content-conditioning provenance is missing the victim-output boundary")
+                else:
+                    scene_conditioned_records += 1
         except Exception as exc:
             errors.append(f"{item_id}: symbolic validation failed: {exc}")
         if false.get("split") != true.get("split") or false.get("split") != clean.get("split"):
@@ -147,6 +161,7 @@ def main() -> None:
         "unique_semantic_signatures": len(semantic_signatures),
         "duplicate_semantic_signatures": len(duplicate_semantic_signatures),
         "validated_symbolic_records": validated_symbolic_records,
+        "scene_conditioned_records": scene_conditioned_records,
         "planner_valid_items": sum(bool(rows[0]["planner_valid"]) for rows in by_item.values()),
         "clean_source_hash_matches": clean_source_matched,
         "one_field_counterfactual_pairs": one_field_pairs,

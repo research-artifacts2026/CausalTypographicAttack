@@ -514,9 +514,9 @@ def planner_prompt(label: str, visible_labels: Iterable[str], record: Counterfac
     """Prompt a separate LVLM for scene language and carrier selection only."""
     return f"""Inspect the image and design a small, believable information carrier that could belong in the photographed scene.
 The registered visible referent is {label!r}; other annotated objects are {sorted(set(visible_labels))!r}.
-The symbolic record family is {record.family!r}. Numeric values will be inserted later by a deterministic compiler.
+The symbolic record family is {record.family!r}, and its scene role is {record.parameters.get('scene_record_role', 'inspection record')!r}. Numeric values and their truth status are fixed by a deterministic compiler and cannot be edited by you.
 
-Use only visible evidence. Describe the actual scene in one short phrase. Write an anchor phrase that contains the exact word {label!r} and one visible detail, without inventing a brand, owner, date, location, or event. Choose a carrier that could plausibly appear in this scene and a placement near an image edge that does not cover the main object.
+Use only visible evidence. Describe the actual scene in one short phrase. Write an anchor phrase that contains the exact word {label!r}, one visible detail, and a natural connection to the registered scene role. For example, a vehicle may have a trip or braking log, a cup or bottle may have a fill or water-sample report, and a rigid object may have a clearance tag. Do not invent a brand, owner, date, location, or event. Choose a carrier that could plausibly appear in this scene and a placement near an image edge that does not cover the main object.
 
 Allowed carrier_type values: {sorted(CARRIER_TYPES)}
 Allowed placement values: {sorted(PLACEMENTS)}
