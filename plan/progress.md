@@ -17,19 +17,20 @@
 - [x] Implement truth-aware transfer metrics and evidence generation.
 - [x] Add model configurations and annotation validation.
 - [x] Run tests and manifest smoke checks for the original RVTA pipeline.
-- [ ] Run matched and factorial inference.
-- [ ] Generate completed evidence assets.
-- [ ] Revise and push the paper.
+- [x] Run matched and factorial inference.
+- [x] Generate completed evidence assets.
+- [x] Revise and push the paper.
 
 ## Public benchmark extension
 
 - [x] Freeze RIO-Bench, SceneTAP, REALM, and PPIA public-code commits and threat-model boundaries.
 - [x] Implement RIO Obj-MC materialization, question-conditioned CTA generation, official-score replay, and deterministic simulated capture.
 - [x] Register Qwen-3B/7B, LLaVA-OneVision-8B, and InternVL2-8B configs and strict run-completeness audit.
-- [ ] Materialize the official RIO val pilot on server 212.
-- [ ] Run Qwen-3B/7B pilot and official RIO scorer; expand only after completeness checks.
-- [ ] Run LLaVA/InternVL transfer under the identical manifest.
-- [ ] Complete full SceneTAP, real physical capture, and three-person independent evaluation.
+- [x] Materialize the official RIO validation blocks on server 212.
+- [x] Run Qwen-3B/7B and replay the official RIO scorer after completeness checks.
+- [x] Run LLaVA/InternVL transfer under the identical manifests.
+- [x] Complete the SoM--local-Qwen-planner--TextDiffuser diagnostic; this is not official GPT-4o-planner equivalence.
+- [ ] Complete real physical capture and three-person independent human evaluation.
 
 ## RVTA-QA balanced-v1 and AI-natural carrier (2026-08-25)
 
@@ -41,9 +42,9 @@
 - [x] Add six-cell unit tests and run the local smoke suite.
 - [x] Generate three provenance-locked AI natural-carrier examples.
 - [x] Prepare a blinded three-person naturalness pack with hidden repeats.
-- [ ] Materialize the two 300-item manifests on server 212.
-- [ ] Run eight complete model-dataset jobs and validate hashes.
-- [ ] Run the four-model n=3 natural-carrier pilot (qualitative only).
+- [x] Materialize the two 300-item manifests on server 212.
+- [x] Run eight complete model-dataset jobs and validate hashes.
+- [x] Run the four-model n=3 natural-carrier pilot (qualitative only).
 - [ ] Collect three independent human response files.
 - [ ] Collect and validate registered real camera captures.
 
@@ -70,6 +71,7 @@
 - [x] Preserve all rounds, hashes, masks, query counts, Success@K, and budget-exhaustion outcomes.
 - [x] Add a Hugging Face-style Gradio entry point, live trace, and downloadable audit bundle.
 - [x] Run compiler, renderer, adaptive-loop, feedback-state, syntax, and bundle smoke checks locally.
-- [ ] Run a real GPU smoke session on server 212; current SSH route is unreachable from this task.
-- [ ] Freeze a held-out split and complete fixed-vs-adaptive, random-order, corrected-record, and flat-carrier controls.
-- [ ] Add aggregate adaptive results to the paper only after the registered run is complete.
+- [x] Run a real GPU-backed Gradio session on server 212 and verify the page and `/run` endpoint.
+- [x] Freeze and report the development-disjoint 50-item adaptive run without using outcomes to change the selection.
+- [x] Add the complete 50-item adaptive aggregate to the paper; Success@1 and Success@2 are both 9/50.
+- [x] Complete the four-model SCEI-Images-300 matched flat/scene victim evaluation: four 1,500-row audited logs, path-free aggregate release, strict grounded analysis, controls, Wilson intervals, and exact McNemar tests.

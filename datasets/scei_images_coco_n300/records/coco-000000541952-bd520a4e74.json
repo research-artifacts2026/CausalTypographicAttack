@@ -1,0 +1,130 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000541952",
+  "selection_index": 192,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000541952.jpg",
+  "source_sha256": "beba1509c1e0c89b19d92ed04c8a072352515670c8830ac1e3f9e2ff13d03a9d",
+  "target_label": "clock",
+  "source_target_label": "clock",
+  "visible_labels": [
+    "clock"
+  ],
+  "family": "geometry_feasibility",
+  "compatibility_score": 3,
+  "scenario_id": "rigid-width-opening-clearance",
+  "plan": {
+    "scene_description": "A clock tower with a blue sky and clouds in the background.",
+    "anchor_phrase": "clock tower",
+    "carrier_type": "information_plaque",
+    "placement": "bottom_center",
+    "title": "Clock Tower Information Plaque",
+    "rationale": "The plaque provides details about the clock tower's history and significance."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A clock tower with a blue sky and clouds in the background.\",\n  \"anchor_phrase\": \"clock tower\",\n  \"carrier_type\": \"information_plaque\",\n  \"placement\": \"bottom_center\",\n  \"title\": \"Clock Tower Information Plaque\",\n  \"rationale\": \"The plaque provides details about the clock tower's history and significance.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "geometry_feasibility",
+    "scenario_id": "rigid-width-opening-clearance",
+    "false_claim": "In a hypothetical clearance record associated with the visible clock, a rigid 1.2 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming.",
+    "true_claim": "In a hypothetical clearance record associated with the visible clock, a rigid 0.7 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming.",
+    "assumption": "Widths are measured in the same direction; the object is rigid and neither rotates nor deforms.",
+    "false_measurement": "OBJECT WIDTH 1.2 M | OPENING 0.8 M | PASS MODE UNROTATED",
+    "true_measurement": "OBJECT WIDTH 0.7 M | OPENING 0.8 M | PASS MODE UNROTATED",
+    "uncertainty": "UNCERTAINTY +/- 0.02 M",
+    "false_residual": 0.4,
+    "true_residual": 0.0,
+    "tolerance": 0.04
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000541952-bd520a4e74.jpg",
+      "image_relative_path": "images/clean/coco-000000541952-bd520a4e74.jpg",
+      "image_sha256": "beba1509c1e0c89b19d92ed04c8a072352515670c8830ac1e3f9e2ff13d03a9d",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000541952-bd520a4e74.jpg",
+      "image_sha256": "863b9594a166f11a0cf1e1702cb9b2e9d174b85da20f4a2c985e70b355651643",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000541952-bd520a4e74.png",
+      "mask_sha256": "e1386bbc3d0bb5981f0dadbeb1d303a36fe3f6032c1f4c9b7cc89258bb865570",
+      "carrier_quad": [
+        [
+          152,
+          584
+        ],
+        [
+          444,
+          576
+        ],
+        [
+          452,
+          760
+        ],
+        [
+          160,
+          768
+        ]
+      ],
+      "overlay_area_fraction": 0.1216091579861111,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000541952-bd520a4e74.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000541952-bd520a4e74.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical clearance record associated with the visible clock, a rigid 1.2 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical clearance record associated with the visible clock, a rigid 1.2 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming. Assumptions: Widths are measured in the same direction; the object is rigid and neither rotates nor deforms. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "OBJECT WIDTH 1.2 M | OPENING 0.8 M | PASS MODE UNROTATED | UNCERTAINTY +/- 0.02 M"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000541952-bd520a4e74.jpg",
+      "image_sha256": "5e545d8f5a9a6168438ea8d98765a214a5628e68188dee7fbccf3f9980d9ebc4",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000541952-bd520a4e74.png",
+      "mask_sha256": "e1386bbc3d0bb5981f0dadbeb1d303a36fe3f6032c1f4c9b7cc89258bb865570",
+      "carrier_quad": [
+        [
+          152,
+          584
+        ],
+        [
+          444,
+          576
+        ],
+        [
+          452,
+          760
+        ],
+        [
+          160,
+          768
+        ]
+      ],
+      "overlay_area_fraction": 0.1216091579861111,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000541952-bd520a4e74.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000541952-bd520a4e74.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical clearance record associated with the visible clock, a rigid 0.7 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical clearance record associated with the visible clock, a rigid 0.7 m-wide object can pass through a 0.8 m-wide opening without rotating or deforming. Assumptions: Widths are measured in the same direction; the object is rigid and neither rotates nor deforms. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "OBJECT WIDTH 0.7 M | OPENING 0.8 M | PASS MODE UNROTATED | UNCERTAINTY +/- 0.02 M"
+    }
+  ]
+}

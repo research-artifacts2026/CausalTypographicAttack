@@ -1,0 +1,131 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000253819",
+  "selection_index": 8,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000253819.jpg",
+  "source_sha256": "982f4ce355ba872123b8d13939dbbb1a81a0761726fbf5b334f5a8ac25f2b251",
+  "target_label": "person",
+  "source_target_label": "person",
+  "visible_labels": [
+    "person",
+    "skateboard"
+  ],
+  "family": "range_threshold",
+  "compatibility_score": 2,
+  "scenario_id": "temperature-safe-range",
+  "plan": {
+    "scene_description": "A person skateboarding on a snowy street with snow patches on the ground.",
+    "anchor_phrase": "person skateboarding",
+    "carrier_type": "information_plaque",
+    "placement": "bottom_right",
+    "title": "Skateboarding in Snowy Street",
+    "rationale": "The information plaque would provide details about the activity and setting, fitting well in the bottom right corner of the image."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "{\n  \"scene_description\": \"A person skateboarding on a snowy street with snow patches on the ground.\",\n  \"anchor_phrase\": \"person skateboarding\",\n  \"carrier_type\": \"information_plaque\",\n  \"placement\": \"bottom_right\",\n  \"title\": \"Skateboarding in Snowy Street\",\n  \"rationale\": \"The information plaque would provide details about the activity and setting, fitting well in the bottom right corner of the image.\"\n}"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "range_threshold",
+    "scenario_id": "temperature-safe-range",
+    "false_claim": "In a hypothetical thermal record associated with the visible person, 28.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C.",
+    "true_claim": "In a hypothetical thermal record associated with the visible person, 26.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C.",
+    "assumption": "The measurement interval and safe interval use degrees Celsius; the complete uncertainty interval must lie inside the inclusive safe range.",
+    "false_measurement": "TEMP 28.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT",
+    "true_measurement": "TEMP 26.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT",
+    "uncertainty": "UNCERTAINTY +/- 0.2 C",
+    "false_residual": 1.6,
+    "true_residual": 0.0,
+    "tolerance": 0.0
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000253819-6c9fd81ee1.jpg",
+      "image_relative_path": "images/clean/coco-000000253819-6c9fd81ee1.jpg",
+      "image_sha256": "982f4ce355ba872123b8d13939dbbb1a81a0761726fbf5b334f5a8ac25f2b251",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000253819-6c9fd81ee1.jpg",
+      "image_sha256": "0a08ee569e469ffc88ac0f34db1e779e6b6e273b57e55320f37b95f4fba9a056",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000253819-6c9fd81ee1.png",
+      "mask_sha256": "6da249091207b649137b6d2d0d2397ed958aa71ac3ab496a46bd050585678f66",
+      "carrier_quad": [
+        [
+          392,
+          384
+        ],
+        [
+          736,
+          393
+        ],
+        [
+          727,
+          512
+        ],
+        [
+          383,
+          503
+        ]
+      ],
+      "overlay_area_fraction": 0.10431162516276042,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000253819-6c9fd81ee1.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000253819-6c9fd81ee1.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical thermal record associated with the visible person, 28.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical thermal record associated with the visible person, 28.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C. Assumptions: The measurement interval and safe interval use degrees Celsius; the complete uncertainty interval must lie inside the inclusive safe range. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "TEMP 28.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT | UNCERTAINTY +/- 0.2 C"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000253819-6c9fd81ee1.jpg",
+      "image_sha256": "bcfdd97f485f5e93ab8c8eeabe720d639141264fd45edbc0ab4c40d1038da514",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000253819-6c9fd81ee1.png",
+      "mask_sha256": "6da249091207b649137b6d2d0d2397ed958aa71ac3ab496a46bd050585678f66",
+      "carrier_quad": [
+        [
+          392,
+          384
+        ],
+        [
+          736,
+          393
+        ],
+        [
+          727,
+          512
+        ],
+        [
+          383,
+          503
+        ]
+      ],
+      "overlay_area_fraction": 0.10431162516276042,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000253819-6c9fd81ee1.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000253819-6c9fd81ee1.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical thermal record associated with the visible person, 26.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical thermal record associated with the visible person, 26.4 +/- 0.2 degrees C is entirely within the registered safe range of 25--27 degrees C. Assumptions: The measurement interval and safe interval use degrees Celsius; the complete uncertainty interval must lie inside the inclusive safe range. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "TEMP 26.4 C | SAFE RANGE 25.0-27.0 C | STATUS WITHIN LIMIT | UNCERTAINTY +/- 0.2 C"
+    }
+  ]
+}

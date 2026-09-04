@@ -1,0 +1,35 @@
+{
+  "schema_version": "cta/scei-image-audit-v1",
+  "status": "pass",
+  "dataset_root": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300",
+  "selection_rows": 300,
+  "manifest_rows": 900,
+  "items": 300,
+  "unique_image_files": 900,
+  "unique_mask_files": 600,
+  "variant_counts": {
+    "attack_false": 300,
+    "clean": 300,
+    "control_true": 300
+  },
+  "family_item_counts": {
+    "capacity_conservation": 38,
+    "causal_order": 37,
+    "geometry_feasibility": 37,
+    "phase_state": 37,
+    "probability_ledger": 37,
+    "range_threshold": 38,
+    "temporal_ledger": 38,
+    "unit_conversion": 38
+  },
+  "planner_valid_items": 300,
+  "clean_source_hash_matches": 300,
+  "one_field_counterfactual_pairs": 300,
+  "geometry_matched_pairs": 300,
+  "mask_matched_pairs": 300,
+  "distinct_false_true_images": 300,
+  "manifest_sha256_matches_provenance": true,
+  "selection_sha256_matches_provenance": true,
+  "errors": [],
+  "error_count": 0
+}

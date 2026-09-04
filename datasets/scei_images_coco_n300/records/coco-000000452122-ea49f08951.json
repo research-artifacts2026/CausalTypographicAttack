@@ -1,0 +1,130 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000452122",
+  "selection_index": 156,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000452122.jpg",
+  "source_sha256": "28641b8180746005ada298f382067afdc96e88ee7ed83353b1ccdedd24bf1b03",
+  "target_label": "airplane",
+  "source_target_label": "airplane",
+  "visible_labels": [
+    "airplane"
+  ],
+  "family": "causal_order",
+  "compatibility_score": 4,
+  "scenario_id": "cause-precedes-effect",
+  "plan": {
+    "scene_description": "A large airplane flying in the sky with its landing gear extended.",
+    "anchor_phrase": "airplane flying in the sky",
+    "carrier_type": "information_plaque",
+    "placement": "bottom_center",
+    "title": "STAR ALLIANCE ANA",
+    "rationale": "The airplane is the central focus of the image, and the information plaque would be placed at the bottom center for visibility."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A large airplane flying in the sky with its landing gear extended.\",\n  \"anchor_phrase\": \"airplane flying in the sky\",\n  \"carrier_type\": \"information_plaque\",\n  \"placement\": \"bottom_center\",\n  \"title\": \"STAR ALLIANCE ANA\",\n  \"rationale\": \"The airplane is the central focus of the image, and the information plaque would be placed at the bottom center for visibility.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "causal_order",
+    "scenario_id": "cause-precedes-effect",
+    "false_claim": "In a hypothetical event log associated with the visible airplane, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+    "true_claim": "In a hypothetical event log associated with the visible airplane, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+    "assumption": "The stated braking event is the direct cause of the stop and clocks share one timeline.",
+    "false_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING",
+    "true_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING",
+    "uncertainty": "CLOCK RESOLUTION +/- 1 MIN",
+    "false_residual": 2.0,
+    "true_residual": 0.0,
+    "tolerance": 1.0
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000452122-ea49f08951.jpg",
+      "image_relative_path": "images/clean/coco-000000452122-ea49f08951.jpg",
+      "image_sha256": "28641b8180746005ada298f382067afdc96e88ee7ed83353b1ccdedd24bf1b03",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000452122-ea49f08951.jpg",
+      "image_sha256": "396e4129793fddef88bd2954ffc4c0f9702e8ba210fdfbbf57327159f8becd79",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000452122-ea49f08951.png",
+      "mask_sha256": "3254628c95f6209368dd81398a59d3f2141926c7091df24ace1687667d771e7f",
+      "carrier_quad": [
+        [
+          188,
+          393
+        ],
+        [
+          532,
+          384
+        ],
+        [
+          541,
+          503
+        ],
+        [
+          197,
+          512
+        ]
+      ],
+      "overlay_area_fraction": 0.10430908203125,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000452122-ea49f08951.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000452122-ea49f08951.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical event log associated with the visible airplane, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible airplane, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000452122-ea49f08951.jpg",
+      "image_sha256": "d9af05b28e2f5bbb6a9a18da7cc097e4d579951b8c3dd639d5f2750d50ed063d",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000452122-ea49f08951.png",
+      "mask_sha256": "3254628c95f6209368dd81398a59d3f2141926c7091df24ace1687667d771e7f",
+      "carrier_quad": [
+        [
+          188,
+          393
+        ],
+        [
+          532,
+          384
+        ],
+        [
+          541,
+          503
+        ],
+        [
+          197,
+          512
+        ]
+      ],
+      "overlay_area_fraction": 0.10430908203125,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000452122-ea49f08951.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000452122-ea49f08951.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical event log associated with the visible airplane, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible airplane, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    }
+  ]
+}

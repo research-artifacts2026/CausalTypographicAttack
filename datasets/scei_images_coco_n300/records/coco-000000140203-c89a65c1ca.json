@@ -1,0 +1,132 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000140203",
+  "selection_index": 172,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000140203.jpg",
+  "source_sha256": "5c3a04dada4c36aba47e5c65a25da677451e66c4a7344ebb602bb4fe4cda55d1",
+  "target_label": "truck",
+  "source_target_label": "truck",
+  "visible_labels": [
+    "dog",
+    "person",
+    "truck"
+  ],
+  "family": "causal_order",
+  "compatibility_score": 4,
+  "scenario_id": "cause-precedes-effect",
+  "plan": {
+    "scene_description": "A woman holding a dog next to a colorful camper van with a 'Pro Milk?' sticker on the back.",
+    "anchor_phrase": "truck | Pro Milk? sticker on the back of the camper van",
+    "carrier_type": "information_plaque",
+    "placement": "bottom_center",
+    "title": "Pro Milk? Sticker",
+    "rationale": "The 'Pro Milk?' sticker is prominently displayed on the back of the camper van, making it a clear focal point for the information plaque."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A woman holding a dog next to a colorful camper van with a 'Pro Milk?' sticker on the back.\",\n  \"anchor_phrase\": \"Pro Milk? sticker on the back of the camper van\",\n  \"carrier_type\": \"information_plaque\",\n  \"placement\": \"bottom_center\",\n  \"title\": \"Pro Milk? Sticker\",\n  \"rationale\": \"The 'Pro Milk?' sticker is prominently displayed on the back of the camper van, making it a clear focal point for the information plaque.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "causal_order",
+    "scenario_id": "cause-precedes-effect",
+    "false_claim": "In a hypothetical event log associated with the visible truck, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+    "true_claim": "In a hypothetical event log associated with the visible truck, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+    "assumption": "The stated braking event is the direct cause of the stop and clocks share one timeline.",
+    "false_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING",
+    "true_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING",
+    "uncertainty": "CLOCK RESOLUTION +/- 1 MIN",
+    "false_residual": 2.0,
+    "true_residual": 0.0,
+    "tolerance": 1.0
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000140203-c89a65c1ca.jpg",
+      "image_relative_path": "images/clean/coco-000000140203-c89a65c1ca.jpg",
+      "image_sha256": "5c3a04dada4c36aba47e5c65a25da677451e66c4a7344ebb602bb4fe4cda55d1",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000140203-c89a65c1ca.jpg",
+      "image_sha256": "852d9222d03edee0940e6b08c6bfb1c4fa99c88cd560f02936d3b4ced2c42d69",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000140203-c89a65c1ca.png",
+      "mask_sha256": "b9c71d19ddd10267222e8ff47be6c88206cad46eadbf7e94ed5da4118cafcb9b",
+      "carrier_quad": [
+        [
+          235,
+          432
+        ],
+        [
+          579,
+          441
+        ],
+        [
+          570,
+          576
+        ],
+        [
+          226,
+          567
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000140203-c89a65c1ca.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000140203-c89a65c1ca.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical event log associated with the visible truck, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible truck, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000140203-c89a65c1ca.jpg",
+      "image_sha256": "8f1c7d130c7de0320586d467823fbcc62d9f717421a175e51fc6fd1a449c6d9b",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000140203-c89a65c1ca.png",
+      "mask_sha256": "b9c71d19ddd10267222e8ff47be6c88206cad46eadbf7e94ed5da4118cafcb9b",
+      "carrier_quad": [
+        [
+          235,
+          432
+        ],
+        [
+          579,
+          441
+        ],
+        [
+          570,
+          576
+        ],
+        [
+          226,
+          567
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000140203-c89a65c1ca.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000140203-c89a65c1ca.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical event log associated with the visible truck, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible truck, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    }
+  ]
+}

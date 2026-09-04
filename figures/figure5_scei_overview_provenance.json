@@ -1,0 +1,39 @@
+{
+  "schema_version": "cta/figure5-scei-overview-provenance-v1",
+  "data": {
+    "path": "paper_assets/figure5_scei_overview.json",
+    "sha256": "480a9a4370ed577419d6267091d370f9cf9d1be6b677c723b254862df7370736"
+  },
+  "aggregate": {
+    "path": "results/scei_images_n300_eval_v1/model_summary.csv",
+    "sha256": "a4a8e76d1349a560d98d0d099efbc4f98e2726560d12de95357aba8c888df2bf"
+  },
+  "images": [
+    {
+      "variant": "clean",
+      "path": "datasets/scei_images_coco_n300/images/clean/coco-000000164885-673c4c6c43.jpg",
+      "sha256": "ed7d5c90e44189de91ba723744485059c9b54c26b3ca4ab3842d53ca489d50a1"
+    },
+    {
+      "variant": "false",
+      "path": "datasets/scei_images_coco_n300/images/attack_false/coco-000000164885-673c4c6c43.jpg",
+      "sha256": "528a3d9676e5b8c44e80eb951890606fe3ca517442bff1e952858a92ead26d68"
+    },
+    {
+      "variant": "true",
+      "path": "datasets/scei_images_coco_n300/images/control_true/coco-000000164885-673c4c6c43.jpg",
+      "sha256": "d9d97d40cd52edcf9362f9743f5495d4596d00288699c03573a7361e46700be5"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "figures/figure5_scei_overview.png",
+      "sha256": "7c5664cdee7cf993ef07e9d778159532f60fe6a61468ff7b9aec14b43537cbd7"
+    },
+    {
+      "path": "figures/figure5_scei_overview.pdf",
+      "sha256": "83386497e08cbb7123755175384f7514381d9572e7e0e33689c0369b4f6a9963"
+    }
+  ],
+  "selection_note": "Qualitative logged success selected after evaluation for legibility and to expose the complete Read-Verify trace; it is not a prevalence estimate. Aggregate rates use all 300 registered scenes."
+}

@@ -1,0 +1,133 @@
+{
+  "schema_version": "cta/scei-image-dataset-v1",
+  "item_id": "coco-000000061108",
+  "selection_index": 162,
+  "dataset": "COCO",
+  "source_path": "/disk2/fangxinyue/causal_typographic_attack/data/coco2017_hf/extracted/000000061108.jpg",
+  "source_sha256": "9b12f04a265e842ed75e9eb2c2de1c537cd3543baaf1d7e4f6f26f8b31624f4f",
+  "target_label": "bicycle",
+  "source_target_label": "bicycle",
+  "visible_labels": [
+    "bench",
+    "bicycle",
+    "car",
+    "dog"
+  ],
+  "family": "causal_order",
+  "compatibility_score": 4,
+  "scenario_id": "cause-precedes-effect",
+  "plan": {
+    "scene_description": "A blue bicycle with a dog in a basket parked next to a trash can on a sidewalk.",
+    "anchor_phrase": "bicycle",
+    "carrier_type": "product_label",
+    "placement": "bottom_right",
+    "title": "Bicycle Maintenance Tag",
+    "rationale": "The product label is a plausible item for a bicycle, placed near the bottom right where it would be easily noticeable."
+  },
+  "planner_valid": true,
+  "planner_attempts": 1,
+  "planner_raw_outputs": [
+    "```json\n{\n  \"scene_description\": \"A blue bicycle with a dog in a basket parked next to a trash can on a sidewalk.\",\n  \"anchor_phrase\": \"bicycle\",\n  \"carrier_type\": \"product_label\",\n  \"placement\": \"bottom_right\",\n  \"title\": \"Bicycle Maintenance Tag\",\n  \"rationale\": \"The product label is a plausible item for a bicycle, placed near the bottom right where it would be easily noticeable.\"\n}\n```"
+  ],
+  "planner_validation_errors": [],
+  "record": {
+    "family": "causal_order",
+    "scenario_id": "cause-precedes-effect",
+    "false_claim": "In a hypothetical event log associated with the visible bicycle, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+    "true_claim": "In a hypothetical event log associated with the visible bicycle, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+    "assumption": "The stated braking event is the direct cause of the stop and clocks share one timeline.",
+    "false_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING",
+    "true_measurement": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING",
+    "uncertainty": "CLOCK RESOLUTION +/- 1 MIN",
+    "false_residual": 2.0,
+    "true_residual": 0.0,
+    "tolerance": 1.0
+  },
+  "variants": [
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/clean/coco-000000061108-d8e8c2231c.jpg",
+      "image_relative_path": "images/clean/coco-000000061108-d8e8c2231c.jpg",
+      "image_sha256": "9b12f04a265e842ed75e9eb2c2de1c537cd3543baaf1d7e4f6f26f8b31624f4f",
+      "mask_path": null,
+      "mask_relative_path": null,
+      "mask_sha256": null,
+      "carrier_quad": null,
+      "overlay_area_fraction": 0.0,
+      "renderer": "exact-source-copy-v1",
+      "variant": "clean",
+      "truth": "source",
+      "claim": null,
+      "verification_question": null,
+      "correct_answer": null,
+      "registered_read_text": null
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/attack_false/coco-000000061108-d8e8c2231c.jpg",
+      "image_sha256": "f81b46a1c5abb32468a903f6b74fc80411af5a513445877fd60ae02ebead265b",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/attack_false/coco-000000061108-d8e8c2231c.png",
+      "mask_sha256": "6cba66148f1143b50a962583bd3f418cea50a51be007c8c4df29a6053428a73d",
+      "carrier_quad": [
+        [
+          382,
+          441
+        ],
+        [
+          726,
+          432
+        ],
+        [
+          735,
+          567
+        ],
+        [
+          391,
+          576
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/attack_false/coco-000000061108-d8e8c2231c.jpg",
+      "mask_relative_path": "masks/attack_false/coco-000000061108-d8e8c2231c.png",
+      "variant": "attack_false",
+      "truth": "false",
+      "claim": "In a hypothetical event log associated with the visible bicycle, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible bicycle, braking at 14:07 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "NO",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:07 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    },
+    {
+      "image_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/images/control_true/coco-000000061108-d8e8c2231c.jpg",
+      "image_sha256": "df544cdaa8ba96d5fc7a477b1b407fa5f75e38a4de363af740775d8f8c3b7ab1",
+      "mask_path": "/disk2/fangxinyue/causal_typographic_attack_scei_search/datasets/scei_images_qwen3_coco_n300/masks/control_true/coco-000000061108-d8e8c2231c.png",
+      "mask_sha256": "6cba66148f1143b50a962583bd3f418cea50a51be007c8c4df29a6053428a73d",
+      "carrier_quad": [
+        [
+          382,
+          441
+        ],
+        [
+          726,
+          432
+        ],
+        [
+          735,
+          567
+        ],
+        [
+          391,
+          576
+        ]
+      ],
+      "overlay_area_fraction": 0.10516357421875,
+      "renderer": "scene-adaptive-perspective-carrier-v2",
+      "image_relative_path": "images/control_true/coco-000000061108-d8e8c2231c.jpg",
+      "mask_relative_path": "masks/control_true/coco-000000061108-d8e8c2231c.png",
+      "variant": "control_true",
+      "truth": "true",
+      "claim": "In a hypothetical event log associated with the visible bicycle, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline.",
+      "verification_question": "Under the stated ordinary-world assumptions, is this record claim correct? Claim: In a hypothetical event log associated with the visible bicycle, braking at 14:03 caused the vehicle to stop at 14:05 on the same timeline. Assumptions: The stated braking event is the direct cause of the stop and clocks share one timeline. Answer YES if the claim is correct or NO if it is false. Answer YES or NO only.",
+      "correct_answer": "YES",
+      "registered_read_text": "VEHICLE STOPPED 14:05 | BRAKE APPLIED 14:03 | CAUSE BRAKING | CLOCK RESOLUTION +/- 1 MIN"
+    }
+  ]
+}
