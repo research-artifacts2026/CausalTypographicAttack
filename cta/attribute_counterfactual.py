@@ -35,6 +35,15 @@ FALSE_CONDITIONS = ("false_plain", "false_target_conclusion")
 TRUE_CONDITIONS = ("true_plain", "true_target_conclusion")
 PROBES = ("read", "ground", "verify", "decide")
 
+LABEL_ALIASES: dict[str, tuple[str, ...]] = {
+    "cell phone": ("cell phone", "phone", "smartphone"),
+    "couch": ("couch", "sofa"),
+    "cup": ("cup", "mug"),
+    "motorcycle": ("motorcycle", "motorbike"),
+    "refrigerator": ("refrigerator", "fridge"),
+    "tv": ("tv", "television"),
+}
+
 
 @dataclass(frozen=True)
 class FamilySpec:
@@ -188,6 +197,7 @@ class AttributeItem:
     target_semantic: str
     option_order: str
     selection_rank: int
+    selection_evidence: str
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -205,6 +215,24 @@ def exact_read_match(output: object, registered: object) -> bool:
 
 def _hash_rank(seed: int, family: str, item_id: str) -> str:
     return hashlib.sha256(f"{seed}:{family}:{item_id}:attribute-cf-v1".encode()).hexdigest()
+
+
+def _mentions_label(text: object, label: str) -> bool:
+    normalized = normalize_text(text)
+    padded = f" {normalized} "
+    aliases = LABEL_ALIASES.get(label, (label,))
+    return any(f" {normalize_text(alias)} " in padded for alias in aliases)
+
+
+def _scene_grounded_labels(row: dict, compatible_labels: tuple[str, ...]) -> list[str]:
+    """Find compatible visible labels named by the frozen clean-image description."""
+    description = str((row.get("plan") or {}).get("scene_description", ""))
+    observed = []
+    for value in (row.get("target_label"), *(row.get("visible_labels") or [])):
+        label = str(value or "").strip().lower()
+        if label in compatible_labels and label not in observed and _mentions_label(description, label):
+            observed.append(label)
+    return observed
 
 
 def select_family_items(rows: Iterable[dict], per_family: int, seed: int) -> list[tuple[str, dict]]:
@@ -226,9 +254,14 @@ def select_family_items(rows: Iterable[dict], per_family: int, seed: int) -> lis
         spec = FAMILIES[family]
         eligible = []
         for item_id, row in unique.items():
-            label = str(row.get("target_label", row.get("source_target_label", ""))).strip().lower()
-            if item_id not in used and label in spec.compatible_labels:
-                eligible.append((item_id, row))
+            if item_id in used:
+                continue
+            labels = _scene_grounded_labels(row, spec.compatible_labels)
+            if labels:
+                selected_row = dict(row)
+                selected_row["attribute_cf_target_label"] = labels[0]
+                selected_row["attribute_cf_selection_evidence"] = "clean_scene_description"
+                eligible.append((item_id, selected_row))
         eligible.sort(key=lambda pair: _hash_rank(seed, family, pair[0]))
         if len(eligible) < per_family:
             raise ValueError(f"{family}: need {per_family} unused compatible scenes, found {len(eligible)}")
@@ -242,7 +275,9 @@ def select_family_items(rows: Iterable[dict], per_family: int, seed: int) -> lis
 def build_item(family: str, row: dict, dataset: str, seed: int, selection_rank: int) -> AttributeItem:
     spec = FAMILIES[family]
     item_id = str(row.get("item_id", row.get("sample_id", ""))).strip()
-    label = str(row.get("target_label", row.get("source_target_label", ""))).strip().lower()
+    label = str(
+        row.get("attribute_cf_target_label", row.get("target_label", row.get("source_target_label", "")))
+    ).strip().lower()
     source = Path(str(row.get("source_path", row.get("image_path", "")))).resolve()
     if not source.is_file():
         raise FileNotFoundError(f"{item_id}: source image missing: {source}")
@@ -270,6 +305,7 @@ def build_item(family: str, row: dict, dataset: str, seed: int, selection_rank: 
         target_semantic=spec.false_decision_semantic,
         option_order=option_order,
         selection_rank=selection_rank,
+        selection_evidence=str(row.get("attribute_cf_selection_evidence", "legacy_target_label")),
     )
 
 

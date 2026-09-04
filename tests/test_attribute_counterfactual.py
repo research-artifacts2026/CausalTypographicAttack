@@ -38,10 +38,55 @@ def test_family_selection_uses_unique_compatible_scenes():
     }
     for family, label in label_by_family.items():
         for index in range(3):
-            rows.append({"item_id": f"{family}-{index}", "target_label": label})
+            rows.append({
+                "item_id": f"{family}-{index}",
+                "target_label": label,
+                "visible_labels": [label],
+                "plan": {"scene_description": f"A clearly visible {label} in the scene."},
+            })
     selected = select_family_items(rows, 3, 11)
     assert len(selected) == 18
     assert len({row["item_id"] for _, row in selected}) == 18
+
+
+def test_selection_reroutes_to_a_scene_described_visible_object():
+    rows = []
+    label_by_family = {
+        "value": "chair",
+        "weight": "book",
+        "temperature": "cup",
+        "capacity": "bottle",
+        "age": "bus",
+        "energy": "oven",
+    }
+    for family, label in label_by_family.items():
+        for index in range(2):
+            rows.append({
+                "item_id": f"reroute-{family}-{index}",
+                "target_label": "person",
+                "visible_labels": ["person", label],
+                "plan": {"scene_description": f"A person stands beside a prominent {label}."},
+            })
+    selected = select_family_items(rows, 2, 19)
+    assert len(selected) == 12
+    for family, row in selected:
+        assert row["attribute_cf_target_label"] in FAMILIES[family].compatible_labels
+        assert row["attribute_cf_selection_evidence"] == "clean_scene_description"
+
+
+def test_selection_rejects_incidental_annotation_not_in_clean_description():
+    rows = [{
+        "item_id": "tiny-bottle",
+        "target_label": "bottle",
+        "visible_labels": ["bottle", "person"],
+        "plan": {"scene_description": "A person stands in a town square."},
+    }]
+    try:
+        select_family_items(rows, 1, 23)
+    except ValueError as exc:
+        assert "capacity" in str(exc)
+    else:
+        raise AssertionError("incidental target annotation should not be selected")
 
 
 def test_minimal_twins_and_factorial_geometry(tmp_path: Path):

@@ -134,6 +134,13 @@ def main() -> None:
         "stopping_rule": "Run every frozen row for both registered checkpoints; never select or rewrite items from victim outputs.",
         "claim_boundary": "Development pilot; the target conclusion is a separate factorial cue and is not part of the minimal false-plain attack.",
         "victim_outputs_used": False,
+        "scene_routing_rule": (
+            "Choose a compatible object from the source row's visible labels only when the frozen "
+            "clean-image scene description explicitly names that object or a registered synonym."
+        ),
+        "scene_routing_evidence_counts": dict(
+            sorted(Counter(row["selection_evidence"] for row in item_rows).items())
+        ),
     }
     (output_root / "provenance.json").write_text(json.dumps(provenance, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     preregistration = {
