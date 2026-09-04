@@ -301,6 +301,14 @@ def finalize(args: argparse.Namespace) -> None:
         triplet = [payload["source"], payload["record_true"], payload["record_false"]]
         if [row["condition"] for row in triplet] != list(CONDITIONS):
             raise ValueError(f"{item_id}: invalid condition ordering")
+        true_row, false_row = triplet[1], triplet[2]
+        paired_fields = (
+            "mask_sha256", "carrier_quad", "scenetap_bbox",
+            "scenetap_selected_candidate_index", "scenetap_seed",
+        )
+        for field in paired_fields:
+            if true_row.get(field) != false_row.get(field):
+                raise ValueError(f"{item_id}: unmatched true/false delivery field {field}")
         for row in triplet[1:]:
             resolution = row.get("scenetap_bbox_resolution", {})
             bbox_fallbacks += int(bool(resolution.get("rectangle_fallback")))
@@ -337,6 +345,7 @@ def finalize(args: argparse.Namespace) -> None:
         "matched_fields": [
             "source image", "question", "option map", "symbolic record",
             "registered read text", "semantic answers", "family", "item selection",
+            "carrier box", "mask", "candidate index", "paired diffusion seed",
         ],
         "changed_factor": "delivery renderer and placement planner only",
         "candidate_selection": "TextDiffuser candidate index zero; no outcome filtering",

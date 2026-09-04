@@ -1123,7 +1123,8 @@ victim inference:
 item-disjoint sharding around the public SoM preprocessing. Planning uses
 `plan_scenetap_local_qwen.py`; rendering uses
 `render_contraledger_scenetap.py`, which fixes candidate index 0 and reuses the
-same selected region for each false/corrected twin. Generate the 24 immutable
+same selected region and paired diffusion seed for each false/corrected twin.
+Generate the 24 immutable
 evaluation configurations with:
 
 ```bash
