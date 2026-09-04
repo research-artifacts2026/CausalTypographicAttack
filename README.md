@@ -1139,6 +1139,29 @@ model-specific environments documented above. Final aggregation is fail-closed:
 hash mismatches, or any semantic field that differs across renderers, and
 reports paired exact McNemar tests on the common double-control-eligible set.
 
+The frozen 24-cell matrix is complete and audited. On Pascal VOC, native
+delivery reaches 96.8%, 99.0%, 97.8%, and 100.0% DC-ASR on Qwen-3B, Qwen-7B,
+LLaVA, and InternVL; the content-matched flat carrier reaches 97.9%, 99.5%,
+97.9%, and 100.0%. Across both COCO and VOC, no native-versus-flat paired
+difference is significant (eight exact McNemar tests, all `p >= .125`). This
+supports a content-centric counterfactual vulnerability, not superiority of
+the native renderer.
+
+The public SceneTAP-component arm is a compatibility boundary. Corrected-record
+accuracy is only 0--36.5% and exact complete-record read is 0% in all eight
+dataset/model cells. One cell has zero double-control-eligible items and five
+have at most five, so nominal ASR values in those cells must not be interpreted
+as attack efficacy. The chain uses public SoM and TextDiffuser with a local
+Qwen planner and the same long registered records; it is neither an
+official-equivalent GPT-4o planner replay nor SceneTAP's original short
+target-token condition.
+
+The portable, path-scrubbed evidence is released in
+[`results/contraledger_delivery_matrix_v1/`](results/contraledger_delivery_matrix_v1/):
+`cell_summary.csv`, `paired_tests.csv`, and the audit ledger used by the paper
+table generator. Raw images and append-only predictions remain in the server
+artifact store because of their size.
+
 ### Registered physical capture kit
 
 The script below freezes 150 assets and a randomized 450-photo tier-1 schedule
