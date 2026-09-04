@@ -1,0 +1,14 @@
+source_manifest: runs/contraledger_threeway_n200_v1frozen/manifest.jsonl
+output_root: runs/contraledger_delivery_coco_native_internvl_n200_v1
+expected_items: 200
+seed: 20260904
+model:
+  adapter: internvl2
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--OpenGVLab--InternVL2-8B/snapshots/6fb9ad6924f69424e57fab2ab061d707688f0296
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 96
+  do_sample: false
+  image_size: 448
+  max_tiles: 6
+  use_flash_attn: false

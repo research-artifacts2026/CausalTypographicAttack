@@ -1,0 +1,6 @@
+dataset_name: voc2012_segmentation_hf
+dataset_root: /disk2/fangxinyue/datasets/pascal_voc_2012_hf
+dataset_split: null
+num_samples: 2000
+seed: 20260904
+output_root: runs/contraledger_voc2012_source_n2000_v1

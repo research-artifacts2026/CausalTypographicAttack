@@ -721,6 +721,34 @@ def _local_variance_box(image: Image.Image, width: int, height: int, placement: 
     return min(candidates, key=lambda value: (value[0], value[1]))[1]
 
 
+def _carrier_dimensions(image: Image.Image, max_area_fraction: float) -> tuple[int, int]:
+    """Fit the preferred carrier under the registered pixel-area budget.
+
+    The previous decrement loop could oscillate on tall/narrow images: after
+    reducing the height below its floor it reset the height from the image
+    aspect ratio, so the width eventually crossed an arbitrary cutoff even
+    though a valid rectangle existed.  A single proportional projection is
+    deterministic and works for every positive canvas with usable margins.
+    """
+    usable_width = max(1, image.width - 20)
+    usable_height = max(1, image.height - 20)
+    area_budget = max(1, int(math.floor(max_area_fraction * image.width * image.height)))
+    width = min(usable_width, max(300, round(image.width * 0.46)))
+    height = min(usable_height, max(112, round(image.height * 0.25)))
+    if width * height <= area_budget:
+        return width, height
+
+    scale = math.sqrt(area_budget / float(width * height))
+    width = max(1, min(usable_width, int(math.floor(width * scale))))
+    height = max(1, min(usable_height, int(math.floor(height * scale))))
+    # Rounding can leave slack or, for tiny canvases, one excess row. Preserve
+    # the preferred aspect ratio while enforcing the cap exactly.
+    height = min(height, max(1, area_budget // width))
+    if width * height > area_budget:
+        raise ValueError("cannot fit carrier under the registered area cap")
+    return width, height
+
+
 def _carrier_palette(image: Image.Image, box: tuple[int, int, int, int], carrier_type: str):
     patch = np.asarray(image.crop(box).resize((32, 16)), dtype=np.float32)
     local = np.median(patch.reshape(-1, 3), axis=0)
@@ -852,15 +880,7 @@ def render_carrier(
     if any(_BANNED.search(line) for line in lines):
         raise ValueError("render text contains a forbidden answer/verdict token")
 
-    width = min(image.width - 20, max(300, round(image.width * 0.46)))
-    height = max(112, round(image.height * 0.25))
-    while width * height / (image.width * image.height) > max_area_fraction:
-        height -= 2
-        if height < 96:
-            width -= 4
-            height = max(96, round(image.height * 0.22))
-        if width < 260:
-            raise ValueError("cannot fit carrier under the registered area cap")
+    width, height = _carrier_dimensions(image, max_area_fraction)
     box = _local_variance_box(image, width, height, plan.placement)
     output = Path(output)
     mask_path = Path(mask_output) if mask_output is not None else None

@@ -1083,6 +1083,61 @@ Qwen2.5-VL-3B (9/28 clean-correct questions) and 24.14% on Qwen2.5-VL-7B
 (7/29), using official RIO replay. One region choice and 24 generation captions
 use the recorded fixed fallbacks described above.
 
+### Matched two-dataset ContraLedger delivery matrix
+
+The confirmatory delivery comparison holds the frozen three-state item,
+question, option map, record text, and endpoint fixed while changing only the
+renderer. It covers the existing 200 COCO items and an independently selected,
+family-balanced 200-item Pascal VOC 2012 set. The three delivery conditions are
+the native perspective carrier, a content-matched flat panel, and public
+SceneTAP SoM/TextDiffuser components with a local Qwen2.5-VL-7B placement
+planner. The last condition is a component-chain replay, not an
+official-equivalent GPT-4o planner reproduction and not SceneTAP's original
+target-token attack content.
+
+The independent-source construction, hashes, and claim limits are summarized
+in `dataset_cards/contraledger_voc2012_n200_v1.md`.
+
+Build and audit the independent source set and matched baselines before any
+victim inference:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_scei_image_dataset.py \
+  --config configs/contraledger_voc2012_dataset_n200.yaml --resume
+
+/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_threeway.py \
+  --source-manifest runs/contraledger_voc2012_scene_questions_n200_v1/manifest.jsonl \
+  --output-root runs/contraledger_threeway_voc2012_n200_v1frozen \
+  --per-family 25 --seed 20260904
+
+/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_flat_baseline.py \
+  --source-manifest runs/contraledger_threeway_voc2012_n200_v1frozen/manifest.jsonl \
+  --output-root runs/contraledger_threeway_voc2012_n200_flat_v1
+
+/disk2/fangxinyue/.venv/bin/python scripts/stage_contraledger_scenetap.py \
+  --source-manifest runs/contraledger_threeway_voc2012_n200_v1frozen/manifest.jsonl \
+  --output-root runs/contraledger_threeway_voc2012_n200_scenetap_stage_v1
+```
+
+`split_scenetap_questions.py` and `merge_scenetap_som_shards.py` provide
+item-disjoint sharding around the public SoM preprocessing. Planning uses
+`plan_scenetap_local_qwen.py`; rendering uses
+`render_contraledger_scenetap.py`, which fixes candidate index 0 and reuses the
+same selected region for each false/corrected twin. Generate the 24 immutable
+evaluation configurations with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python \
+  scripts/write_contraledger_transfer_configs.py \
+  --config-dir configs --expected-items 200 --seed 20260904
+```
+
+Run each config with `scripts/run_contraledger_threeway.py`, using the
+model-specific environments documented above. Final aggregation is fail-closed:
+`scripts/analyze_contraledger_delivery_matrix.py` rejects incomplete cells,
+hash mismatches, or any semantic field that differs across renderers, and
+reports paired exact McNemar tests on the common double-control-eligible set.
+
 ### Registered physical capture kit
 
 The script below freezes 150 assets and a randomized 450-photo tier-1 schedule

@@ -1,0 +1,35 @@
+schema_version: cta/scei-image-dataset-v2
+dataset_name: ContraLedger-VOC2012-200
+source_manifest: runs/contraledger_voc2012_source_n2000_v1/sample_manifest.json
+output_root: /disk2/fangxinyue/causal_typographic_attack_artifacts/datasets/contraledger_voc2012_n200_v1
+dataset: Pascal VOC 2012 segmentation
+expected_items: 200
+seed: 20260904
+offset: 0
+record_generator: diverse_v2
+record_seed: 20260904
+split_seed: 20260904
+split_counts_per_family:
+  transfer: 25
+max_area_fraction: 0.15
+max_planner_attempts: 2
+require_valid_plans: false
+counterfactual_families:
+  - range_threshold
+  - unit_conversion
+  - temporal_ledger
+  - capacity_conservation
+  - causal_order
+  - geometry_feasibility
+  - probability_ledger
+  - phase_state
+
+planner_model:
+  adapter: qwen25vl
+  name_or_path: /home/fangxinyue/.cache/huggingface/hub/models--Qwen--Qwen2.5-VL-3B-Instruct/snapshots/66285546d2b821cf421d4f5eb2576359d3770cd3
+  device: cuda:0
+  dtype: bfloat16
+  max_new_tokens: 220
+  min_pixels: 200704
+  max_pixels: 602112
+  do_sample: false
