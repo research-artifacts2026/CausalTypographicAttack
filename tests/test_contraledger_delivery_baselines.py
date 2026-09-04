@@ -19,10 +19,11 @@ def load_script(name: str):
     return module
 
 
-def test_render_seed_is_truth_specific_and_stable():
+def test_render_seed_is_paired_across_truth_twins_and_stable():
     module = load_script("render_contraledger_scenetap.py")
     assert module.stable_seed("item", "false", 7) == module.stable_seed("item", "false", 7)
-    assert module.stable_seed("item", "false", 7) != module.stable_seed("item", "true", 7)
+    assert module.stable_seed("item", "false", 7) == module.stable_seed("item", "true", 7)
+    assert module.stable_seed("item", "false", 7) != module.stable_seed("other", "false", 7)
 
 
 def test_strip_render_fields_preserves_registered_semantics():

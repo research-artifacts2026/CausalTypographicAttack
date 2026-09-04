@@ -55,8 +55,16 @@ def strip_render_fields(row: dict) -> dict:
 
 
 def stable_seed(item_id: str, truth: str, seed: int) -> int:
+    """Return one paired diffusion seed for both semantic twins.
+
+    ``truth`` remains in the public call signature so existing callers and
+    provenance readers do not break, but it is deliberately excluded from the
+    hash.  Using different random draws for the true and false record would
+    confound the registered one-field intervention with stochastic texture and
+    lighting changes.
+    """
     digest = hashlib.sha256(
-        f"contraledger-scenetap-v1:{seed}:{item_id}:{truth}".encode("utf-8")
+        f"contraledger-scenetap-v1:{seed}:{item_id}".encode("utf-8")
     ).digest()
     return int.from_bytes(digest[:4], "big")
 
