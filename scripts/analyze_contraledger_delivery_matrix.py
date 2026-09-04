@@ -35,6 +35,15 @@ def read_jsonl(path: Path) -> list[dict]:
     ]
 
 
+def report_path(path: Path) -> str:
+    """Prefer portable project-relative paths in the released evidence."""
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(Path.cwd().resolve())).replace("\\", "/")
+    except ValueError:
+        return str(resolved)
+
+
 def parse_assignment(value: str) -> tuple[str, str, str, Path, Path]:
     parts = value.split("=", 1)
     if len(parts) != 2:
@@ -170,9 +179,9 @@ def main() -> None:
         })
         prediction_rows[(dataset, method, model)] = rows
         evidence_cells[f"{dataset}/{method}/{model}"] = {
-            "manifest": str(manifest_path), "manifest_sha256": manifest_hash,
-            "log": str(log_path), "log_sha256": file_sha256(log_path),
-            "provenance": str(provenance_path),
+            "manifest": report_path(manifest_path), "manifest_sha256": manifest_hash,
+            "log": report_path(log_path), "log_sha256": file_sha256(log_path),
+            "provenance": report_path(provenance_path),
             "provenance_sha256": file_sha256(provenance_path),
             "summary": summary,
         }
@@ -220,9 +229,9 @@ def main() -> None:
         ),
         "cells": evidence_cells,
         "paired_tests": paired_rows,
-        "cell_summary": str(summary_path),
+        "cell_summary": report_path(summary_path),
         "cell_summary_sha256": file_sha256(summary_path),
-        "paired_tests_path": str(paired_path),
+        "paired_tests_path": report_path(paired_path),
         "paired_tests_sha256": file_sha256(paired_path),
         "claim_boundary": (
             "Matched delivery-layer comparison. SceneTAP cells use public SoM and "
