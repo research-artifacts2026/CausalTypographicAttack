@@ -19,6 +19,9 @@ victim outputs:
   of SceneTAP's original short target-token attack content.
 - All items, texts, truth twins, questions, and candidate-index rules are
   frozen before victim inference. No successful-example filtering is allowed.
+- Corrected/false twins reuse the same selected region, binary mask, candidate
+  index, and diffusion seed; any planner parse/region/caption fallback is fixed
+  and counted in provenance before victim inference.
 - Main claims require complete logs and fail-closed manifest/hash audits.
 
 ## Planned matrix
