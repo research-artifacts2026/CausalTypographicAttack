@@ -384,6 +384,124 @@ The designer credential is read only from `OPENAI_API_KEY`; it is not stored in 
 
 For pipeline validation when the external API is unavailable, the same runner also accepts a local LVLM designer. `configs/adaptive_qwen3_designer_qwen7_smoke_n5.yaml` and `configs/adaptive_qwen3_designer_qwen7_n50.yaml` use Qwen2.5-VL-3B as the designer and Qwen2.5-VL-7B as the black-box target. These logs must be labeled **local Qwen designer**, never ChatGPT or GPT-5.6 Sol. They validate the adaptive protocol and provide an attacker-model ablation, but do not substitute for the registered GPT-5.6 Sol run.
 
+### ContraLedger: cue-controlled counterfactual verification
+
+ContraLedger is the mechanism-identification successor to the compound
+SCEI scene-question experiment.  Each source image receives one object-specific
+verification question.  A one-field true/false record twin is crossed with
+three cue levels while source pixels, question, carrier geometry, mask, and
+answer order remain fixed; only the registered record field and cue change:
+
+The full schema, split, metric, audit, and limitation contract is recorded in
+[`docs/contraledger_dataset.md`](docs/contraledger_dataset.md).
+
+- `values_only`: contradictory or corrected fields plus a neutral record ID;
+- `authority`: the same fields plus `TECHNICIAN SIGNED`;
+- `explicit_conclusion`: the same fields plus `RESULT: CONSISTENT`.
+
+Positive consistency and negative inconsistency questions are balanced before
+inference.  The primary endpoint is false-record target ASR conditioned on a
+correct same-cue true twin.  EOR is stricter: the victim must also transcribe
+the complete false record exactly and correctly reject that record in an
+independent knowledge query on the unmodified source image.
+
+```bash
+cd /disk2/fangxinyue/causal_typographic_attack
+
+# Frozen 120-item development set (15 per family; 60 positive/60 negative).
+/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger.py \
+  --source-manifest runs/scei_scene_questions_n800_v1d/manifest.jsonl \
+  --output-root runs/contraledger_development_n120_v2 \
+  --per-family 15 --offset-per-family 0 --seed 20260904 --stage development
+
+# Example victim run; the other registered model configs follow the same form.
+CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_contraledger.py --config configs/contraledger_qwen7_n120.yaml
+
+# Aggregate only after all four provenance files say `complete`.
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger.py \
+  --manifest runs/contraledger_development_n120_v2/manifest.jsonl \
+  --model-log Qwen-3B=runs/contraledger_qwen3_n120_v2/predictions.jsonl \
+  --model-log Qwen-7B=runs/contraledger_qwen7_n120_v2/predictions.jsonl \
+  --model-log LLaVA=runs/contraledger_llava_n120_v2/predictions.jsonl \
+  --model-log InternVL=runs/contraledger_internvl_n120_v2/predictions.jsonl \
+  --output-dir artifacts/contraledger_development_n120_v2
+```
+
+The analyzer fails closed on manifest coverage, frozen-field equality,
+source/image/mask hashes, parse failures, and run/manifest provenance.  The
+disjoint 400-item held-out manifest is frozen at
+`runs/contraledger_heldout_n400_v1frozen/`; it must not be rewritten after
+development results are inspected.  Development evidence may motivate the
+held-out run, but it is never reported as held-out evidence.
+
+The bias-resistant confirmatory protocol uses 200 additional, disjoint images
+(25 per family) and a three-state decision. The same scene-specific A/B/C
+question is asked on the unmodified source (correct: no record visible), the
+true record (correct: internally consistent), and the false record (correct:
+internally inconsistent; attack target: internally consistent). A false-record
+target counts only if both controls are correct. Build and run it with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_threeway.py \
+  --source-manifest runs/scei_scene_questions_n800_v1d/manifest.jsonl \
+  --output-root runs/contraledger_threeway_n200_v1frozen \
+  --exclude-manifest runs/contraledger_development_n120_v2/manifest.jsonl \
+  --exclude-manifest runs/contraledger_heldout_n400_v1frozen/manifest.jsonl \
+  --per-family 25 --offset-per-family 75 --seed 20260904
+
+CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+  scripts/run_contraledger_threeway.py \
+  --config configs/contraledger_threeway_qwen3_n200.yaml
+
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger_threeway.py \
+  --manifest runs/contraledger_threeway_n200_v1frozen/manifest.jsonl \
+  --model-log Qwen-3B=runs/contraledger_threeway_qwen3_n200_v1/predictions.jsonl \
+  --model-log Qwen-7B=runs/contraledger_threeway_qwen7_n200_v1/predictions.jsonl \
+  --model-log LLaVA=runs/contraledger_threeway_llava_n200_v1/predictions.jsonl \
+  --model-log InternVL=runs/contraledger_threeway_internvl_n200_v1/predictions.jsonl \
+  --model-log Qwen3-VL-8B=runs/contraledger_threeway_qwen3vl8_n200_v1/predictions.jsonl \
+  --model-log InternVL3-8B=runs/contraledger_threeway_internvl3_n200_v1/predictions.jsonl \
+  --output-dir artifacts/contraledger_threeway_n200_v1
+```
+
+The build is hash-frozen and the A/B/C semantic positions are counterbalanced.
+The runner is append-only and resumable. No victim output is used for image
+selection, family assignment, question writing, rendering, or stopping.
+
+The audited confirmation result is 97.1--99.0% double-control-conditioned
+target ASR on the four predeclared checkpoints (696/708 pooled, 98.3%). The
+strict exact-read-plus-correct-knowledge subset reaches 139/144 (96.5%). The
+unchanged-manifest Qwen3-VL-8B and InternVL3-8B post-freeze extensions reach
+83.9% and 94.9%, respectively. These are controlled digital results; they do
+not imply camera-captured physical robustness or public-leaderboard SOTA.
+
+The separate 400-image cue ablation is also complete for the original four
+models. It evaluates 2,400 true/false-by-cue image rows per model plus 400
+source-prior queries. Reproduce the final fail-closed report with:
+
+```bash
+/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger.py \
+  --manifest runs/contraledger_heldout_n400_v1frozen/manifest.jsonl \
+  --model-log Qwen-3B=runs/contraledger_qwen3_heldout_n400_v1/predictions.jsonl \
+  --model-log Qwen-7B=runs/contraledger_qwen7_heldout_n400_v1/predictions.jsonl \
+  --model-log LLaVA=runs/contraledger_llava_heldout_n400_v1/predictions.jsonl \
+  --model-log InternVL=runs/contraledger_internvl_heldout_n400_v1_merged/predictions.jsonl \
+  --source-prior-log Qwen-3B=runs/contraledger_qwen3_heldout_n400_v1_source_prior/predictions.jsonl \
+  --source-prior-log Qwen-7B=runs/contraledger_qwen7_heldout_n400_v1_source_prior/predictions.jsonl \
+  --source-prior-log LLaVA=runs/contraledger_llava_heldout_n400_v1_source_prior/predictions.jsonl \
+  --source-prior-log InternVL=runs/contraledger_internvl_heldout_n400_v1_source_prior/predictions.jsonl \
+  --output-dir artifacts/contraledger_heldout_n400_v1
+```
+
+Values-only false-record target ASR is 93.0%, 93.1%, 97.7%, and 98.9%;
+source-prior-adjusted induction is 90.8%, 94.9%, 100.0%, and 95.9% for
+Qwen2.5-VL-3B/7B, LLaVA-OV-8B, and InternVL2-8B, respectively. Paired
+true/false twin accuracy is only 5.0%, 5.8%, 1.8%, and 0.8%, so this binary
+ablation is used to show that a printed evaluative verdict is unnecessary for
+influence, not as the headline causal attack estimate. The three-state DC-ASR
+above remains the primary result.
+
 ### SCEI-Search: scene-conditioned adaptive evidence attack
 
 `cta/scei_adaptive.py` implements the interactive algorithm used by the Gradio

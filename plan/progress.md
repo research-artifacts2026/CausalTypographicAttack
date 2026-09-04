@@ -1,5 +1,16 @@
 # RVTA-Bench implementation progress
 
+## ContraLedger truth-by-cue identification (2026-09-04)
+
+- [x] Define the fixed one-image/one-question 2 x 3 truth-by-cue protocol.
+- [x] Preserve values-only, non-evaluative authority, and explicit-conclusion conditions.
+- [x] Add deterministic builder, three-probe runner, EOR analysis, and unit tests.
+- [x] Materialize and visually audit the balanced 120-item development manifest on server 212.
+- [x] Complete four-model Qwen2.5-VL-3B/7B, LLaVA-OneVision-1.5-8B, and InternVL2-8B held-out jobs and source-prior diagnostics.
+- [x] Freeze a disjoint 400-item held-out expansion before inspecting development victim results (zero source-ID overlap).
+- [x] Add manifest/image/mask hash checks, frozen-input equality checks, polarity splits, and exact paired cue tests to the analyzer.
+- [x] Add results to the manuscript only after run-completeness and hash audits pass.
+
 - [x] Freeze scope, partitions, conditions, labels, and prohibited claims.
 - [x] Implement exact-area and benign-evidence controls.
 - [x] Implement the disjoint held-out factorial split.
