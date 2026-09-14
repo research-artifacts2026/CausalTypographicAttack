@@ -1,0 +1,38 @@
+{
+  "scope": "Post-run descriptive format audit and lexicographically first illustrative missing-range example; primary scores unchanged.",
+  "arms": {
+    "direct": {
+      "unparsed_at_cap": 8,
+      "unparsed_not_at_cap": 39
+    },
+    "reasoned": {
+      "unparsed_at_cap": 54,
+      "unparsed_not_at_cap": 0
+    },
+    "read": {
+      "unparsed_at_cap": 0,
+      "unparsed_not_at_cap": 39
+    },
+    "reasoned_long": {
+      "unparsed_at_cap": 5,
+      "unparsed_not_at_cap": 0
+    },
+    "thinking": {
+      "unparsed_at_cap": 42,
+      "unparsed_not_at_cap": 0
+    }
+  },
+  "covered_read_disagreements": 0,
+  "illustrative_read_omission": {
+    "item_id": "coco-000000027696",
+    "state": "record_false",
+    "nominal_fields": "PIZZA SURFACE | TEMP 016.8 C | SAFE RANGE 10.8 TO 16.8 C | UNCERTAINTY +/- 0.2 C",
+    "raw_transcription": "OBJECT-NAME: PIZZA ON A WHITE PLATE\nMEASUREMENT: PIZZA SURFACE | TEMP 016.8 C\nUNCERTAINTY: +/- 0.2 C",
+    "checker_reason": "unknown_or_multiple_schemas"
+  },
+  "input_hashes": {
+    "predictions.jsonl": "6196bcf62df829a96159eac2c153274314e920f5a26e7c105389a50e20123c46",
+    "calls.jsonl": "6291daf29f73dea6b7726c2aacdde66718a225e27efa8e78d4d4498139a92609",
+    "cases.json": "b06116498dc8d0151cb8bd2808e02fc15b9edf1441f3b45edc25714418674c7f"
+  }
+}

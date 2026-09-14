@@ -68,6 +68,8 @@ python -m unittest discover -s tests -p test_transcribed_record_checker.py -v
 python scripts/evaluate_transcribed_record_checker.py --output evidence/read_symbolic_n128 --replay
 python scripts/analyze_symbolic_confirmation.py --replay evidence/symbolic_confirmation_n128
 python -m unittest discover -s tests -p test_symbolic_confirmation.py -v
+python scripts/analyze_strong_model.py --replay evidence/strong_model_n128
+python -m unittest discover -s tests -p test_strong_model.py -v
 ```
 
 See `docs/verification_workbench.md` for CLI evaluation and the meaning of each
@@ -110,6 +112,15 @@ reason-then-answer and transcription each have one call and a 384-token output
 cap; actual input/output lengths and cap hits are retained. All 1,536 fresh
 calls and four corrected comparisons are released. Equal output caps do not
 mean equal actual computation; the checker also uses authored schema rules.
+
+`evidence/strong_model_n128/` adds the subsequent Qwen3.5-27B replication on
+the same fixed 128 scenes. It contains all 1,280 newly registered calls: three
+384-token non-thinking arms, longer reasoned responses at 2,048 tokens, and
+thinking-mode responses at 4,096 tokens including reasoning. All four corrected
+contrasts, measured token use, cap hits and optimistic format bounds remain
+visible. This is a larger open-checkpoint replication on previously evaluated
+scenes, not closed-model or new-schema validation. Greedy controlled settings
+differ from the model provider's recommended sampled benchmark settings.
 
 Some archived experiment scripts depend on original registered photos and
 historical build products. These dependencies are described in their READMEs;

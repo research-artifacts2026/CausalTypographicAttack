@@ -1436,3 +1436,10 @@ registered paired tests, measured token use and an explicitly post hoc formattin
 upper bound are released. Authored schema rules and untested transfer limit the
 claim; equal output caps do not mean equal actual computation. Existing null
 attack comparisons and unsuccessful neural mitigation results remain retained.
+
+The subsequent [Qwen3.5-27B replication](evidence/strong_model_n128/README.md)
+adds 1,280 frozen calls including longer reasoning and thinking-mode arms.
+Longer reasoning reaches 113/128 correct pairs versus 103/128 for the fixed
+checker; that corrected comparison is not significant. Short-cap gains are
+affected by truncation, while checker abstentions expose omitted transcription
+fields. All five arms, failures, token counts and raw responses are retained.

@@ -1,0 +1,29 @@
+{
+  "capture_scope": "Read-only runtime audit during the registered run; no settings changed.",
+  "python": "3.12.13 (main, Jul 23 2026, 14:43:28) [Clang 22.1.3 ]",
+  "cuda_runtime": "12.9",
+  "packages": {
+    "vllm": "0.19.1",
+    "torch": "2.10.0+cu129",
+    "transformers": "5.14.1",
+    "numpy": "2.2.6",
+    "Pillow": "12.3.0",
+    "tokenizers": "0.22.2",
+    "safetensors": "0.8.0",
+    "triton": "3.6.0"
+  },
+  "selected_gpu_descriptions": [
+    "0, NVIDIA RTX A6000, 49140 MiB, 535.309.01",
+    "1, NVIDIA RTX A6000, 49140 MiB, 535.309.01"
+  ],
+  "precision": "bfloat16",
+  "tensor_parallel_size": 2,
+  "max_model_len": 12288,
+  "max_sequences": 16,
+  "client_workers": 8,
+  "decoding": "greedy; temperature 0, top_p 1, top_k -1, presence penalty 0, repetition penalty 1",
+  "environment_settings": {
+    "NCCL_P2P_DISABLE": "1",
+    "TOKENIZERS_PARALLELISM": "false"
+  }
+}

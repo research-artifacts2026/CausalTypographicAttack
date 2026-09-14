@@ -1,0 +1,94 @@
+{
+  "model_id": "Qwen/Qwen3.5-27B",
+  "official_revision": "fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "official_api_url": "https://huggingface.co/api/models/Qwen/Qwen3.5-27B/revision/fc05daec18b0a78c049392ed2e771dde82bdf654?blobs=true",
+  "registration_sha256": "72a9efc5d8386a07352c6fd1458001df1447bb0a7afd5ad159ebc2cd42493238",
+  "files_verified": 21,
+  "checks": {
+    "chat_template.jinja": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "config.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "generation_config.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "merges.txt": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "model.safetensors-00001-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00002-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00003-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00004-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00005-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00006-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00007-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00008-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00009-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00010-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors-00011-of-00011.safetensors": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "model.safetensors.index.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "preprocessor_config.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "tokenizer.json": {
+      "kind": "sha256-lfs",
+      "match": true
+    },
+    "tokenizer_config.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "video_preprocessor_config.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    },
+    "vocab.json": {
+      "kind": "git-blob-sha1",
+      "match": true
+    }
+  },
+  "scope": "Post-registration identity audit against the immutable official Hub revision. All pre-inference weight/config/tokenizer hashes match upstream. No model files or inference settings are changed."
+}

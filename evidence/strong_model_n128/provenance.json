@@ -1,0 +1,57 @@
+{
+  "original_registration_sha256": "72a9efc5d8386a07352c6fd1458001df1447bb0a7afd5ad159ebc2cd42493238",
+  "workers": [
+    {
+      "worker": 0,
+      "calls_sha256": "788578b0897124f4153b4de86e41fa1a74d72c2a07e86e26837b3b964775b287",
+      "errors": 0
+    },
+    {
+      "worker": 1,
+      "calls_sha256": "2b603b166b93ba6e6423d416ac8085a88f5e0146edfc3bfc9a3257a94de01458",
+      "errors": 0
+    },
+    {
+      "worker": 2,
+      "calls_sha256": "7d1bed6f9a8105699955b83dd91d24dc50725d1c65244d248789d0bcdcaf17ce",
+      "errors": 0
+    },
+    {
+      "worker": 3,
+      "calls_sha256": "ca92792e28707981182a6f6695d9b0a0a1b3c5b3b15feb5a663f8734860e5218",
+      "errors": 0
+    },
+    {
+      "worker": 4,
+      "calls_sha256": "480bfab9b7b5c285fc133fcd143f991f0a3e14324f03858f54872a2adbffdad1",
+      "errors": 0
+    },
+    {
+      "worker": 5,
+      "calls_sha256": "e8a3d4db9cbe390e6af97d92fee84f4dff11ed0f15f752a25ff47b1a5e07be6f",
+      "errors": 0
+    },
+    {
+      "worker": 6,
+      "calls_sha256": "323c20b004e918de5a1fd674f7621cbe248d3b33a2ad20914e8ad3b0612bf816",
+      "errors": 0
+    },
+    {
+      "worker": 7,
+      "calls_sha256": "896940b3443827e1db79bbb858b48b71eaceb7874f96cb1f8d4d8b13818fb0fa",
+      "errors": 0
+    }
+  ],
+  "files": {
+    "analysis.json": "a1066b8e74bef7909a128c23ab1e8420a4c68181cd2083f6c3ff367823861234",
+    "cases.json": "b06116498dc8d0151cb8bd2808e02fc15b9edf1441f3b45edc25714418674c7f",
+    "study_design.json": "747165c522bf027d800e7d7fceb41f66fa627fde1b895abe16b03eb574f20035",
+    "calls.jsonl": "6291daf29f73dea6b7726c2aacdde66718a225e27efa8e78d4d4498139a92609",
+    "generated_table.tex": "6c0bb9d665944577427759c45b4a85efcff89867fd774aaa65ba9b529ac28056",
+    "generated_costs.tex": "417e64dc09640d08f94f51a8f8dd4cbaab2395b7997fead4037fc909caeb774b",
+    "generated_tests.tex": "7b1b26de5f7f9d6ecef64a6f3757af1ebfef93777b33046d327704edcaea2cc2",
+    "predictions.jsonl": "6196bcf62df829a96159eac2c153274314e920f5a26e7c105389a50e20123c46",
+    "requests.jsonl": "55c002bedff37dfb037c5efa9076294632db780577cafe7960c08121bde696bf"
+  },
+  "p_display_threshold": 0.0001
+}
