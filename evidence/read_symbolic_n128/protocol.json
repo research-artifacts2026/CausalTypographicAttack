@@ -1,0 +1,26 @@
+{
+  "version": "transcribed-record-checker-v1",
+  "frozen_at": "2026-09-14T12:17:38.942296+00:00",
+  "status": "retrospective_analysis_specification_not_original_preregistration",
+  "source": "evidence/channel_binding_n128",
+  "inputs": {
+    "cases.json": "548bde0dc7873b70ee80d100e5900d65f1a6a7767e3a87b53230212f22c3e9e4",
+    "requests_0.jsonl": "c563e5d29b68b6304e6dda1b8aa3a89accc58aa88d040b58c1ab9d5f5f585cf0",
+    "requests_1.jsonl": "3be26047001c01656c1e324f16196cba505d6f0237538d76896f66eb48f20f9e",
+    "raw/qwen7.jsonl": "b486a8a18405a272aeb70110733480cd49222389de6856a8865ff090d0b445cc",
+    "raw/qwen3.jsonl": "c36fe27254a0d9040ec9ac87f4bce109c8059dff089c8f34ab005b6cb9da49ca"
+  },
+  "code": {
+    "cta/transcribed_record_checker.py": "969f822ae65bb2bacd64d8fb9b48cdcc3055e3af3cbb21427d189ba119f908e1",
+    "scripts/evaluate_transcribed_record_checker.py": "fe2c4e966e00a5aa423babe513d5f3f40828f31e016577a1d9f097ca48818948"
+  },
+  "selection": "All 128 media items, both states, both archived Qwen models. No outcome-based selection.",
+  "checker_inputs": "Only the raw independent-read response and the public task assumption. No gold, ID, family label, or target fields.",
+  "abstention": "Missing, duplicate, unsupported, or ambiguous fields abstain; abstentions count incorrect in all-item metrics.",
+  "primary_endpoint": "All-item both-state accuracy; coverage and accuracy on covered cases reported separately.",
+  "comparisons": "Two exploratory paired tests: scene decision versus read-plus-checker, one per model; Holm across two.",
+  "uncertainty": "Paired source-stratified percentile bootstrap, 10000 draws, seed 20260914; exact two-sided McNemar.",
+  "cost": "Reuse 512 archived read responses. Zero new model calls. Reads had cap 384 versus direct decisions cap 96; not compute-matched.",
+  "limitations": "Template-aware and post hoc. Same reused scenes. Neither independent human gold validation nor a new held-out defense confirmation. No object-binding evaluation.",
+  "parser_policy": "Developed from published generator grammar and fresh synthetic unit fixtures before scoring archived responses. No tuning after aggregate evaluation."
+}

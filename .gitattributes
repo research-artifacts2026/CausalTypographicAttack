@@ -2,3 +2,6 @@
 evidence/verification_diagnostic_n64/** text eol=lf
 evidence/verification_confirmation_n128/** text eol=lf
 evidence/channel_binding_n128/** text eol=lf
+evidence/read_symbolic_n128/** text eol=lf
+cta/transcribed_record_checker.py text eol=lf
+scripts/evaluate_transcribed_record_checker.py text eol=lf

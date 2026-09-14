@@ -64,6 +64,8 @@ python scripts/replay_verification_diagnostic.py --evidence evidence/verificatio
 python scripts/replay_verification_confirmation.py --evidence evidence/verification_confirmation_n128
 python scripts/analyze_channel_study.py --replay evidence/channel_binding_n128
 python -m pytest tests/test_channel_study.py -q
+python -m unittest discover -s tests -p test_transcribed_record_checker.py -v
+python scripts/evaluate_transcribed_record_checker.py --output evidence/read_symbolic_n128 --replay
 ```
 
 See `docs/verification_workbench.md` for CLI evaluation and the meaning of each
@@ -92,6 +94,12 @@ defenses. The object-swap records remain pixel-identical when objects move.
 All full-set scores, ten prespecified tests and separate-call controls are
 retained, including failures and null results. Original record templates are
 reused; these are digital composites, not new natural measurements.
+
+`evidence/read_symbolic_n128/` adds a retrospective template-aware symbolic
+checker applied to all 512 actual model transcriptions, with zero new inference
+calls. Pair scores are 124/128 and 127/128; all parse abstentions count incorrect.
+It does not receive gold fields. Known schemas, reused scenes and unequal output
+caps limit this result; it is not independent defense confirmation.
 
 Some archived experiment scripts depend on original registered photos and
 historical build products. These dependencies are described in their READMEs;
