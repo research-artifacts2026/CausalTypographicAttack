@@ -1,0 +1,16 @@
+{
+  "scope": "Post hoc deterministic upper bound: every unparsed reasoned response is credited correct. Parsed wrong answers remain wrong. No primary scores or parsers are changed; this is not an additional significance test.",
+  "predictions_sha256": "cbe73420d761f940b057bb123640d89c363d16fe8653090c8e30ffcec728f14e",
+  "models": {
+    "qwen7": {
+      "optimistic_pair_correct": 66,
+      "pair_n": 128,
+      "unparsed_records_credited": 36
+    },
+    "qwen3": {
+      "optimistic_pair_correct": 110,
+      "pair_n": 128,
+      "unparsed_records_credited": 21
+    }
+  }
+}

@@ -1424,3 +1424,15 @@ python scripts/make_synthetic_natural_blind_pack.py \
 Do not self-fill these forms or substitute GPT ratings for people. If a model
 rating is later collected, analyze it with `--evaluator-kind model` and keep it
 separate. These assets do not satisfy the registered physical-capture protocol.
+
+## Prospective verification baseline confirmation
+
+The completed 1,536-call comparison on 128 different archived scenes is in
+[the confirmation evidence](evidence/symbolic_confirmation_n128/README.md).
+With one call and a 384-token cap for every arm, direct / reasoned / fixed-rule
+checker pair counts are 2 / 41 / 120 for Qwen2.5-VL-7B and 10 / 93 / 124 for
+Qwen3-VL-8B, each out of 128. All failures remain in the denominator. Raw outputs,
+registered paired tests, measured token use and an explicitly post hoc formatting
+upper bound are released. Authored schema rules and untested transfer limit the
+claim; equal output caps do not mean equal actual computation. Existing null
+attack comparisons and unsuccessful neural mitigation results remain retained.

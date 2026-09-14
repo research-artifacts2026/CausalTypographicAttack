@@ -66,6 +66,8 @@ python scripts/analyze_channel_study.py --replay evidence/channel_binding_n128
 python -m pytest tests/test_channel_study.py -q
 python -m unittest discover -s tests -p test_transcribed_record_checker.py -v
 python scripts/evaluate_transcribed_record_checker.py --output evidence/read_symbolic_n128 --replay
+python scripts/analyze_symbolic_confirmation.py --replay evidence/symbolic_confirmation_n128
+python -m unittest discover -s tests -p test_symbolic_confirmation.py -v
 ```
 
 See `docs/verification_workbench.md` for CLI evaluation and the meaning of each
@@ -100,6 +102,14 @@ checker applied to all 512 actual model transcriptions, with zero new inference
 calls. Pair scores are 124/128 and 127/128; all parse abstentions count incorrect.
 It does not receive gold fields. Known schemas, reused scenes and unequal output
 caps limit this result; it is not independent defense confirmation.
+
+`evidence/symbolic_confirmation_n128/` contains the subsequent prospectively
+registered comparison on 128 different archived scenes, excluding both previous
+diagnostic populations by item ID and exact original-source hash. Direct,
+reason-then-answer and transcription each have one call and a 384-token output
+cap; actual input/output lengths and cap hits are retained. All 1,536 fresh
+calls and four corrected comparisons are released. Equal output caps do not
+mean equal actual computation; the checker also uses authored schema rules.
 
 Some archived experiment scripts depend on original registered photos and
 historical build products. These dependencies are described in their READMEs;

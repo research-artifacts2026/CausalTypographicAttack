@@ -1,0 +1,7 @@
+{
+  "analysis_sha256": "9975f452439a840665caadaf09714c78f0ada0a5b375446428ad68a3493eb0e0",
+  "generator_sha256": "ac0447fc93335606c4e1a40a408847955665fc04c63deb321cfacfd832e12957",
+  "table_sha256": "c6a112a792dab11457acc1fd10b190a38c3c7110d39c3bfdcf0b9ce98d1a08ec",
+  "p_display_threshold": 0.0001,
+  "scope": "Four prospectively specified paired contrasts; Holm across four, marginal bootstrap intervals."
+}
