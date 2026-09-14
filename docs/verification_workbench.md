@@ -89,6 +89,25 @@ Real fresh-study registration and independent human review remain separate work.
 
 ## Validation on 2026-09-14
 
+The UI now gives an explicit per-item attack outcome and a raw-answer/correct-
+answer table. Invalid-record accuracy of zero can mean attack success; DC-ASR
+is labeled from the attacker's perspective. A failed control or unparsed answer
+is not shown as a successful defense. The corrected UI was verified with 14
+fresh real-model calls on the same example, without selecting a different image.
+
+The CLI additionally supports `self_check`, a two-stage draft/review baseline.
+It has the same per-stage output caps and call count as `read_then_verify`.
+The frozen 64-scene, two-model diagnostic is released in
+`evidence/verification_diagnostic_n64/`; all 2,560 calls completed. It is a
+post-hoc mitigation study on reused sources, not a fresh-source attack benchmark.
+The registered comparison shows a Qwen3-VL-specific pair-accuracy improvement,
+with substantial residual failures and no significant Qwen-7B improvement.
+42 targeted tests pass; the identity-scrubbed candidate export also passed 72
+workbench, display, table-replay and archived-experiment tests plus 11 subtests.
+
+Validated environment: Python 3.10, torch 2.5.1+cu121, transformers 5.9.0,
+Gradio 6.26.0. Historical warning messages are retained in the test record.
+
 31 targeted CPU tests pass, including the unchanged three-state and legacy UI
 regressions. The old legacy-config assertion was corrected to accept its already
 supported `auto_scene` setting. An eight-family Qwen2.5-VL-7B integration run

@@ -1,0 +1,14 @@
+\begin{tabular}{llrrrrrr}
+\toprule
+Model & Strategy & Source & Valid & Invalid & Pair & DC-ASR & EOR \\
+\midrule
+Qwen2.5-VL-7B & Direct & 64/64 & 62/64 & 2/64 & 1/64 & 61/62 & 24/24 \\
+Qwen2.5-VL-7B & Rule-guided & 58/64 & 64/64 & 0/64 & 0/64 & 58/58 & 21/21 \\
+Qwen2.5-VL-7B & Read then verify & 52/64 & 63/64 & 1/64 & 1/64 & 50/51 & 17/18 \\
+Qwen2.5-VL-7B & Self-check & 51/64 & 61/64 & 1/64 & 0/64 & 48/49 & 18/19 \\
+Qwen3-VL-8B & Direct & 62/64 & 26/64 & 36/64 & 3/64 & 21/24 & 5/6 \\
+Qwen3-VL-8B & Rule-guided & 49/64 & 24/64 & 40/64 & 6/64 & 15/18 & 3/4 \\
+Qwen3-VL-8B & Read then verify & 60/64 & 45/64 & 31/64 & 16/64 & 28/44 & 4/9 \\
+Qwen3-VL-8B & Self-check & 62/64 & 45/64 & 25/64 & 6/64 & 37/43 & 9/10 \\
+\bottomrule
+\end{tabular}

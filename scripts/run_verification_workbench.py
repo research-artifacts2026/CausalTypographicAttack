@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from cta.verification_workbench import (STRATEGIES, evaluate_packet, freeze_packet,
+from cta.verification_workbench import (STRATEGIES, SUPPORTED_STRATEGIES, evaluate_packet, freeze_packet,
     load_packet, read_jsonl, select_items)
 
 
@@ -19,7 +19,7 @@ def main():
     freeze.add_argument("--manifest", type=Path, required=True)
     freeze.add_argument("--output", type=Path, required=True)
     freeze.add_argument("--items", type=int, required=True)
-    freeze.add_argument("--strategies", nargs="+", choices=STRATEGIES, default=list(STRATEGIES))
+    freeze.add_argument("--strategies", nargs="+", choices=SUPPORTED_STRATEGIES, default=list(STRATEGIES))
     verify = sub.add_parser("verify")
     verify.add_argument("--packet", type=Path, required=True)
     run = sub.add_parser("run")

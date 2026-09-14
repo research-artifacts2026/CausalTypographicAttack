@@ -35,6 +35,26 @@ def test_parser_permutations():
             assert parse_option(f"({letter}).", option_map(i)) == semantic
 
 
+def test_self_check_has_independent_draft_and_equal_two_stage_budget(packet, tmp_path):
+    from cta.verification_workbench import canonical
+    _, rows = load_packet(packet)
+    frozen = freeze_packet(rows, tmp_path / 'four-arms', origin='test',
+                           strategies=[*STRATEGIES, 'self_check'])
+    class Model:
+        def infer(self, image, prompt, max_new_tokens): return 'A'
+    result = evaluate_packet(frozen, tmp_path / 'run', {}, lambda c: Model())
+    calls = read_jsonl(tmp_path / 'run/calls.jsonl')
+    assert result['actual_calls'] == 20
+    for condition in CONDITIONS:
+        item = rows[0]['item_id']
+        budgets = {json.loads(c['key'])[-1]: c['request']['max_new_tokens'] for c in calls
+                   if json.loads(c['key'])[:2] == [item, condition]}
+        assert budgets['strategy_draft'] == budgets['strategy_read'] == 384
+        for strategy in ('self_check','read_then_verify'):
+            cell = next(c for c in calls if c['key'] == canonical([item,condition,strategy,'decide']))
+            assert cell['request']['max_new_tokens'] == 96
+
+
 @pytest.mark.parametrize("family", REQUESTED_COUNTERFACTUAL_FAMILIES)
 def test_upload_all_families_fit_and_validate(source, tmp_path, family):
     rows = demo_rows(source, "oven", family, tmp_path / family)
