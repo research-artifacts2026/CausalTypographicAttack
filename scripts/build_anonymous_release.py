@@ -62,6 +62,8 @@ python -m pytest tests/test_verification_workbench.py tests/test_verification_di
 python scripts/make_rule_confirmation_table.py --evidence evidence/rule_explicit_confirmation_n128/analysis.json --output review-table
 python scripts/replay_verification_diagnostic.py --evidence evidence/verification_diagnostic_n64
 python scripts/replay_verification_confirmation.py --evidence evidence/verification_confirmation_n128
+python scripts/analyze_channel_study.py --replay evidence/channel_binding_n128
+python -m pytest tests/test_channel_study.py -q
 ```
 
 See `docs/verification_workbench.md` for CLI evaluation and the meaning of each
@@ -83,6 +85,13 @@ comparison of read-then-verify with self-check on 128 different archived scenes.
 All 3,584 calls, paired effects and both model outcomes are retained. The scenes
 are disjoint from the earlier 64-scene diagnostic by ID and original image hash;
 they are not globally unseen benchmark sources. See its README for the results.
+`evidence/channel_binding_n128/` adds 4,608 frozen calls separating record pixels,
+exact supplied fields, genuinely image-free reasoning, and controlled object
+swaps. Supplied fields and locations are oracle diagnostics, not deployable
+defenses. The object-swap records remain pixel-identical when objects move.
+All full-set scores, ten prespecified tests and separate-call controls are
+retained, including failures and null results. Original record templates are
+reused; these are digital composites, not new natural measurements.
 
 Some archived experiment scripts depend on original registered photos and
 historical build products. These dependencies are described in their READMEs;

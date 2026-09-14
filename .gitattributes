@@ -1,3 +1,4 @@
 # Preserve the bytes used by portable response-journal hash checks on Windows.
 evidence/verification_diagnostic_n64/** text eol=lf
 evidence/verification_confirmation_n128/** text eol=lf
+evidence/channel_binding_n128/** text eol=lf

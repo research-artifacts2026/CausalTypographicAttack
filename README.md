@@ -24,6 +24,22 @@ frozen-manifest mode, CLI usage, call budgets and interpretation. The three
 strategies have unequal compute budgets and are diagnostics, not a ranked
 same-budget baseline comparison. Historical parsers and scores are preserved.
 
+## Matched media and object-association evidence
+
+The [complete 4,608-call diagnostic](evidence/channel_binding_n128/README.md)
+separates scene pixels, exact supplied fields, genuinely image-free reasoning,
+and object swaps that preserve every record pixel. Supplying exact fields
+significantly improves paired verification on both tested checkpoints, but
+text-only reasoning remains poor. All four prespecified association contrasts
+remain nonsignificant after correction. These are diagnostic interventions,
+not a superior attack claim or a reliable defense. The release includes every
+raw answer, frozen request and paired test.
+
+```bash
+python scripts/analyze_channel_study.py --replay evidence/channel_binding_n128
+python -m pytest tests/test_channel_study.py tests/test_channel_analysis.py -q
+```
+
 ## Fixed-prompt mitigation confirmation
 
 The [128-scene confirmation](evidence/verification_confirmation_n128/README.md)

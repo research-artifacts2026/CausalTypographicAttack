@@ -1,0 +1,18 @@
+\begin{tabular}{llrrr}
+\toprule
+Model & Input / control & Valid & False & Both states \\
+\midrule
+Qwen2.5-VL-7B & Image only & 49/64 & 18/64 & 11/64 \\
+Qwen2.5-VL-7B & Image + fields & 40/64 & 28/64 & 10/64 \\
+Qwen2.5-VL-7B & Image + location & 54/64 & 11/64 & 10/64 \\
+Qwen2.5-VL-7B & Image + fields + location & 53/64 & 15/64 & 12/64 \\
+Qwen2.5-VL-7B & Independent localization & --- & --- & 64/64 \\
+Qwen2.5-VL-7B & Single-record text reasoning & 41/64 & 32/64 & 12/64 \\
+Qwen3-VL-8B & Image only & 32/64 & 30/64 & 5/64 \\
+Qwen3-VL-8B & Image + fields & 28/64 & 40/64 & 9/64 \\
+Qwen3-VL-8B & Image + location & 34/64 & 31/64 & 5/64 \\
+Qwen3-VL-8B & Image + fields + location & 31/64 & 43/64 & 13/64 \\
+Qwen3-VL-8B & Independent localization & --- & --- & 63/64 \\
+Qwen3-VL-8B & Single-record text reasoning & 11/64 & 59/64 & 9/64 \\
+\bottomrule
+\end{tabular}

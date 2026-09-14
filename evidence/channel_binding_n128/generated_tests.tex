@@ -1,0 +1,16 @@
+\begin{tabular}{llrrr}
+\toprule
+Model & Contrast ($B-A$) & $\Delta$ (pp) & 95\% CI (pp) & $p_H$ \\
+\midrule
+Qwen2.5-VL-7B & Scene + fields -- Scene & +16.41 & [10.16, 22.66] & 0.00001 \\
+Qwen2.5-VL-7B & Fields, no image -- Scene + fields & -9.38 & [-17.19, -2.34] & 0.06445 \\
+Qwen2.5-VL-7B & Record pixels -- Scene & +6.25 & [1.56, 10.94] & 0.06445 \\
+Qwen2.5-VL-7B & Image + fields + location -- Image + fields & +3.12 & [-7.81, 14.06] & 1.00000 \\
+Qwen2.5-VL-7B & Image + fields + location -- Image + location & +3.12 & [0.00, 7.81] & 1.00000 \\
+Qwen3-VL-8B & Scene + fields -- Scene & +21.09 & [12.50, 29.69] & 0.00002 \\
+Qwen3-VL-8B & Fields, no image -- Scene + fields & -12.50 & [-20.31, -3.91] & 0.02800 \\
+Qwen3-VL-8B & Record pixels -- Scene & +3.91 & [-2.34, 10.16] & 0.33231 \\
+Qwen3-VL-8B & Image + fields + location -- Image + fields & +6.25 & [-1.56, 14.06] & 0.86719 \\
+Qwen3-VL-8B & Image + fields + location -- Image + location & +12.50 & [4.69, 21.88] & 0.08594 \\
+\bottomrule
+\end{tabular}

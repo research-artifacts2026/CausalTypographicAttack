@@ -1,0 +1,19 @@
+\begin{tabular}{lrr}
+\toprule
+Input / independent control & Qwen2.5-VL-7B & Qwen3-VL-8B \\
+\midrule
+\multicolumn{3}{l}{\textit{Media: both record states correct}} \\
+Scene & 3/128 & 8/128 \\
+Record pixels & 11/128 & 13/128 \\
+Scene + exact fields & 24/128 & 35/128 \\
+Exact fields, no image & 12/128 & 19/128 \\
+\midrule
+\multicolumn{3}{l}{\textit{Association: both object placements correct}} \\
+Image only & 11/64 & 5/64 \\
+Image + exact fields & 10/64 & 9/64 \\
+Image + target location & 10/64 & 5/64 \\
+Image + both annotations & 12/64 & 13/64 \\
+Independent localization & 64/64 & 63/64 \\
+Single-record text reasoning & 12/64 & 9/64 \\
+\bottomrule
+\end{tabular}

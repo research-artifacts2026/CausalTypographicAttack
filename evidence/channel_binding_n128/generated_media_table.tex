@@ -1,0 +1,18 @@
+\begin{tabular}{llrrr}
+\toprule
+Model & Input / control & Valid & False & Both states \\
+\midrule
+Qwen2.5-VL-7B & Scene & 117/128 & 9/128 & 3/128 \\
+Qwen2.5-VL-7B & Record pixels & 117/128 & 20/128 & 11/128 \\
+Qwen2.5-VL-7B & Scene + fields & 118/128 & 31/128 & 24/128 \\
+Qwen2.5-VL-7B & Record pixels + fields & 110/128 & 31/128 & 16/128 \\
+Qwen2.5-VL-7B & Fields, no image & 73/128 & 57/128 & 12/128 \\
+Qwen2.5-VL-7B & Exact independent read & --- & --- & 45/128 \\
+Qwen3-VL-8B & Scene & 32/128 & 90/128 & 8/128 \\
+Qwen3-VL-8B & Record pixels & 35/128 & 102/128 & 13/128 \\
+Qwen3-VL-8B & Scene + fields & 72/128 & 80/128 & 35/128 \\
+Qwen3-VL-8B & Record pixels + fields & 62/128 & 88/128 & 31/128 \\
+Qwen3-VL-8B & Fields, no image & 40/128 & 96/128 & 19/128 \\
+Qwen3-VL-8B & Exact independent read & --- & --- & 19/128 \\
+\bottomrule
+\end{tabular}
