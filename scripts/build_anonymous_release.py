@@ -98,6 +98,7 @@ and scoped numerical replay; it does not certify every historical run as fully
 reproducible or remove the limitations stated in the paper.
 ''',encoding='utf-8',newline='\n')
     (destination/'.gitignore').write_bytes(b'__pycache__/\n*.pyc\n.pytest_cache/\nruns/\nconfigs/*.local.yaml\n')
+    (destination/'.gitattributes').write_bytes(b'* text eol=lf\n')
     manifest={p.relative_to(destination).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(destination.rglob('*')) if p.is_file()}
     (destination/'EXPORT_MANIFEST.json').write_text(json.dumps({'files':manifest,'redacted_files':changed,
