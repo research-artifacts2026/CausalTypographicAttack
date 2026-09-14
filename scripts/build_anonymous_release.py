@@ -60,6 +60,8 @@ clearly labeled synthetic valid/invalid records and shows raw and correct answer
 ```bash
 python -m pytest tests/test_verification_workbench.py tests/test_verification_display.py tests/test_rule_confirmation_table.py -q
 python scripts/make_rule_confirmation_table.py --evidence evidence/rule_explicit_confirmation_n128/analysis.json --output review-table
+python scripts/replay_verification_diagnostic.py --evidence evidence/verification_diagnostic_n64
+python scripts/replay_verification_confirmation.py --evidence evidence/verification_confirmation_n128
 ```
 
 See `docs/verification_workbench.md` for CLI evaluation and the meaning of each
@@ -76,6 +78,11 @@ the twenty corrected baseline comparisons show no significant method advantage.
 128-source confirmation. Both the Qwen-7B positive result and Qwen3-VL null are
 retained. The supplementary strategy diagnostic is a new protocol on reused
 sources, not a claim of unseen-scene transfer or superior attack performance.
+`evidence/verification_confirmation_n128/` adds the prospectively registered
+comparison of read-then-verify with self-check on 128 different archived scenes.
+All 3,584 calls, paired effects and both model outcomes are retained. The scenes
+are disjoint from the earlier 64-scene diagnostic by ID and original image hash;
+they are not globally unseen benchmark sources. See its README for the results.
 
 Some archived experiment scripts depend on original registered photos and
 historical build products. These dependencies are described in their READMEs;

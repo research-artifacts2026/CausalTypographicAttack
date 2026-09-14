@@ -24,6 +24,20 @@ frozen-manifest mode, CLI usage, call budgets and interpretation. The three
 strategies have unequal compute budgets and are diagnostics, not a ranked
 same-budget baseline comparison. Historical parsers and scores are preserved.
 
+## Fixed-prompt mitigation confirmation
+
+The [128-scene confirmation](evidence/verification_confirmation_n128/README.md)
+contains 3,584 completed calls on scenes disjoint from the earlier mitigation
+diagnostic. Read-then-verify versus equally capped self-check achieves pair
+accuracy 21/128 versus 12/128 on Qwen3-VL (Holm p=0.244), and 2/128 versus 1/128
+on Qwen-7B (p=1). The earlier exploratory improvement is not confirmed; all raw
+responses, exact denominators and null findings are retained. These are archived
+benchmark images, not globally unseen sources. This is not a reliable defense.
+
+```bash
+python scripts/replay_verification_confirmation.py --evidence evidence/verification_confirmation_n128
+```
+
 ## Audited prospective confirmation
 
 The released [128-scene evidence](evidence/rule_explicit_confirmation_n128/RESULTS.md)
