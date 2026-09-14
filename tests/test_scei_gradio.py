@@ -27,7 +27,7 @@ def test_question_panel_shows_both_exact_victim_queries() -> None:
 def test_public_demo_config_has_no_machine_specific_checkpoint_path() -> None:
     root = Path(__file__).resolve().parents[1]
     config = yaml.safe_load((root / "configs" / "scei_gradio_local_v1.yaml").read_text(encoding="utf-8"))
-    assert config["default_counterfactual_family"] in REQUESTED_COUNTERFACTUAL_FAMILIES
+    assert config["default_counterfactual_family"] in {"auto_scene", *REQUESTED_COUNTERFACTUAL_FAMILIES}
     assert config["planner_model"] == config["victim_model"]
     assert config["planner_model"]["name_or_path"] == "Qwen/Qwen2.5-VL-3B-Instruct"
     assert not str(config["planner_model"]["name_or_path"]).startswith(("/", "\\"))

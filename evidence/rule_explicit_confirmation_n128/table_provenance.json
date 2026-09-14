@@ -1,0 +1,40 @@
+{
+  "input_sha256": "0b19ebb78ed97f9b18f6d5e7e1d4ff8262d5b533c426413ef3171f0daabe3622",
+  "generator_sha256": "4b0e706fde4ccf086d0fac4fe0046268bca20fc2f71cf19a147037b69e2f5ca6",
+  "checks": "paired vectors, exact McNemar, Holm and all registered models retained",
+  "results": [
+    {
+      "model": "qwen7",
+      "n": 82,
+      "simple": 58,
+      "rule": 73,
+      "delta": 0.18292682926829268,
+      "p": 6.103515625e-05,
+      "plus": 15,
+      "minus": 0,
+      "simple_valid": 95,
+      "rule_valid": 118,
+      "holm_p": 0.0001220703125
+    },
+    {
+      "model": "qwen3vl8",
+      "n": 97,
+      "simple": 58,
+      "rule": 58,
+      "delta": 0.0,
+      "p": 1.0,
+      "plus": 9,
+      "minus": 9,
+      "simple_valid": 122,
+      "rule_valid": 125,
+      "holm_p": 1.0
+    }
+  ],
+  "claim_boundary": [
+    "Controlled composites with synthetic task inputs; photographs supply context only.",
+    "The content contrast bundles rule-explicit wording and residual character/ink differences.",
+    "Target choices do not establish a within-query neural reasoning mechanism.",
+    "This evaluates the fixed-reference rule-explicit variant under a confirmation protocol, not the original full ContraLedger three-state protocol.",
+    "Independent human validation, physical transfer, and SceneTAP superiority remain unestablished."
+  ]
+}

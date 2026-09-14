@@ -1,9 +1,43 @@
 # Causal Typographic Attack / RVTA
 
-This directory is the server-ready research code snapshot.  The complete
-project documentation and verified legacy RVTA results live in the repository
-root README.  All numerical paper assets must be generated from complete JSONL
-logs; analysis scripts refuse partial condition coverage.
+Research code for controlled visual-record verification, including the
+ContraLedger three-state protocol and the earlier RVTA/SCEI experiments.
+All numerical paper assets must be generated from complete logs; partial
+coverage must not be presented as a completed experiment.
+
+## ContraLedger Verification Lab: Gradio and CLI
+
+The new workbench freezes the clean image, valid record and invalid record
+before model evaluation. It compares direct verification, explicit-rule
+verification and read-then-verify, displays all-state accuracy and conditional
+error denominators, and exports images, prompts, responses, configuration and
+hashes in one archive. Uploads use a clearly labeled flat demonstration carrier.
+
+```bash
+pip install -r requirements-workbench.txt
+python scripts/launch_verification_gradio.py --config configs/verification_workbench.yaml
+```
+
+Open the printed local URL. Configure an available checkpoint and device in
+the YAML first. See [the workbench guide](docs/verification_workbench.md) for
+frozen-manifest mode, CLI usage, call budgets and interpretation. The three
+strategies have unequal compute budgets and are diagnostics, not a ranked
+same-budget baseline comparison. Historical parsers and scores are preserved.
+
+## Audited prospective confirmation
+
+The released [128-scene evidence](evidence/rule_explicit_confirmation_n128/RESULTS.md)
+and [archived experiment](experiments/task_preserving_content_confirm128_20260908/README.md)
+cover 1,280 completed calls. On clean-correct items, rule-explicit versus simple
+false records induce the target on 73/82 versus 58/82 for Qwen2.5-VL-7B
+(Holm p=0.000122), and 58/97 versus 58/97 for Qwen3-VL-8B (p=1).
+This is a model-dependent fixed-reference result, not general superiority or
+the original three-state DC-ASR endpoint. Photographs provide context for
+synthetic task inputs; residual text/ink differences remain a limitation.
+
+```bash
+python scripts/make_rule_confirmation_table.py --evidence evidence/rule_explicit_confirmation_n128/analysis.json --output evidence/rule_explicit_confirmation_n128
+```
 
 ## SCEI-Images-300 at a glance
 
@@ -55,6 +89,7 @@ cd /disk2/fangxinyue/causal_typographic_attack
   --question-file /path/to/typo_base_complex_questions.json \
   --image-root /path/to/typo_base_complex_images \
   --output-root runs/question_typod_n500 --dataset TypoD-Base --limit 500
+```
 
 Once baseline and main figures are in place, run these controlled ablations:
 

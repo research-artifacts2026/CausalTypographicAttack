@@ -7,3 +7,4 @@ data/
 runs/
 paper/
 work/
+configs/*.local.yaml
