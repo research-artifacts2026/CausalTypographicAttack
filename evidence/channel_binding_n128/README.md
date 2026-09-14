@@ -17,6 +17,12 @@ The original source photographs and rendered images remain in the research
 archive and are not redistributed in this text-only code release. Obtain
 COCO/VOC sources from their original providers under their respective terms.
 
+`runtime_checkpoint_snapshot.json` records the installed package versions and
+hashes of checkpoint weights, tokenizers and configuration files. It was
+captured after inference and is explicitly retrospective; it must not be
+represented as an additional pre-inference weight attestation. The original
+prospective registration remains unchanged.
+
 ## Media: 128 reused archived scenes, two record states
 
 Full-scene pair accuracy is 3/128 for Qwen2.5-VL-7B and 8/128 for Qwen3-VL-8B.
