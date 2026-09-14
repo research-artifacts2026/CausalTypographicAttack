@@ -83,9 +83,9 @@ LingoQA deliberately has no string fallback because its protocol requires
 Lingo-Judge.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
-/disk2/fangxinyue/.venv/bin/python scripts/build_question_benchmark.py \
+python scripts/build_question_benchmark.py \
   --question-file /path/to/typo_base_complex_questions.json \
   --image-root /path/to/typo_base_complex_images \
   --output-root runs/question_typod_n500 --dataset TypoD-Base --limit 500
@@ -95,15 +95,15 @@ Once baseline and main figures are in place, run these controlled ablations:
 
 ```bash
 # Overlay-match threshold ablation (replace 0.5 with 0.6)
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/pilot_qwen25vl3b_ratio60.yaml
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py --config configs/pilot_qwen25vl3b_ratio60.yaml
 
 # Cross-fold COCO-2017-HF split ablation (same model, same sample count, disjoint images)
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300_primary.yaml
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300_secondary.yaml
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py --config configs/main_qwen25vl3b_n300_primary.yaml
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py --config configs/main_qwen25vl3b_n300_secondary.yaml
 
 # Build an apples-to-apples 2x300 comparison table after both folds finish
-/disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_primary --copy-to paper/generated_primary_results.tex
-/disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_secondary --copy-to paper/generated_secondary_results.tex
+python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_primary --copy-to paper/generated_primary_results.tex
+python scripts/build_paper_table.py runs/main_qwen25vl3b_n300_secondary --copy-to paper/generated_secondary_results.tex
 ```
 
 `overlay_match_ratio` is now a config-level ablation control (`0.5` by default).
@@ -114,7 +114,7 @@ The runner is resumable at condition granularity. Re-running the same command sk
 After validating the 100-sample pilot, run the non-duplicated 300-image COCO val2017 configuration:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py --config configs/main_qwen25vl3b_n300.yaml
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py --config configs/main_qwen25vl3b_n300.yaml
 ```
 
 Pre-download with `scripts/download_data.py --dataset coco_val2017_hf`, or let the first experiment call download the two validation Parquet shards from the public `BrandonLSX/coco-2017` Hugging Face mirror. The loader materializes only selected images and reads the included COCO instance annotations. Increase `num_samples` to 500 with a new `output_root` for a larger run; do not repeat COCO128 images to inflate sample count.
@@ -137,20 +137,20 @@ The transfer runner consumes an already rendered source manifest. This keeps ima
 
 ```bash
 # COCO, cross architecture
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/transfer_llavaov15_8b_n300.yaml
-CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/path/to/cta_internvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/transfer_internvl2_8b_n300.yaml
 
 # Pascal VOC 2012, matched 300-image construction
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py \
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py \
   --config configs/voc2012_qwen25vl3b_n300.yaml
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/transfer_llavaov15_voc2012_n300.yaml
-CUDA_VISIBLE_DEVICES=6 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=6 python scripts/run_transfer_eval.py \
   --config configs/transfer_qwen25vl7b_voc2012_n300.yaml
 ```
 
@@ -158,29 +158,29 @@ CUDA_VISIBLE_DEVICES=6 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_e
 
 ## SceneTAP component / natural-render comparison
 
-The public SceneTAP repository is installed separately at `/disk2/fangxinyue/scenetap`. Its full multimodal planner was not used because the configured external endpoint rejected image inputs. The registered renderer experiment instead uses SceneTAP's public TextDiffuser component with fixed candidate index 0 and no manual example selection. This is reported as a **SceneTAP TextDiffuser component** or **natural-render proxy**, never as a reproduction of full SceneTAP.
+The public SceneTAP repository is installed separately at `/path/to/scenetap`. Its full multimodal planner was not used because the configured external endpoint rejected image inputs. The registered renderer experiment instead uses SceneTAP's public TextDiffuser component with fixed candidate index 0 and no manual example selection. This is reported as a **SceneTAP TextDiffuser component** or **natural-render proxy**, never as a reproduction of full SceneTAP.
 
 Long causal captions were visibly truncated by this component, so the registered matched comparison uses compact, semantically equivalent claims for both PIL and TextDiffuser. The same 100 sample identifiers and strings are used in both arms.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/prepare_natural_render_source.py \
+python scripts/prepare_natural_render_source.py \
   --source-log runs/main_qwen25vl3b_n300/predictions.jsonl \
   --limit 100 --output-root runs/natural_render_source_n100
 
 # Render with the public TextDiffuser component.
-PYTHONPATH=/disk2/fangxinyue/scenetap_runtime:/disk2/fangxinyue/scenetap \
-  /disk2/fangxinyue/.venv/bin/python scripts/render_scenetap_textdiffuser.py \
+PYTHONPATH=/path/to/scenetap_runtime:/path/to/scenetap \
+  python scripts/render_scenetap_textdiffuser.py \
   --source-log runs/natural_render_source_n100/render_manifest.jsonl \
   --output-root runs/scenetap_textdiffuser_n100 \
-  --scenetap-root /disk2/fangxinyue/scenetap \
+  --scenetap-root /path/to/scenetap \
   --source-attack causal_compact \
   --output-attack causal_compact_textdiffuser \
   --candidate-index 0
 
 # Evaluate the two matched renderers.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python run_experiment.py \
+CUDA_VISIBLE_DEVICES=0 python run_experiment.py \
   --config configs/compact_pil_qwen25vl3b_n100.yaml
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=0 python scripts/run_transfer_eval.py \
   --config configs/textdiffuser_qwen25vl3b_n100.yaml
 ```
 
@@ -191,14 +191,14 @@ The completed 100-image Qwen2.5-VL-3B comparison gives 61.00% strict ASR for com
 The blind package contains 100 matched images for four methods (naive, scene-coherent, compact PIL CTA, and TextDiffuser CTA). Each of three independent annotators receives all 400 randomized items plus a 10% duplicate set for within-rater reliability. Method names are hidden. Annotators score legibility, visual integration, scene fit, and claim impossibility on 1--5 scales using offline HTML forms, then export CSV files.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_human_eval_pack.py \
+python scripts/make_human_eval_pack.py \
   --pil-log runs/main_qwen25vl3b_n300/predictions.jsonl \
   --compact-pil-log runs/compact_pil_qwen25vl3b_n100/predictions.jsonl \
   --textdiffuser-log runs/scenetap_textdiffuser_qwen25vl3b_n100/predictions.jsonl \
   --output-root runs/human_eval_blind_n100
 
 # After three completed independent CSV files are placed in responses/:
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_human_eval.py \
+python scripts/analyze_human_eval.py \
   --pack-root runs/human_eval_blind_n100 \
   --minimum-annotators 3
 ```
@@ -210,7 +210,7 @@ The analyzer refuses to emit aggregate ratings when fewer than three complete in
 After every registered log is complete, generate the cross-model/dataset table, paired renderer comparison, natural-render qualitative grid, confidence intervals, and machine-readable evidence in one validated step:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_extended_paper_assets.py \
+python scripts/make_extended_paper_assets.py \
   --qwen-coco runs/main_qwen25vl3b_n300/predictions.jsonl \
   --qwen7-coco runs/transfer_qwen25vl7b_n300/predictions.jsonl \
   --llava-coco runs/transfer_llavaov15_8b_n300/predictions.jsonl \
@@ -231,20 +231,20 @@ The v2 attack treats causal typography as a registered search problem instead of
 
 ```bash
 # Render 24 v2 candidates plus the original CTA baseline on 20 stratified discovery images.
-/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+python scripts/build_strong_attack_candidates.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --output-root runs/cta_v2_discovery_stratified_n20 \
   --split discovery --seed 20260820 --discovery-samples 20 --test-samples 100
 
 # Evaluate identical rendered candidates on two stronger checkpoints.
-CUDA_VISIBLE_DEVICES=7 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=7 python scripts/run_transfer_eval.py \
   --config configs/cta_v2_discovery_qwen7_n20.yaml
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/cta_v2_discovery_llava_n20.yaml
 
 # Refuse partial logs, then freeze one policy under the registered score.
-/disk2/fangxinyue/.venv/bin/python scripts/select_strong_attack_policy.py \
+python scripts/select_strong_attack_policy.py \
   --candidate-manifest runs/cta_v2_discovery_stratified_n20/render_manifest.jsonl \
   --eval-log runs/cta_v2_discovery_qwen7_n20/predictions.jsonl \
   --eval-log runs/cta_v2_discovery_llava_n20/predictions.jsonl \
@@ -256,17 +256,17 @@ The locked selection score is mean strict ASR across discovery models plus `0.10
 After selection, render the disjoint 100-image frozen-policy test and evaluate its two conditions (original CTA and frozen v2) on four checkpoints:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+python scripts/build_strong_attack_candidates.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --output-root runs/cta_v2_test_n100 --split test --seed 20260820 \
   --discovery-samples 20 --test-samples 100 \
   --policy-file runs/cta_v2_policy_selection_n20.json
 
 # Use the model-specific PYTHONPATH overlays documented above for LLaVA and InternVL.
-/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen3_n100.yaml
-/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen7_n100.yaml
-/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_llava_n100.yaml
-/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py --config configs/cta_v2_test_internvl_n100.yaml
+python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen3_n100.yaml
+python scripts/run_transfer_eval.py --config configs/cta_v2_test_qwen7_n100.yaml
+python scripts/run_transfer_eval.py --config configs/cta_v2_test_llava_n100.yaml
+python scripts/run_transfer_eval.py --config configs/cta_v2_test_internvl_n100.yaml
 ```
 
 ### RVTA-Bench matched controls and held-out factorial study
@@ -274,44 +274,44 @@ After selection, render the disjoint 100-image frozen-policy test and evaluate i
 The matched benchmark reuses the exact frozen 100-image COCO test and adds clean, naive, scene-aware, original CTA, frozen Evidence CTA, exact-area direct-claim, and benign true-evidence conditions. The direct control reuses each selected card's bounding box, placement, palette, and resized canvas; it removes telemetry/verification cues. Expected truth is stored independently from the attack identifier, so benign true acceptance is never counted as ASR.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_matched_manifest.py \
+python scripts/build_rvta_matched_manifest.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --base-log runs/main_qwen25vl3b_n300/predictions.jsonl \
   --strong-manifest runs/cta_v2_test_n100/render_manifest.jsonl \
   --split-manifest runs/cta_v2_test_n100/split_manifest.json \
   --output-root runs/rvta_matched_coco_n100
 
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=0 python scripts/run_transfer_eval.py \
   --config configs/rvta_matched_qwen3_n100.yaml
-CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=1 python scripts/run_transfer_eval.py \
   --config configs/rvta_matched_qwen7_n100.yaml
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=2 PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/rvta_matched_llava_n100.yaml
-CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=3 PYTHONPATH=/path/to/cta_internvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/rvta_matched_internvl_n100.yaml
 ```
 
 The held-out factorial split takes the next 100 family-stratified identifiers after the registered discovery and test partitions. It renders all 24 original `3 claim x 4 artifact x 2 scale` policies. These identifiers cannot be used to change the frozen policy.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+python scripts/build_strong_attack_candidates.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --output-root runs/rvta_ablation_coco_n100 --split ablation --seed 20260820 \
   --discovery-samples 20 --test-samples 100 --ablation-samples 100
 
-CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=4 python scripts/run_transfer_eval.py \
   --config configs/rvta_ablation_qwen7_n100.yaml
-CUDA_VISIBLE_DEVICES=5 PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-  /disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+CUDA_VISIBLE_DEVICES=5 PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+  python scripts/run_transfer_eval.py \
   --config configs/rvta_ablation_llava_n100.yaml
 ```
 
 After every configured log is complete, generate evidence and LaTeX tables. The asset script refuses partial condition coverage or unfinished provenance.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_rvta_assets.py \
+python scripts/make_rvta_assets.py \
   --matched-manifest runs/rvta_matched_coco_n100/render_manifest.jsonl \
   --matched-model-log Qwen2.5-VL-3B=runs/rvta_matched_qwen3_n100/predictions.jsonl \
   --matched-model-log Qwen2.5-VL-7B=runs/rvta_matched_qwen7_n100/predictions.jsonl \
@@ -330,10 +330,10 @@ After every configured log is complete, generate evidence and LaTeX tables. The 
 The query-budgeted experiment freezes an ordered sequence of eight presentation policies on the 100-image COCO ablation split, then evaluates that sequence without modification on disjoint final sets. Policy selection uses strict success (parseable output, the complete normalized claim transcribed contiguously, and verdict `TRUE`) pooled over Qwen2.5-VL-7B and LLaVA-OneVision-1.5-8B. Final ASR is conditioned only on correct clean-image object recognition; naturally occurring scene text in a clean image is not treated as an attack failure.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
 # Freeze the sequence from development-only logs.
-/disk2/fangxinyue/.venv/bin/python scripts/select_budgeted_policy_sequence.py \
+python scripts/select_budgeted_policy_sequence.py \
   --run Qwen-7B=runs/rvta_ablation_qwen7_n100 \
   --run LLaVA=runs/rvta_ablation_llava_n100 \
   --split-manifest runs/rvta_ablation_coco_n100/split_manifest.json \
@@ -341,7 +341,7 @@ cd /disk2/fangxinyue/causal_typographic_attack
   --output configs/budgeted_policy_sequence_qwen7_llava_k8.json
 
 # Render the untouched final COCO partition (80 images, clean + legacy + 8 policies).
-/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+python scripts/build_strong_attack_candidates.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --output-root runs/budgeted_cta_final_coco_n80 \
   --split budgeted_test --seed 20260820 \
@@ -350,12 +350,12 @@ cd /disk2/fangxinyue/causal_typographic_attack
   --policy-file configs/budgeted_policy_sequence_qwen7_llava_k8.json
 
 # Example model run; use the corresponding checked-in config for each checkpoint.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_typography_diversity_eval.py \
   --config configs/budgeted_final_qwen3_n80.yaml
 
 # Refuses incomplete or mismatched runs and generates JSON, CSV, and LaTeX from logs.
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_budgeted_attack.py \
+python scripts/analyze_budgeted_attack.py \
   --run Qwen-3B=runs/budgeted_cta_final_qwen3_n80 \
   --run Qwen-7B=runs/budgeted_cta_final_qwen7_n80 \
   --run LLaVA=runs/budgeted_cta_final_llava_n80 \
@@ -371,27 +371,27 @@ The third VOC partition uses identical rendered pixels for a paired neutral-vers
 
 ```bash
 # Neutral and hardened Qwen examples; repeat with the Qwen-7B configs.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_typography_diversity_eval.py \
   --config configs/budgeted_neutral_voc_qwen3_n100.yaml
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_typography_diversity_eval.py \
   --config configs/budgeted_hardened_confirm_voc_qwen3_n100.yaml
 
 # LLaVA uses the isolated cross-VLM dependency path.
 CUDA_VISIBLE_DEVICES=2 \
-PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_typography_diversity_eval.py \
+PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+python scripts/run_typography_diversity_eval.py \
   --config configs/budgeted_neutral_voc_llava_n100.yaml
 
 # InternVL uses its isolated dependency path.
 CUDA_VISIBLE_DEVICES=6 \
-PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_typography_diversity_eval.py \
+PYTHONPATH=/path/to/cta_internvl_env/lib/python3.10/site-packages \
+python scripts/run_typography_diversity_eval.py \
   --config configs/budgeted_hardened_confirm_voc_internvl_n100.yaml
 
 # Final four-model neutral table.
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_budgeted_attack.py \
+python scripts/analyze_budgeted_attack.py \
   --run Qwen-3B=runs/budgeted_cta_neutral_voc_qwen3_n100 \
   --run Qwen-7B=runs/budgeted_cta_neutral_voc_qwen7_n100 \
   --run LLaVA=runs/budgeted_cta_neutral_voc_llava_n100 \
@@ -401,7 +401,7 @@ PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
   --output-root runs/budgeted_cta_neutral_voc_n100_analysis
 
 # Paired prompt-profile table on the intersection of clean-object-correct IDs.
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_prompt_profiles.py \
+python scripts/analyze_prompt_profiles.py \
   --pair Qwen-3B=runs/budgeted_cta_neutral_voc_qwen3_n100,runs/budgeted_cta_hardened_confirm_voc_qwen3_n100 \
   --pair Qwen-7B=runs/budgeted_cta_neutral_voc_qwen7_n100,runs/budgeted_cta_hardened_confirm_voc_qwen7_n100 \
   --pair LLaVA=runs/budgeted_cta_neutral_voc_llava_n100,runs/budgeted_cta_hardened_confirm_voc_llava_n100 \
@@ -419,15 +419,15 @@ Primary evidence is stored in `runs/budgeted_cta_final_coco_n80_analysis/`, `run
 A success is counted only when the target model identifies the clean source correctly, returns parseable JSON after attack, and names the wrong label selected for that exact round. Clean errors and parse failures are not attack successes. The selected images are drawn deterministically from identifiers outside the prior discovery, frozen test, and factorial-ablation partitions. Because the optimizer sees per-image answers, these results must be reported as an adaptive query attack, never mixed with the fixed-policy RVTA tables.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
 # Five-image bounded smoke test: at most 8 design rounds per clean-correct image.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_adaptive_attack.py \
   --config configs/adaptive_chatgpt_qwen7_smoke_n5.yaml
 
 # Run only after the smoke log is complete and audited.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_adaptive_attack.py \
   --config configs/adaptive_chatgpt_qwen7_n50.yaml
 ```
@@ -458,20 +458,20 @@ the complete false record exactly and correctly reject that record in an
 independent knowledge query on the unmodified source image.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
 # Frozen 120-item development set (15 per family; 60 positive/60 negative).
-/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger.py \
+python scripts/build_contraledger.py \
   --source-manifest runs/scei_scene_questions_n800_v1d/manifest.jsonl \
   --output-root runs/contraledger_development_n120_v2 \
   --per-family 15 --offset-per-family 0 --seed 20260904 --stage development
 
 # Example victim run; the other registered model configs follow the same form.
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_contraledger.py --config configs/contraledger_qwen7_n120.yaml
 
 # Aggregate only after all four provenance files say `complete`.
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger.py \
+python scripts/analyze_contraledger.py \
   --manifest runs/contraledger_development_n120_v2/manifest.jsonl \
   --model-log Qwen-3B=runs/contraledger_qwen3_n120_v2/predictions.jsonl \
   --model-log Qwen-7B=runs/contraledger_qwen7_n120_v2/predictions.jsonl \
@@ -495,18 +495,18 @@ internally inconsistent; attack target: internally consistent). A false-record
 target counts only if both controls are correct. Build and run it with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_threeway.py \
+python scripts/build_contraledger_threeway.py \
   --source-manifest runs/scei_scene_questions_n800_v1d/manifest.jsonl \
   --output-root runs/contraledger_threeway_n200_v1frozen \
   --exclude-manifest runs/contraledger_development_n120_v2/manifest.jsonl \
   --exclude-manifest runs/contraledger_heldout_n400_v1frozen/manifest.jsonl \
   --per-family 25 --offset-per-family 75 --seed 20260904
 
-CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=4 python \
   scripts/run_contraledger_threeway.py \
   --config configs/contraledger_threeway_qwen3_n200.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger_threeway.py \
+python scripts/analyze_contraledger_threeway.py \
   --manifest runs/contraledger_threeway_n200_v1frozen/manifest.jsonl \
   --model-log Qwen-3B=runs/contraledger_threeway_qwen3_n200_v1/predictions.jsonl \
   --model-log Qwen-7B=runs/contraledger_threeway_qwen7_n200_v1/predictions.jsonl \
@@ -533,7 +533,7 @@ models. It evaluates 2,400 true/false-by-cue image rows per model plus 400
 source-prior queries. Reproduce the final fail-closed report with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_contraledger.py \
+python scripts/analyze_contraledger.py \
   --manifest runs/contraledger_heldout_n400_v1frozen/manifest.jsonl \
   --model-log Qwen-3B=runs/contraledger_qwen3_heldout_n400_v1/predictions.jsonl \
   --model-log Qwen-7B=runs/contraledger_qwen7_heldout_n400_v1/predictions.jsonl \
@@ -600,21 +600,21 @@ placement, while the deterministic solver alone controls the contradictory
 numbers and the corrected twin.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
 # Freeze 2,400 candidate source images without loading a victim model.
-/disk2/fangxinyue/.venv/bin/python scripts/build_source_manifest.py \
+python scripts/build_source_manifest.py \
   --config configs/scei_source_coco_n2400_v2.yaml
 
 # Plan and render the balanced 800-item / 2,400-image dataset.
-CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=4 python \
   scripts/build_scei_image_dataset.py \
   --config configs/scei_reason800_coco_v2.yaml --resume
 
 # Recompute hashes, symbolic residuals, one-field twins, family balance,
 # split isolation, carrier geometry, and semantic-record uniqueness.
-/disk2/fangxinyue/.venv/bin/python scripts/audit_scei_image_dataset.py \
-  /disk2/fangxinyue/causal_typographic_attack_artifacts/datasets/scei_reason800_coco_v2
+python scripts/audit_scei_image_dataset.py \
+  /path/to/CausalTypographicAttack_artifacts/datasets/scei_reason800_coco_v2
 ```
 
 The build is resumable at item granularity.  Do not treat dataset construction
@@ -627,10 +627,10 @@ black-box protocol.  Its new output directory and `scei-search-v2` protocol id
 prevent it from being mixed with the earlier frozen v1 pilot:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/run_scei_search_batch.py \
+python scripts/run_scei_search_batch.py \
   --config configs/scei_search_v2_qwen7_coco_n50_k2.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/launch_scei_gradio.py \
+python scripts/launch_scei_gradio.py \
   --config configs/scei_gradio_local_v1.yaml --server-name 0.0.0.0 --server-port 7860
 ```
 
@@ -650,9 +650,9 @@ these adaptive results with frozen zero-feedback transfer tables.
 Launch the Hugging Face-style Gradio UI on the GPU server:
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
-/disk2/fangxinyue/.venv/bin/pip install -r requirements-gradio.txt
-/disk2/fangxinyue/.venv/bin/python app.py
+cd /path/to/CausalTypographicAttack
+/path/to/.venv/bin/pip install -r requirements-gradio.txt
+python app.py
 ```
 
 By default the UI uses the public-safe `configs/scei_gradio_local_v1.yaml`,
@@ -725,13 +725,13 @@ The `openai_responses` adapter sends local images to the official Responses API 
 Build the five-image smoke subset from the already frozen discovery policy, then run exactly ten model requests:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_strong_attack_candidates.py \
+python scripts/build_strong_attack_candidates.py \
   --source-manifest runs/main_qwen25vl3b_n300/sample_manifest.json \
   --output-root runs/cta_v2_test_n5 --split test --seed 20260820 \
   --discovery-samples 20 --test-samples 5 \
   --policy-file runs/cta_v2_policy_selection_n20.json
 
-/disk2/fangxinyue/.venv/bin/python scripts/run_transfer_eval.py \
+python scripts/run_transfer_eval.py \
   --config configs/cta_v2_test_gpt56sol_smoke_n5.yaml
 ```
 
@@ -757,7 +757,7 @@ RapidOCR 3.9.2 detects at least half of the evidence-card content tokens on all 
 Generate the validated paper assets from complete logs:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_strong_attack_assets.py \
+python scripts/make_strong_attack_assets.py \
   --test-manifest runs/cta_v2_test_n100/render_manifest.jsonl \
   --split-manifest runs/cta_v2_test_n100/split_manifest.json \
   --selection runs/cta_v2_policy_selection_n20.json \
@@ -767,7 +767,7 @@ Generate the validated paper assets from complete logs:
   --model-log InternVL2-8B=runs/cta_v2_test_internvl_n100/predictions.jsonl \
   --output-dir paper_v2
 
-/disk2/fangxinyue/.venv/bin/python scripts/make_strong_extended_assets.py \
+python scripts/make_strong_extended_assets.py \
   --primary-evidence paper_v2/strong_test_evidence.json \
   --secondary-manifest runs/cta_v2_voc_test_n100/render_manifest.jsonl \
   --secondary-model-log Qwen2.5-VL-3B=runs/cta_v2_voc_test_qwen3_n100/predictions.jsonl \
@@ -787,13 +787,13 @@ The GPT-5.6 Sol adapter and query-budget tests are complete, but the server's cu
 Regenerate a table without model inference:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_paper_table.py runs/pilot_qwen25vl3b --copy-to paper/generated_results_table.tex
+python scripts/build_paper_table.py runs/pilot_qwen25vl3b --copy-to paper/generated_results_table.tex
 ```
 
 Regenerate the paper's qualitative grid, bootstrap statistics, result chart, and semantic-diagnostic table from the completed sample-level logs:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_paper_assets.py \
+python scripts/make_paper_assets.py \
   --main-log runs/main_qwen25vl3b_n300/predictions.jsonl \
   --pilot-log runs/pilot_qwen25vl3b/predictions.jsonl \
   --pilot-image-root runs/pilot_qwen25vl3b/images \
@@ -808,21 +808,21 @@ The script checks that all main cells contain the same 300 sample IDs, uses 10,0
 Replay the completed images on the larger Qwen checkpoint without regenerating attacks:
 
 ```bash
-CUDA_VISIBLE_DEVICES=7 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=7 python \
   scripts/run_transfer_eval.py --config configs/transfer_qwen25vl7b_n300.yaml
 ```
 
 Build deployable OCR masks, then evaluate the two masked attack conditions with the 3B checkpoint:
 
 ```bash
-PYTHONPATH=work/rapidocr_deps /disk2/fangxinyue/.venv/bin/python \
+PYTHONPATH=work/rapidocr_deps python \
   scripts/build_rapidocr_masks.py --config configs/rapidocr_masks_n300.yaml
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_question_benchmark.py --config configs/question_typod_qwen3_n500.yaml
-CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=1 python \
   scripts/run_question_benchmark.py --config configs/question_typod_qwen7_n500.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_question_benchmark.py \
+python scripts/analyze_question_benchmark.py \
   --manifest runs/question_typod_n500/render_manifest.jsonl \
   --model-log Qwen2.5-VL-3B=runs/question_typod_qwen3_n500/predictions.jsonl \
   --model-log Qwen2.5-VL-7B=runs/question_typod_qwen7_n500/predictions.jsonl \
@@ -842,7 +842,7 @@ Lingo-Judge, before either result is described as an official benchmark number.
 Run local validation with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python -m pytest tests -q
+python -m pytest tests -q
 ```
 
 ## RIO-Bench public-protocol pilot
@@ -858,36 +858,36 @@ records the resolved dataset revision and exact question IDs. The later
 300--500 run must use a preregistered broader sampling rule.
 
 ```bash
-cd /disk2/fangxinyue/causal_typographic_attack
+cd /path/to/CausalTypographicAttack
 
-/disk2/fangxinyue/.venv/bin/python scripts/build_rio_obj_mc.py \
+python scripts/build_rio_obj_mc.py \
   --output-root runs/rio_objmc_n100 --split val --limit 100 --seed 20260824
 
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_qwen3_n100.yaml
 
-CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=1 python \
   scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_qwen7_n100.yaml
 
 CUDA_VISIBLE_DEVICES=2 \
-PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_question_benchmark.py \
+PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+python scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_llava_n100.yaml
 
 CUDA_VISIBLE_DEVICES=3 \
-PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_question_benchmark.py \
+PYTHONPATH=/path/to/cta_internvl_env/lib/python3.10/site-packages \
+python scripts/run_question_benchmark.py \
   --config configs/question_rio_objmc_internvl_n100.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/validate_question_run.py \
+python scripts/validate_question_run.py \
   --config configs/question_rio_objmc_qwen3_n100.yaml \
   --output runs/rio_objmc_qwen3_n100/completeness_audit.json
 
-/disk2/fangxinyue/.venv/bin/python scripts/score_rio_official.py \
+python scripts/score_rio_official.py \
   --predictions runs/rio_objmc_qwen3_n100/predictions.jsonl \
-  --rio-repo /disk2/fangxinyue/RIO-Bench \
+  --rio-repo /path/to/RIO-Bench \
   --output runs/rio_objmc_qwen3_n100/official_rio_score.json
 ```
 
@@ -917,16 +917,16 @@ one universal template using Qwen-3B and Qwen-7B development logs, write the
 selection record, and only then materialize a disjoint held-out RIO block.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/extend_question_manifest.py \
+python scripts/extend_question_manifest.py \
   --source-manifest runs/rio_objmc_n100/render_manifest.jsonl \
   --output-root runs/rio_ctav2_discovery_n100 --stage development \
   --include-condition no_attack --include-condition naive_typography \
   --include-condition rio_typography_hard --include-condition rio_scenetap_hard
 
-/disk2/fangxinyue/.venv/bin/python scripts/run_rio_suite.py \
+python scripts/run_rio_suite.py \
   --suite-config configs/rio_ctav2_discovery_suite_n100.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/select_rio_cta_template.py \
+python scripts/select_rio_cta_template.py \
   --manifest runs/rio_ctav2_discovery_n100/render_manifest.jsonl \
   --model-log Qwen2.5-VL-3B=runs/rio_ctav2_discovery_qwen3_n100/predictions.jsonl \
   --model-log Qwen2.5-VL-7B=runs/rio_ctav2_discovery_qwen7_n100/predictions.jsonl \
@@ -951,7 +951,7 @@ travel, vacuum survival, zero-input power, zero-mass matter, and ordinary-apple
 market-price anomalies. Build paired images with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_violation_severity_manifest.py \
+python scripts/build_violation_severity_manifest.py \
   --source-manifest runs/fresh_reality_source_n100.json \
   --output-root runs/rvta_violation_severity_n100
 ```
@@ -969,7 +969,7 @@ capture transform. The output remains a paired manifest with unchanged
 condition names.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_simulated_capture.py \
+python scripts/build_simulated_capture.py \
   --manifest runs/rio_objmc_n100/render_manifest.jsonl \
   --output-root runs/rio_objmc_n100_sim_medium \
   --profile medium --seed 20260824
@@ -990,7 +990,7 @@ that evidence is **not human annotation**. Keep the files separate and label
 the result as independent blinded model-evaluation runs:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_human_eval.py \
+python scripts/analyze_human_eval.py \
   --pack-root runs/human_eval_blind_n100 \
   --responses-dir responses_gpt56sol \
   --output gpt56sol_blind_results.json \
@@ -1009,19 +1009,19 @@ already-frozen RapidOCR-aware test images. EasyOCR outputs do not select the
 carrier and no victim query occurs during masking.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python -m pip install \
-  --target /disk2/fangxinyue/ocr_engines/easyocr_deps --no-deps \
+python -m pip install \
+  --target /path/to/ocr_engines/easyocr_deps --no-deps \
   easyocr==1.7.2 python-bidi pyclipper ninja shapely
 
 CUDA_VISIBLE_DEVICES=6 \
-PYTHONPATH=/disk2/fangxinyue/ocr_engines/easyocr_deps \
-/disk2/fangxinyue/.venv/bin/python scripts/apply_secondary_ocr_defense.py \
+PYTHONPATH=/path/to/ocr_engines/easyocr_deps \
+python scripts/apply_secondary_ocr_defense.py \
   --source-log runs/ocr_resilient_v4_fresh_test_n20/conditions.jsonl \
   --output-root runs/ocr_resilient_v4_easyocr_test_n20 \
   --engine easyocr --languages en --score-threshold 0.5 \
   --mask-margin-px 2 --gpu
 
-CUDA_VISIBLE_DEVICES=6 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=6 python \
   scripts/run_ocr_resilient_eval.py \
   --config configs/ocr_resilient_v4_easyocr_test_qwen3_n20.yaml
 ```
@@ -1038,12 +1038,12 @@ the nine base conditions, add the previously frozen `cta_identity_card`, audit
 all 3000 images, then launch four models:
 
 ```bash
-PYTHONPATH=/disk2/fangxinyue/le-wm-seminar/.venv/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/build_rio_obj_mc.py \
+PYTHONPATH=/path/to/le-wm-seminar/.venv/lib/python3.10/site-packages \
+python scripts/build_rio_obj_mc.py \
   --output-root runs/rio_ctav2_extension_n300 \
   --limit 300 --offset 200 --seed 20260824
 
-/disk2/fangxinyue/.venv/bin/python scripts/extend_question_manifest.py \
+python scripts/extend_question_manifest.py \
   --source-manifest runs/rio_ctav2_extension_n300/render_manifest.jsonl \
   --output-root runs/rio_ctav2_extension_full_n300 --stage held-out \
   --candidate cta_identity_card \
@@ -1054,7 +1054,7 @@ PYTHONPATH=/disk2/fangxinyue/le-wm-seminar/.venv/lib/python3.10/site-packages \
   --include-condition rio_typography_hard \
   --include-condition rio_scenetap_hard
 
-/disk2/fangxinyue/.venv/bin/python scripts/run_rio_suite.py \
+python scripts/run_rio_suite.py \
   --suite-config configs/rio_ctav2_extension_suite_n300.yaml
 ```
 
@@ -1070,17 +1070,17 @@ endpoint rejects multimodal requests. Therefore this condition must be labeled
 official GPT-4o planner.
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/prepare_scenetap_reproduction.py \
+python scripts/prepare_scenetap_reproduction.py \
   --manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
   --output-root runs/scenetap_full_local_qwen_n30_stage --limit 30
 
 # Run official save_som_images.py in the isolated SceneTAP runtime, then:
-CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=1 python \
   scripts/plan_scenetap_local_qwen.py \
   --stage-root runs/scenetap_full_local_qwen_n30_stage \
   --som-dir runs/scenetap_full_local_qwen_n30_som/rio_local_n30/slider_3.0/seed_42/filter_12.0 \
   --output-root runs/scenetap_full_local_qwen_n30_plans_v3 \
-  --model-path /disk2/fangxinyue/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
+  --model-path /path/to/SpaceDrive/ckpts/Qwen2.5-VL-7B-Instruct
 ```
 
 Run `render_scenetap_local_plans.py` under the isolated SceneTAP runtime with
@@ -1097,16 +1097,16 @@ evaluate the local-planner chain separately from the public precomputed
 SceneTAP condition:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_scenetap_eval_manifest.py \
+python scripts/build_scenetap_eval_manifest.py \
   --base-manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
   --render-manifest runs/scenetap_full_local_qwen_n30_render_v3/render_manifest.jsonl \
   --output-root runs/scenetap_full_local_qwen_n30_eval
 
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_question_benchmark.py \
   --config configs/scenetap_full_local_qwen_qwen3_n30.yaml
 
-CUDA_VISIBLE_DEVICES=1 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=1 python \
   scripts/run_question_benchmark.py \
   --config configs/scenetap_full_local_qwen_qwen7_n30.yaml
 ```
@@ -1137,19 +1137,19 @@ Build and audit the independent source set and matched baselines before any
 victim inference:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_scei_image_dataset.py \
+python scripts/build_scei_image_dataset.py \
   --config configs/contraledger_voc2012_dataset_n200.yaml --resume
 
-/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_threeway.py \
+python scripts/build_contraledger_threeway.py \
   --source-manifest runs/contraledger_voc2012_scene_questions_n200_v1/manifest.jsonl \
   --output-root runs/contraledger_threeway_voc2012_n200_v1frozen \
   --per-family 25 --seed 20260904
 
-/disk2/fangxinyue/.venv/bin/python scripts/build_contraledger_flat_baseline.py \
+python scripts/build_contraledger_flat_baseline.py \
   --source-manifest runs/contraledger_threeway_voc2012_n200_v1frozen/manifest.jsonl \
   --output-root runs/contraledger_threeway_voc2012_n200_flat_v1
 
-/disk2/fangxinyue/.venv/bin/python scripts/stage_contraledger_scenetap.py \
+python scripts/stage_contraledger_scenetap.py \
   --source-manifest runs/contraledger_threeway_voc2012_n200_v1frozen/manifest.jsonl \
   --output-root runs/contraledger_threeway_voc2012_n200_scenetap_stage_v1
 ```
@@ -1163,7 +1163,7 @@ Generate the 24 immutable
 evaluation configurations with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python \
+python \
   scripts/write_contraledger_transfer_configs.py \
   --config-dir configs --expected-items 200 --seed 20260904
 ```
@@ -1203,7 +1203,7 @@ The script below freezes 150 assets and a randomized 450-photo tier-1 schedule
 (30 questions x 5 methods x 3 views):
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/prepare_physical_capture_kit.py \
+python scripts/prepare_physical_capture_kit.py \
   --manifest runs/rio_ctav2_holdout_n100/render_manifest.jsonl \
   --output-root runs/physical_capture_kit_rio_n30_v2 \
   --questions 30 --seed 20260825
@@ -1240,20 +1240,20 @@ manifests were rendered and hash-frozen before victim inference. Run one model
 per GPU with the corresponding checked-in configuration, for example:
 
 ```bash
-CUDA_VISIBLE_DEVICES=4 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=4 python \
   scripts/run_rvta_qa.py --config configs/rvtaqa_coco_test_qwen3_n250.yaml
 
-CUDA_VISIBLE_DEVICES=5 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=5 python \
   scripts/run_rvta_qa.py --config configs/rvtaqa_coco_test_qwen7_n250.yaml
 
 CUDA_VISIBLE_DEVICES=6 \
-PYTHONPATH=/disk2/fangxinyue/cta_crossvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_rvta_qa.py \
+PYTHONPATH=/path/to/cta_crossvl_env/lib/python3.10/site-packages \
+python scripts/run_rvta_qa.py \
   --config configs/rvtaqa_coco_test_llava_n250.yaml
 
 CUDA_VISIBLE_DEVICES=3 \
-PYTHONPATH=/disk2/fangxinyue/cta_internvl_env/lib/python3.10/site-packages \
-/disk2/fangxinyue/.venv/bin/python scripts/run_rvta_qa.py \
+PYTHONPATH=/path/to/cta_internvl_env/lib/python3.10/site-packages \
+python scripts/run_rvta_qa.py \
   --config configs/rvtaqa_coco_test_internvl_n250.yaml
 ```
 
@@ -1261,7 +1261,7 @@ Only complete logs whose key set and image hashes exactly match the frozen
 manifest may be aggregated:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_rvta_qa.py \
+python scripts/analyze_rvta_qa.py \
   --manifest runs/rvtaqa_coco_test_n250/render_manifest.jsonl \
   --model-log Qwen2.5-VL-3B=runs/rvtaqa_coco_test_qwen3_n250/predictions.jsonl \
   --model-log Qwen2.5-VL-7B=runs/rvtaqa_coco_test_qwen7_n250/predictions.jsonl \
@@ -1289,13 +1289,13 @@ meaning rather than by a global option letter. Build the two 300-item manifests
 from the already frozen source registries:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_qa_balanced.py \
+python scripts/build_rvta_qa_balanced.py \
   --sample-manifest runs/rvtaqa_coco_dev_n50/items.json \
   --sample-manifest runs/rvtaqa_coco_test_n250/items.json \
   --output-root runs/rvtaqa_balanced_coco_n300 \
   --dataset COCO --offset 0 --limit 300 --seed 20260825 --stage held-out
 
-/disk2/fangxinyue/.venv/bin/python scripts/build_rvta_qa_balanced.py \
+python scripts/build_rvta_qa_balanced.py \
   --sample-manifest runs/rvtaqa_voc_transfer_n300_v2/items.json \
   --output-root runs/rvtaqa_balanced_voc_n300 \
   --dataset VOC --offset 0 --limit 300 --seed 20260825 --stage transfer \
@@ -1308,11 +1308,11 @@ configurations and the four matching VOC configurations with
 generated only after the complete key set and every image hash match:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_rvta_qa_balanced.py \
   --config configs/rvtaqa_balanced_coco_qwen3_n300.yaml
 
-/disk2/fangxinyue/.venv/bin/python scripts/analyze_rvta_qa_balanced.py \
+python scripts/analyze_rvta_qa_balanced.py \
   --manifest runs/rvtaqa_balanced_coco_n300/render_manifest.jsonl \
   --model-log Qwen-3B=runs/rvtaqa_balanced_coco_qwen3_n300/predictions.jsonl \
   --model-log Qwen-7B=runs/rvtaqa_balanced_coco_qwen7_n300/predictions.jsonl \
@@ -1372,7 +1372,7 @@ Run the four qualitative pilots with the matching
 `synthetic_natural_*_n3.yaml` files, for example:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 /disk2/fangxinyue/.venv/bin/python \
+CUDA_VISIBLE_DEVICES=0 python \
   scripts/run_synthetic_natural_eval.py \
   --config configs/synthetic_natural_qwen3_n3.yaml
 ```
@@ -1386,7 +1386,7 @@ naturalness, camera-capture, or physical-world estimate.
 Prepare the still-unfilled three-person pack with:
 
 ```bash
-/disk2/fangxinyue/.venv/bin/python scripts/make_synthetic_natural_blind_pack.py \
+python scripts/make_synthetic_natural_blind_pack.py \
   --registry assets/synthetic_natural_render/registry.json \
   --output-root runs/synthetic_natural_blind_n3 --annotators 3
 ```
