@@ -7,6 +7,12 @@ coverage must not be presented as a completed experiment.
 
 ## ContraLedger Verification Lab: Gradio and CLI
 
+**[View the actual result interface / 查看结果界面与解释](docs/gradio-example/README.md)** —
+includes the screenshot, reference calculation and all 14 actual prompts/raw
+outputs. No installation is needed to view the example on GitHub.
+
+<a href="docs/gradio-example/README.md"><img src="docs/gradio-example/interface.png" alt="Actual ContraLedger Gradio result: reference answers and raw model decisions" width="760"></a>
+
 The Gradio page presents one illustrative frozen item, not an aggregate estimate.
 It displays decision correctness as PASS/FAIL and the shared independent Read/Know
 calls once per item. **Transcription-assisted decision** is the display name for
@@ -15,8 +21,8 @@ not the executable **Read + rules** checker. Existing completed runs can be view
 without new inference; frozen prompts and numeric scoring remain unchanged.
 
 The new workbench freezes the clean image, valid record and invalid record
-before model evaluation. It compares direct verification, explicit-rule
-verification and read-then-verify, displays all-state accuracy and conditional
+before model evaluation. It compares direct, rule-guided and transcription-assisted
+decisions, displays all-state accuracy and conditional
 error denominators, and exports images, prompts, responses, configuration and
 hashes in one archive. Uploads use a clearly labeled flat demonstration carrier.
 
