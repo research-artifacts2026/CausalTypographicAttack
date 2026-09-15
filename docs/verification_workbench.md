@@ -41,7 +41,7 @@ experiment. Successful or failed old runs are retained in their own folders.
 |---|---|---:|
 | Direct | Original frozen decision query | 3 |
 | Rule-guided | Same truth-independent assumptions and checking instruction for each state | 3 |
-| Read then verify | Independent model transcription for each state, followed by a decision using the image and quoted transcription | 6 |
+| Transcription-assisted decision | Model transcription for each state, followed by another neural decision using the image and quoted transcription; no executable rule checker | 6 |
 | Shared diagnostic probes | Exact false-record transcription and verbalized-rule rejection with the clean source image | 2 |
 
 All strategies together use **14 calls per item**, not equal compute. These are
@@ -49,6 +49,31 @@ diagnostic interventions, not a budget-matched algorithm ranking. No strategy
 receives a hidden answer, target label, symbolic residual, or oracle transcript.
 The rule-guided arm receives the registered assumptions, not an instance answer.
 Its name does not imply it uses tools or a symbolic verifier.
+
+The UI labels the historical `read_then_verify` strategy as
+**Transcription-assisted decision / 转录辅助判断**. The internal ID is retained
+for compatibility with frozen packets and archived analyses; its prompts,
+budgets and scoring are unchanged. Its second stage does not add the family
+assumption or run interval arithmetic. It is distinct from the paper's
+**Read + rules** baseline, which applies executable schema rules to a model
+transcription. Neither label implies that a neural decision reasoned correctly.
+
+The page shows **Single illustrative frozen item; not an aggregate estimate**.
+Single-item control/decision correctness uses PASS/FAIL, with the actual raw
+answer and registered answer map alongside it. Independent Read and Know appear
+once in **Shared independent probes**, including their exact prompts and raw
+outputs. They are different calls from the transcription-assisted arm's reads.
+Each strategy shows its own EOR eligibility and conditional false-acceptance
+event (YES/NO; N/A when ineligible), not a repeated 100% estimate. Numeric
+aggregate definitions remain available unchanged in the downloadable summary.
+
+The completed-run viewer checks the frozen packet, call-journal hash and
+prediction-to-summary agreement before displaying saved results. It makes no
+new model calls. Independent probe success and image-decision failure establish
+a cross-query behavioral dissociation; they do not prove that correct internal
+reasoning was overridden. Uniform acceptance whenever a record is present is
+consistent with a record-presence bias, but one example cannot identify a
+general heuristic or mechanism.
 
 ## Metrics and failure handling
 

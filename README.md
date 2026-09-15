@@ -7,6 +7,13 @@ coverage must not be presented as a completed experiment.
 
 ## ContraLedger Verification Lab: Gradio and CLI
 
+The Gradio page presents one illustrative frozen item, not an aggregate estimate.
+It displays decision correctness as PASS/FAIL and the shared independent Read/Know
+calls once per item. **Transcription-assisted decision** is the display name for
+the archived `read_then_verify` arm: another neural decision using a transcription,
+not the executable **Read + rules** checker. Existing completed runs can be viewed
+without new inference; frozen prompts and numeric scoring remain unchanged.
+
 The new workbench freezes the clean image, valid record and invalid record
 before model evaluation. It compares direct verification, explicit-rule
 verification and read-then-verify, displays all-state accuracy and conditional
