@@ -67,13 +67,16 @@ with the image. It does **not** execute the paper's Read + rules symbolic checke
 
 ## Actual English interface
 
+The three screenshots below show the question, image comparison, and model
+answers with shared diagnostics from the same archived item.
+
 ![Actual Gradio question and reference-answer view](question.png)
 
 ![The three images shown to the model](images.png)
 
-![Actual Gradio result showing raw model answers and decision correctness](interface.png)
+![Actual Gradio model answers and shared independent checks](interface.png)
 
-![Shared Read and Know checks and interpretation](checks.png)
+[Additional view of the shared checks and complete interpretation](checks.png).
 
 ## Evidence and code
 
