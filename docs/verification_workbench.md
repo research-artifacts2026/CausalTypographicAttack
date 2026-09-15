@@ -28,9 +28,9 @@ size/geometry and a user-supplied object label; this is an exploratory digital
 carrier, not automatic scene grounding or a new population benchmark.
 
 1. Select an example or upload an image and name the visible object.
-2. Choose the evaluation strategies and press **准备所选样本（不调用模型）** (prepare).
+2. Choose the evaluation strategies and press **Prepare selected item (no model calls)**.
 3. Inspect all three images and the identical decision question.
-4. Press **运行这个样本** (run) and download the complete packet and raw call journal.
+4. Press **Evaluate this item** and download the complete packet and raw call journal.
 
 Changing a widget does not change a frozen packet: prepare again before a new
 experiment. Successful or failed old runs are retained in their own folders.
@@ -67,7 +67,7 @@ The rule-guided arm receives the registered assumptions, not an instance answer.
 Its name does not imply it uses tools or a symbolic verifier.
 
 The UI labels the historical `read_then_verify` strategy as
-**Transcription-assisted decision / 转录辅助判断**. The internal ID is retained
+**Transcription-assisted decision**. The internal ID is retained
 for compatibility with frozen packets and archived analyses; its prompts,
 budgets and scoring are unchanged. Its second stage does not add the family
 assumption or run interval arithmetic. It is distinct from the paper's

@@ -16,36 +16,84 @@ from cta.verification_workbench import (GOLD, STRATEGIES, archive_session, canon
     freeze_packet, load_packet, read_jsonl, score, sha, parse_option)
 from cta.scei_attack import REQUESTED_COUNTERFACTUAL_FAMILIES
 
-LABELS = {"direct": "Direct / 原始提问", "explicit_rule": "Rule-guided / 明确假设并复核",
-          "read_then_verify": "Transcription-assisted decision / 转录辅助判断", "self_check": "Self-check / 自我复核"}
+LABELS = {"direct": "Direct", "explicit_rule": "Rule-guided",
+          "read_then_verify": "Transcription-assisted decision", "self_check": "Self-check"}
 _MODELS = {}
-SEMANTICS = {"absent": "无记录", "consistent": "记录有效", "inconsistent": "记录无效"}
+SEMANTICS = {"absent": "No record", "consistent": "Internally consistent", "inconsistent": "Internally inconsistent"}
+
+# Gradio's client-rendered shell selects its built-in strings from navigator.
+# Scope this override to this document; no browser preference is changed.
+ENGLISH_HEAD = '''<script>
+document.documentElement.lang = "en";
+Object.defineProperty(navigator, "language", {get: () => "en", configurable: true});
+Object.defineProperty(navigator, "languages", {get: () => ["en"], configurable: true});
+</script>'''
+
+
+class EnglishLocaleMiddleware:
+    """Keep Gradio's own menus in English as well as the authored interface."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope['type'] == 'http':
+            scope = {**scope, 'headers': [
+                (key, value) for key, value in scope.get('headers', [])
+                if key.lower() != b'accept-language'
+            ] + [(b'accept-language', b'en')]}
+        # Gradio's launch(head=...) runs after client-side locale selection.
+        # Insert the document-local preference before its module scripts start.
+        response_start = None
+        chunks = []
+
+        async def english_response(message):
+            nonlocal response_start
+            if message['type'] == 'http.response.start':
+                headers = dict(message.get('headers', []))
+                if (b'text/html' in headers.get(b'content-type', b'')
+                        and b'content-encoding' not in headers):
+                    response_start = message
+                    return
+            if response_start is not None and message['type'] == 'http.response.body':
+                chunks.append(message.get('body', b''))
+                if message.get('more_body', False):
+                    return
+                body = b''.join(chunks).replace(b'<head>', b'<head>' + ENGLISH_HEAD.encode(), 1)
+                headers = [(k, v) for k, v in response_start['headers']
+                           if k.lower() not in (b'content-length', b'etag')]
+                headers.append((b'content-length', str(len(body)).encode()))
+                await send({**response_start, 'headers': headers})
+                await send({**message, 'body': body})
+                return
+            await send(message)
+
+        await self.app(scope, receive, english_response)
 
 
 def outcome(row):
     if row['unparsed_decisions']:
-        return '无法判定：存在未解析答案'
+        return 'Undetermined: one or more answers could not be parsed'
     if row['control_coverage']['n'] == 1:
         if row['control_coverage']['k'] == 0:
-            return '对照未通过：不计为攻击成功或防御成功'
+            return 'Controls failed: neither attack success nor defense success'
         if row['dc_asr']['k'] == 1:
-            return '判断错误：把无效记录当成有效记录'
+            return 'Incorrect: accepted the invalid record'
         if row['accuracy']['record_false']['k'] == 1:
-            return '判断正确：识别出无效记录'
-        return '判断错误：把无效记录误判为无记录（未发生目标误接受）'
-    return f"攻击成功 {row['dc_asr']['k']}/{row['dc_asr']['n']} 个对照合格样本"
+            return 'Correct: rejected the invalid record'
+        return 'Incorrect: reported no record (not a targeted false acceptance)'
+    return f"Targeted false acceptance {row['dc_asr']['k']}/{row['dc_asr']['n']} control-eligible items"
 
 
 def result_message(summary, archived=False):
-    mode = '已有结果回看 · 本次没有调用模型' if archived else '本轮运行已完成'
-    lines = ['### 3 · 模型答得对吗？', f"**{mode}**。这份结果包含 **{summary['items']} 个样本、{len(summary['strategies'])} 种提问方式**，原运行共 {summary['actual_calls']} 次模型调用，运行错误 {summary['failed_calls']} 次。"]
+    mode = 'Archived result · No new model calls' if archived else 'Run completed'
+    lines = ['### 3 · Did the model answer correctly?', f"**{mode}**. This result contains **{summary['items']} item(s) and {len(summary['strategies'])} prompting strategies**. The recorded run used {summary['actual_calls']} model calls, with {summary['failed_calls']} runtime errors."]
     for name, row in summary['strategies'].items():
-        lines.append(f"- **{LABELS[name]}：{outcome(row)}**")
-    lines.append('下方保留模型原始答案。单个样本不显示成功率；多种提问方式不是多个独立样本。')
+        lines.append(f"- **{LABELS[name]}: {outcome(row)}**")
+    lines.append('Raw model answers are preserved below. No success percentage is shown for a single item. Prompting strategies are not independent samples.')
     return '\n\n'.join(lines)
 
 
-CONDITION_NAMES = {'source_absent': '原图 · 没有记录', 'record_true': '加入有效记录', 'record_false': '加入无效记录'}
+CONDITION_NAMES = {'source_absent': 'Source · No record', 'record_true': 'Valid record', 'record_false': 'Invalid record'}
 STYLE = '''<style>
 .cta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin:12px 0}
 .cta-card{border:1px solid #8793a455;border-radius:12px;padding:16px;min-width:0}
@@ -69,7 +117,7 @@ def gold_answer(row):
 def reference_reason(row):
     """Reference explanation from frozen fields; never fed into model decisions."""
     if row['condition'] == 'source_absent':
-        return '原图没有对应的检查记录，因此应选择“无记录”。'
+        return 'No corresponding inspection record is visible in the source image. Choose “No record”.'
     record = row['record']
     if record['family'] == 'range_threshold':
         params = record['parameters']
@@ -78,24 +126,24 @@ def reference_reason(row):
         within = low <= t-u and t+u <= high
         if within != (row['condition'] == 'record_true'):
             raise ValueError('Frozen temperature fields contradict the registered answer')
-        relation = '完全落在安全范围内，记录有效。' if within else '没有完全落在安全范围内，记录无效。边界相交不等于整个区间被包含。'
-        return f'温度 {t:.1f} ± {u:.1f} °C → 测量区间 [{t-u:.1f}, {t+u:.1f}] °C。安全范围 [{low:.1f}, {high:.1f}] °C。{relation}'
+        relation = 'The entire interval lies inside the safe range, so the record is valid.' if within else 'The interval is NOT fully inside the safe range, so the record is invalid. Sharing a boundary does not imply full containment.'
+        return f'Temperature {t:.1f} ± {u:.1f} °C → measurement interval [{t-u:.1f}, {t+u:.1f}] °C. Safe range: [{low:.1f}, {high:.1f}] °C. {relation}'
     field = 'true_measurement' if row['condition'] == 'record_true' else 'false_measurement'
-    return f"记录字段：{record.get(field, '')}；{record.get('uncertainty', '')}。判定规则：{record['validator']}。"
+    return f"Record fields: {record.get(field, '')}; {record.get('uncertainty', '')}. Validity rule: {record['validator']}. "
 
 
 def case_guide(rows, mode):
-    blocks = [STYLE, f'<p><b>{safe(mode)}</b></p>', '<h3>1 · 实验问什么？</h3>',
-              '<p>观察图片中对应物体的记录：记录内部是否一致，还是根本没有记录？这里判断的是给定规则下的记录一致性。</p>']
+    blocks = [STYLE, f'<p><b>{safe(mode)}</b></p>', '<h3>1 · What is the question?</h3>',
+              '<p>Inspect the record associated with the object. Is it internally consistent, internally inconsistent, or absent? The task evaluates record consistency under the stated rule.</p>']
     for item in dict.fromkeys(r['item_id'] for r in rows):
         selected = [r for r in rows if r['item_id'] == item]
-        blocks.append(f'<p class="cta-note">当前展示样本：{safe(item)}</p><div class="cta-grid">')
+        blocks.append(f'<p class="cta-note">Displayed item: {safe(item)}</p><div class="cta-grid">')
         for row in selected:
             blocks.append(f'<div class="cta-card"><h4>{safe(CONDITION_NAMES[row["condition"]])}</h4>'
-                          f'<p class="cta-answer">正确答案：{safe(gold_answer(row))}</p><p>{safe(reference_reason(row))}</p></div>')
-        blocks.append('</div><p class="cta-note">以上是参考答案及依据，不是模型输出，也不会自动加入原始提问。</p>')
-        blocks.append(f'<details><summary>展开实际英文问题和规则</summary><p class="cta-raw">{safe(selected[0]["question"])}</p>'
-                      f'<p>规则提示方式额外提供：{safe(selected[0]["record"]["assumption"])}</p></details>')
+                          f'<p class="cta-answer">Reference answer: {safe(gold_answer(row))}</p><p>{safe(reference_reason(row))}</p></div>')
+        blocks.append('</div><p class="cta-note">These are reference answers and explanations, not model outputs. They are not automatically added to the direct prompt.</p>')
+        blocks.append(f'<details><summary>Show the actual question and rule</summary><p class="cta-raw">{safe(selected[0]["question"])}</p>'
+                      f'<p>Additional assumption supplied to the rule-guided strategy: {safe(selected[0]["record"]["assumption"])}</p></details>')
     return ''.join(blocks)
 
 
@@ -108,26 +156,26 @@ def decision_cards(rows, predictions, calls):
             p = next(p for p in predictions if (p['item_id'],p['strategy'],p['condition']) == (item,strategy,condition))
             row = lookup[item, condition]
             correct = not p.get('error') and p['parsed'] == GOLD[condition]
-            status = '运行错误' if p.get('error') else '无法解析' if p['parsed'] is None else '答对' if correct else '答错'
+            status = 'Runtime error' if p.get('error') else 'Unparsed' if p['parsed'] is None else 'Correct' if correct else 'Incorrect'
             blocks.append(f'<p><b>{safe(CONDITION_NAMES[condition])}</b> · <span class="cta-{ "good" if correct else "bad"}">{status}</span></p>'
-                          f'<div class="cta-raw">模型原话：{safe(p["raw"]) or "（空输出）"}</div>'
-                          f'<p>模型判断：{safe(SEMANTICS.get(p["parsed"], "无法解析"))}<br>正确答案：{safe(gold_answer(row))}</p>')
+                          f'<div class="cta-raw">Raw model answer: {safe(p["raw"]) or "(empty output)"}</div>'
+                          f'<p>Model decision: {safe(SEMANTICS.get(p["parsed"], "Unparsed"))}<br>Reference answer: {safe(gold_answer(row))}</p>')
         blocks.append('</div>')
-    blocks.append('</div><h3>4 · 额外检查说明什么？</h3><p>每个样本只额外检查一次读取、一次规则判断，由所有提问方式共享。</p><div class="cta-grid">')
+    blocks.append('</div><h3>4 · What do the independent checks show?</h3><p>Each item has one independent Read call and one independent Know call, shared across all strategies.</p><div class="cta-grid">')
     probes = shared_probe_table(predictions, calls)
     for item, title, status, media, prompt, raw, error in probes:
-        meaning = ('字段与登记内容匹配' if 'Read' in title else '正确否定了文字化的无效记录声明') if status == 'PASS' else '未通过或缺少有效结果'
-        friendly_title = '独立检查①：字段读对了吗？' if 'Read' in title else '独立检查②：文字化后能判断吗？'
+        meaning = ('The transcribed fields match the registered text' if 'Read' in title else 'The verbalized false claim was correctly rejected') if status == 'PASS' else 'Check failed or a valid result is unavailable'
+        friendly_title = 'Independent Read: Were the fields read correctly?' if 'Read' in title else 'Independent Know: Was the verbalized claim rejected?'
         blocks.append(f'<div class="cta-card"><h4>{friendly_title}</h4><p>{safe(meaning)}</p><p class="cta-note">{safe(media)}</p>'
-                      f'<div class="cta-raw">模型原话：{safe(raw) or "（空输出）"}</div><p>{safe(error)}</p>'
-                      f'<details><summary>查看这次检查实际问了什么</summary><p class="cta-raw">{safe(prompt)}</p></details></div>')
+                      f'<div class="cta-raw">Raw model answer: {safe(raw) or "(empty output)"}</div><p>{safe(error)}</p>'
+                      f'<details><summary>Show this check’s actual prompt</summary><p class="cta-raw">{safe(prompt)}</p></details></div>')
     blocks.append('</div>')
     failed = [p for p in predictions if p['condition'] == 'record_false' and p['parsed'] == 'consistent' and not p.get('error')]
     if failed and probes and all(p[2] == 'PASS' for p in probes):
-        blocks.append('<p><b>这份结果显示：</b>独立提问时，模型能读对字段、否定文字化的错误声明；但至少一种看图判断仍接受了无效记录。这是不同提问条件下的行为差异，不能证明模型内部的正确推理被视觉覆盖。</p>')
+        blocks.append('<p><b>What this result shows: </b>In separate calls, the model read the fields correctly and rejected the verbalized false claim. Yet at least one image-decision strategy accepted the invalid record. This is a behavioral difference across queries, not evidence that visual input overrode correct internal reasoning.</p>')
     else:
-        blocks.append('<p>请分别查看图片判断与独立检查。检查未通过、运行错误或无法解析时，不能声称“读对且懂规则，但仍接受错误记录”。</p>')
-    blocks.append('<p class="cta-note">这是一个示例的结果，不能据此估计总体成功率或比较模型强弱。转录辅助判断只是让模型结合转录再回答，没有运行论文中的 Read + rules 符号检查器。</p>')
+        blocks.append('<p>Inspect image decisions and independent checks separately. Failed or unavailable checks do not support a claim of false acceptance after successful reading and rule rejection.</p>')
+    blocks.append('<p class="cta-note">This illustrative result cannot estimate a population failure rate or rank models. Transcription-assisted decision asks the model to answer again using its transcription and the image; it does not execute the paper’s Read + rules symbolic checker.</p>')
     return ''.join(blocks)
 
 
@@ -163,15 +211,15 @@ def validate_saved_run(rows, info, run_root):
 
 def answers_table(rows, predictions):
     lookup = {(r['item_id'],r['condition']):r for r in rows}
-    names = {'source_absent':'原图对照','record_true':'有效记录对照','record_false':'无效记录（攻击）'}
+    names = {'source_absent':'Source control','record_true':'Valid-record control','record_false':'Invalid record'}
     table = []
     for p in predictions:
         row = lookup[p['item_id'],p['condition']]
         gold = GOLD[p['condition']]
         letter = next(k for k,v in row['option_map'].items() if v == gold)
-        actual = SEMANTICS.get(p['parsed'], '无法解析')
+        actual = SEMANTICS.get(p['parsed'], 'Unparsed')
         table.append([LABELS[p['strategy']], names[p['condition']], p['raw'], actual,
-                      f'{letter} · {SEMANTICS[gold]}', '正确' if p['parsed'] == gold else ('运行错误' if p.get('error') else '错误')])
+                      f'{letter} · {SEMANTICS[gold]}', 'Correct' if p['parsed'] == gold else ('Runtime error' if p.get('error') else 'Incorrect')])
     return table
 
 
@@ -203,17 +251,17 @@ def shared_probe_table(predictions, calls):
     for item in sorted({p['item_id'] for p in predictions}):
         false = [p for p in predictions if p['item_id'] == item and p['condition'] == 'record_false']
         for key, field, title, media in [
-            ('independent_read', 'read_match', 'Exact Read / 精确读取', 'Invalid image / 无效记录图'),
-            ('independent_know', 'knowledge_correct', 'Know / 独立规则拒绝', 'Clean source image + verbalized fields / 原图及文字化字段'),
+            ('independent_read', 'read_match', 'Exact Read', 'Invalid-record image'),
+            ('independent_know', 'knowledge_correct', 'Know', 'Clean source image + verbalized fields'),
         ]:
             flags = [p.get(field) for p in false]
             if not flags or any(flag is not flags[0] for flag in flags):
                 raise ValueError('inconsistent shared probe flags')
             call = indexed.get(canonical([item, key]))
             if call is None:
-                status = 'UNAVAILABLE / 缺少调用日志'
+                status = 'UNAVAILABLE / Missing call log'
             elif call.get('error'):
-                status = 'ERROR / 运行错误'
+                status = 'ERROR / Runtime error'
             else:
                 status = 'PASS' if flags[0] is True else ('FAIL' if flags[0] is False else 'UNAVAILABLE')
             table.append([item, title, status, media, call['request']['prompt'] if call else '',
@@ -244,7 +292,7 @@ def build_demo(config_path: Path, output_root: Path):
         if not strategies:
             raise gr.Error("Choose at least one evaluation strategy.")
         session = output_root / uuid.uuid4().hex
-        if source_mode == "Frozen example / 已有样本":
+        if source_mode == "Frozen example":
             selected = [r for r in rows if r["item_id"] == item_id]
             if not selected:
                 raise gr.Error("Select an available frozen sample, or upload an image.")
@@ -259,8 +307,8 @@ def build_demo(config_path: Path, output_root: Path):
         info, frozen = load_packet(packet)
         gallery = [(r["image_path"], CONDITION_NAMES[r["condition"]]) for r in frozen]
         calls = sum(6 if s == "read_then_verify" else 3 for s in strategies) + 2
-        text = case_guide(frozen, f'样本已准备好 · 还没有模型结果 · 运行将使用 {calls} 次调用')
-        return str(packet), gallery, text, info, [], None, '', '### 尚未运行 · 点击“运行这个样本”获取模型答案', [], gr.update(interactive=True)
+        text = case_guide(frozen, f'Item prepared · No model result yet · Evaluation will use {calls} calls')
+        return str(packet), gallery, text, info, [], None, '', '### Not run yet · Click “Evaluate this item” to obtain model answers', [], gr.update(interactive=True)
 
     def run(packet_value, progress=gr.Progress()):
         if not packet_value:
@@ -270,7 +318,7 @@ def build_demo(config_path: Path, output_root: Path):
             raise gr.Error("Packet outside this workbench.")
         info, frozen = load_packet(packet)
         total = info["items"] * (sum(6 if s == "read_then_verify" else 3 for s in info["strategies"]) + 2)
-        progress(0, desc="Loading model / 正在加载模型")
+        progress(0, desc="Loading model")
         run_root = packet.parent / "evaluation"
         summary = evaluate_packet(packet, run_root, cfg["model"], model_factory,
             lambda n, key: progress((n, total), desc=f"Recorded {n}/{total} calls"))
@@ -278,7 +326,7 @@ def build_demo(config_path: Path, output_root: Path):
         predictions = read_jsonl(run_root/'predictions.jsonl')
         return (metrics_table(summary), summary, str(bundle), decision_cards(frozen, predictions, read_jsonl(run_root/'calls.jsonl')),
                 result_message(summary), shared_probe_table(predictions, read_jsonl(run_root/'calls.jsonl')),
-                case_guide(frozen, '当前运行结果 · 下方问题、图片和回答来自同一冻结样本'))
+                case_guide(frozen, 'Current run · The question, images and answers below belong to the same frozen item'))
 
     def replay(session_id):
         if session_id not in {value for _,value in saved_choices}:
@@ -292,45 +340,45 @@ def build_demo(config_path: Path, output_root: Path):
         summary, predictions, calls = validate_saved_run(frozen, info, run_root)
         gallery = [(r['image_path'], CONDITION_NAMES[r['condition']]) for r in frozen]
         bundle = session/'evaluation.zip'
-        return (None, gallery, case_guide(frozen, '已有结果回看 · 当前展示的是下列已保存样本'),
+        return (None, gallery, case_guide(frozen, 'Archived result · Displaying the saved item below'),
                 summary, metrics_table(summary), str(bundle) if bundle.exists() else None,
                 decision_cards(frozen,predictions,calls), result_message(summary, archived=True),
                 shared_probe_table(predictions,calls), gr.update(interactive=False))
 
     with gr.Blocks(title="ContraLedger · Verification Lab", fill_width=True) as demo:
-        gr.Markdown("# ContraLedger · 模型能识别错误记录吗？\n"
-                    "同一场景，分别展示**没有记录、有效记录、无效记录**。先看参考答案，再对照模型原话。\n\n"
-                    "**单个样本演示，不代表论文总体结果。** Single illustrative frozen item; not an aggregate estimate.")
+        gr.Markdown("# ContraLedger · Can models reject invalid records?\n"
+                    "The same scene with **no record, a valid record, and an invalid record**. Compare the reference answers with the model’s actual responses.\n\n"
+                    "**Single illustrative frozen item; not an aggregate estimate.**")
         state = gr.State()
-        with gr.Accordion('选择样本 / 新运行 / 回看历史', open=False):
+        with gr.Accordion('Choose an item / Start a run / View saved results', open=False):
             with gr.Column():
-                mode = gr.Radio(["Frozen example / 已有样本", "Upload image / 上传图片"],
-                    value="Frozen example / 已有样本" if choices else "Upload image / 上传图片", label="Input source")
+                mode = gr.Radio(["Frozen example", "Upload image"],
+                    value="Frozen example" if choices else "Upload image", label="Input source")
                 example = gr.Dropdown(choices, value=choices[0][1] if choices else None, label="Frozen sample")
                 with gr.Group(visible=not bool(choices)) as upload_group:
                     image = gr.Image(type="filepath", label="Uploaded scene", height=220, sources=["upload"])
                     label = gr.Textbox(label="Visible object for upload", placeholder="e.g. refrigerator")
                     family = gr.Dropdown(list(REQUESTED_COUNTERFACTUAL_FAMILIES), value="unit_conversion", label="Constraint family for upload")
-                strategies = gr.CheckboxGroup([(LABELS[s], s) for s in STRATEGIES], value=list(STRATEGIES), label="Decision prompting strategies / 判断提示策略（调用预算不同）")
-                prepare_button = gr.Button("准备所选样本（不调用模型）", variant="secondary")
-                run_button = gr.Button("运行这个样本", variant="primary", interactive=False)
-                with gr.Accordion('Inspect a completed run / 回看已有结果（不调用模型）', open=False):
+                strategies = gr.CheckboxGroup([(LABELS[s], s) for s in STRATEGIES], value=list(STRATEGIES), label="Decision prompting strategies (unequal call budgets)")
+                prepare_button = gr.Button("Prepare selected item (no model calls)", variant="secondary")
+                run_button = gr.Button("Evaluate this item", variant="primary", interactive=False)
+                with gr.Accordion('View a completed run (no model calls)', open=False):
                     saved_run = gr.Dropdown(saved_choices, value=saved_choices[0][1] if saved_choices else None, label='Saved run')
-                    replay_button = gr.Button('Load saved results / 加载已有结果')
-                gr.Markdown("修改选择后需要重新准备样本。原始提问每张图问一次；规则提示额外提供同一条规则；转录辅助先抄录、再交给模型判断，并不执行计算程序。")
-        status = gr.HTML('<p>请选择样本并准备，或加载已有结果。</p>')
-        gr.Markdown('### 2 · 模型看到的三张图\n点击图片可放大查看字段。')
-        gallery = gr.Gallery(label="原图 → 有效记录 → 无效记录", columns=3, rows=1, object_fit="contain", height=330, interactive=False)
-        verdict = gr.Markdown('### 尚未运行：先构建样本，再运行验证')
+                    replay_button = gr.Button('Load saved results')
+                gr.Markdown("Prepare again after changing a selection. Direct asks once per image; rule-guided adds the same assumption; transcription-assisted first transcribes, then asks the model to decide. It does not execute a calculation program.")
+        status = gr.HTML('<p>Prepare a selected item, or load a completed run.</p>')
+        gr.Markdown('### 2 · The three images shown to the model\nClick an image to inspect its fields.')
+        gallery = gr.Gallery(label="Source → Valid record → Invalid record", columns=3, rows=1, object_fit="contain", height=330, interactive=False)
+        verdict = gr.Markdown('### Not run yet: prepare an item, then evaluate it')
         answers = gr.HTML()
-        download = gr.File(label="下载本份结果：图片、实际问题、模型原始回答（evaluation.zip）")
-        with gr.Accordion("Audit details / 完整核验信息", open=False):
-            probes = gr.Dataframe(headers=['样本','共享 probe','结果','输入形式','实际 prompt','Raw output','运行错误'],
-                                  interactive=False, wrap=True, label='独立检查日志（每个样本只显示一次）')
-            results = gr.Dataframe(headers=["策略", "条件判定", "原图判断", "有效记录判断", "无效记录判断", "双记录均正确", "对照通过", "EOR eligible / 合格", "EOR failure / 条件下误接受", "未解析答案数"],
-                interactive=False, wrap=True, label="PASS/FAIL 表示答对/答错；YES/NO 表示事件是否发生；N/A 表示不适用")
+        download = gr.File(label="Download this result: images, exact prompts and raw model answers (evaluation.zip)")
+        with gr.Accordion("Audit details", open=False):
+            probes = gr.Dataframe(headers=['Item','Shared probe','Result','Input media','Actual prompt','Raw output','Runtime error'],
+                                  interactive=False, wrap=True, label='Independent probe journal (shown once per item)')
+            results = gr.Dataframe(headers=["Strategy", "Conditional outcome", "Source decision", "Valid-record decision", "Invalid-record decision", "Both records correct", "Controls passed", "EOR eligible", "EOR failure / Conditional false acceptance", "Unparsed answers"],
+                interactive=False, wrap=True, label="PASS/FAIL: correct/incorrect. YES/NO: event occurred/did not occur. N/A: not applicable.")
             details = gr.JSON(label="Frozen packet / measured results")
-        with gr.Accordion("How to interpret / 如何解读", open=False):
+        with gr.Accordion("How to interpret", open=False):
             gr.Markdown("**Pair accuracy:** both valid and invalid decisions correct. **DC-ASR:** invalid accepted as valid, "
                         "conditioned on correct source and valid controls. **EOR:** additionally requires independent exact transcription "
                         "and rule rejection. Zero eligibility is undefined, never 0% success. Unparsed answers remain failures. "
@@ -344,17 +392,18 @@ def build_demo(config_path: Path, output_root: Path):
         run_button.click(run, [state], [results, details, download, answers, verdict, probes, status])
         replay_button.click(replay, [saved_run], output_components)
         def invalidate_selection():
-            return (None, [], '<p>选择已变更。请点击“准备所选样本”，再查看问题与运行结果。</p>',
-                    {}, [], None, '', '### 尚未运行 · 请重新准备所选样本', [], gr.update(interactive=False))
+            return (None, [], '<p>Selection changed. Click “Prepare selected item” to view the question and evaluate the new selection.</p>',
+                    {}, [], None, '', '### Not run yet · Prepare the updated selection', [], gr.update(interactive=False))
         for component in (mode, example, image, label, family, strategies):
             component.change(invalidate_selection, [], output_components, queue=False)
-        mode.change(lambda value: gr.update(visible=value == "Upload image / 上传图片"), [mode], [upload_group], queue=False)
+        mode.change(lambda value: gr.update(visible=value == "Upload image"), [mode], [upload_group], queue=False)
         if saved_choices:
             demo.load(replay, [saved_run], output_components)
     return demo
 
 
 def main():
+    from starlette.middleware import Middleware
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path("runs/verification_workbench"))
@@ -364,7 +413,8 @@ def main():
     os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
     app = build_demo(args.config.resolve(), args.output_root.resolve())
     app.queue(default_concurrency_limit=1).launch(server_name=args.server_name,
-        server_port=args.server_port, share=False, show_error=True)
+        server_port=args.server_port, share=False, show_error=True,
+        app_kwargs={'middleware': [Middleware(EnglishLocaleMiddleware)]})
 
 
 if __name__ == "__main__":

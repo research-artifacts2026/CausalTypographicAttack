@@ -44,3 +44,21 @@ changing a selection clears the previous presentation and requires preparation.
 
 These checks cover the revised display and retained case; they do not assert
 that every possible uploaded image or future model response has been tested.
+
+## English interface and published screenshots (2026-09-15)
+
+All authored controls, result cards, reference explanations, audit labels and
+error messages now use English. The initial HTML sets an English document-local
+language before Gradio's client starts; this also keeps its built-in footer in
+English when the browser preference is Chinese. No browser-wide setting changes.
+
+- 39 CPU tests passed across the workbench/display suites, including the locale
+  middleware, early HTML initialization, and unchanged non-HTML response bodies.
+- The live browser was refreshed to verify English text, including Gradio's
+  footer. The saved example still shows reference C/A/B and actual C/A/A for
+  each of the three prompting strategies. No new model inference was run.
+- Four actual browser screenshots cover the question and reference answers,
+  the three input images, the model's answers, and the shared independent
+  probes. They are linked from `gradio-example/README.md`.
+- The frozen prompts, archived results, scoring code and original call-journal
+  hash above are unchanged.

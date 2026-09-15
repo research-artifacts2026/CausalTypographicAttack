@@ -12,27 +12,27 @@ def test_invalid_zero_accuracy_can_mean_attack_success():
     s = summary(['absent','consistent','consistent'])
     row = s['strategies']['direct']
     assert row['accuracy']['record_false']['k'] == 0
-    assert outcome(row).startswith('判断错误：把无效记录当成有效')
+    assert outcome(row).startswith('Incorrect: accepted')
     assert len(metrics_table(s)[0]) == 10
 
 
 def test_failed_control_is_not_a_defense_success():
     row = summary(['consistent','consistent','inconsistent'])['strategies']['direct']
-    assert outcome(row).startswith('对照未通过')
+    assert outcome(row).startswith('Controls failed')
 
 
 def test_resisted_attack_and_ambiguous_answer_are_distinct():
     row = summary(['absent','consistent','inconsistent'])['strategies']['direct']
-    assert outcome(row).startswith('判断正确')
+    assert outcome(row).startswith('Correct: rejected')
     row = summary(['absent','consistent',None])['strategies']['direct']
-    assert outcome(row).startswith('无法判定')
+    assert outcome(row).startswith('Undetermined')
 
 
 def test_raw_answer_is_displayed_with_its_actual_option_map():
     rows=[{'item_id':'x','condition':'record_false','option_map':{'A':'consistent','B':'inconsistent','C':'absent'}}]
     predictions=[{'item_id':'x','condition':'record_false','strategy':'direct','raw':'A','parsed':'consistent'}]
     shown=answers_table(rows,predictions)[0]
-    assert shown[2:] == ['A','记录有效','B · 记录无效','错误']
+    assert shown[2:] == ['A','Internally consistent','B · Internally inconsistent','Incorrect']
 
 
 def test_shared_success_is_displayed_once_not_as_three_independent_verifications():
@@ -90,7 +90,7 @@ def test_reference_uses_inclusive_containment_not_overlap():
     row = {'condition':'record_false','record':{'family':'range_threshold','parameters':{
         'false_temperature_c':26.0,'true_temperature_c':29.4,'uncertainty_c':0.4,'lower_c':26.4,'upper_c':32.4}}}
     assert '[25.6, 26.4]' in reference_reason(row)
-    assert '没有完全' in reference_reason(row)
+    assert 'NOT fully inside' in reference_reason(row)
     row['record']['parameters']['false_temperature_c'] = 27.0
     with pytest.raises(ValueError, match='contradict'):
         reference_reason(row)
@@ -138,7 +138,45 @@ def test_reference_and_raw_outputs_are_escaped_and_replay_is_not_a_new_run(compl
     cards = decision_cards(rows,predictions,calls)
     assert '<script>' not in guide and '&lt;script&gt;' in guide
     assert '<img src=x' not in cards and '&lt;img' in cards
-    assert '运行错误' in cards
-    assert '本次没有调用模型' in result_message(summary, archived=True)
-    assert '本次没有调用模型' not in result_message(summary)
+    assert 'Runtime error' in cards
+    assert 'No new model calls' in result_message(summary, archived=True)
+    assert 'No new model calls' not in result_message(summary)
     assert '100%' not in cards.split('</style>', 1)[1]
+
+
+def test_builtin_gradio_locale_is_english_without_changing_other_headers():
+    import asyncio
+    from scripts.launch_verification_gradio import EnglishLocaleMiddleware
+    observed = []
+    async def app(scope, receive, send): observed.append(scope)
+    middleware = EnglishLocaleMiddleware(app)
+    original = {'type':'http', 'headers':[(b'accept-language',b'zh-CN'),(b'x-test',b'keep')]}
+    asyncio.run(middleware(original,None,None))
+    assert observed[0]['headers'] == [(b'x-test',b'keep'),(b'accept-language',b'en')]
+    assert original['headers'][0][1] == b'zh-CN'
+    websocket = {'type':'websocket','headers':[]}
+    asyncio.run(middleware(websocket,None,None))
+    assert observed[-1] is websocket
+
+
+def test_english_locale_precedes_client_boot_and_preserves_non_html():
+    import asyncio
+    from scripts.launch_verification_gradio import EnglishLocaleMiddleware
+    async def run(content_type, chunks):
+        sent = []
+        async def app(scope, receive, send):
+            await send({'type':'http.response.start', 'status':200,
+                        'headers':[(b'content-type',content_type), (b'content-length',b'1')]})
+            for i, chunk in enumerate(chunks):
+                await send({'type':'http.response.body', 'body':chunk,
+                            'more_body':i < len(chunks)-1})
+        async def send(message): sent.append(message)
+        await EnglishLocaleMiddleware(app)({'type':'http','headers':[]},None,send)
+        return sent
+    sent = asyncio.run(run(b'text/html', [b'<html><he', b'ad><script type="module">boot()</script></head></html>']))
+    body = sent[1]['body']
+    assert body.index(b'Object.defineProperty(navigator') < body.index(b'type="module"')
+    assert int(dict(sent[0]['headers'])[b'content-length']) == len(body)
+    assert len(sent) == 2 and sent[1]['more_body'] is False
+    sent = asyncio.run(run(b'application/json', [b'{"ok":', b'true}']))
+    assert [part['body'] for part in sent[1:]] == [b'{"ok":', b'true}']

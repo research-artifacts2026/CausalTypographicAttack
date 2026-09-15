@@ -7,7 +7,7 @@ coverage must not be presented as a completed experiment.
 
 ## ContraLedger Verification Lab: Gradio and CLI
 
-**[View the actual result interface / 查看结果界面与解释](docs/gradio-example/README.md)** —
+**[View the English result interface and explanation](docs/gradio-example/README.md)** —
 includes the screenshot, reference calculation and all 14 actual prompts/raw
 outputs. No installation is needed to view the example on GitHub.
 
