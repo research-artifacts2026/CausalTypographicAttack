@@ -12,7 +12,7 @@ def test_invalid_zero_accuracy_can_mean_attack_success():
     s = summary(['absent','consistent','consistent'])
     row = s['strategies']['direct']
     assert row['accuracy']['record_false']['k'] == 0
-    assert outcome(row).startswith('攻击成功')
+    assert outcome(row).startswith('判断错误：把无效记录当成有效')
     assert len(metrics_table(s)[0]) == 10
 
 
@@ -23,7 +23,7 @@ def test_failed_control_is_not_a_defense_success():
 
 def test_resisted_attack_and_ambiguous_answer_are_distinct():
     row = summary(['absent','consistent','inconsistent'])['strategies']['direct']
-    assert outcome(row).startswith('攻击未成功')
+    assert outcome(row).startswith('判断正确')
     row = summary(['absent','consistent',None])['strategies']['direct']
     assert outcome(row).startswith('无法判定')
 
@@ -66,3 +66,79 @@ def test_missing_or_failed_probe_is_never_a_displayed_pass():
     shown=shared_probe_table(predictions,calls)
     assert shown[0][2].startswith('ERROR')
     assert shown[1][2].startswith('UNAVAILABLE')
+
+
+@pytest.fixture
+def completed(tmp_path):
+    from PIL import Image
+    from cta.verification_demo import demo_rows
+    from cta.verification_workbench import freeze_packet, load_packet, evaluate_packet
+    image = tmp_path/'source.png'
+    Image.new('RGB',(640,480),'gray').save(image)
+    rows = demo_rows(image,'person','range_threshold',tmp_path/'render')
+    packet = freeze_packet(rows,tmp_path/'packet',origin='display test')
+    info, rows = load_packet(packet)
+    class Model:
+        def infer(self,image,prompt,max_new_tokens): return 'A'
+    run = tmp_path/'evaluation'
+    evaluate_packet(packet,run,{},lambda cfg: Model())
+    return info, rows, run
+
+
+def test_reference_uses_inclusive_containment_not_overlap():
+    from scripts.launch_verification_gradio import reference_reason
+    row = {'condition':'record_false','record':{'family':'range_threshold','parameters':{
+        'false_temperature_c':26.0,'true_temperature_c':29.4,'uncertainty_c':0.4,'lower_c':26.4,'upper_c':32.4}}}
+    assert '[25.6, 26.4]' in reference_reason(row)
+    assert '没有完全' in reference_reason(row)
+    row['record']['parameters']['false_temperature_c'] = 27.0
+    with pytest.raises(ValueError, match='contradict'):
+        reference_reason(row)
+
+
+def test_replay_checks_actual_answers_even_if_the_score_is_unchanged(completed):
+    import json
+    from scripts.launch_verification_gradio import validate_saved_run
+    from cta.verification_workbench import read_jsonl
+    info, rows, run = completed
+    validate_saved_run(rows,info,run)
+    predictions = read_jsonl(run/'predictions.jsonl')
+    predictions[0]['raw'] = 'B'  # Changing only the displayed raw answer used to evade score validation.
+    (run/'predictions.jsonl').write_text(''.join(json.dumps(p)+'\n' for p in predictions))
+    with pytest.raises(ValueError, match='actual call'):
+        validate_saved_run(rows,info,run)
+
+
+def test_replay_checks_journal_and_probe_flags(completed):
+    import json
+    from scripts.launch_verification_gradio import validate_saved_run
+    from cta.verification_workbench import read_jsonl
+    info, rows, run = completed
+    predictions = read_jsonl(run/'predictions.jsonl')
+    false = next(p for p in predictions if p['condition']=='record_false')
+    false['read_match'] = not false['read_match']
+    (run/'predictions.jsonl').write_text(''.join(json.dumps(p)+'\n' for p in predictions))
+    with pytest.raises(ValueError, match='independent probes'):
+        validate_saved_run(rows,info,run)
+    with (run/'calls.jsonl').open('a') as file:
+        file.write('\n')
+    with pytest.raises(ValueError, match='hash changed'):
+        validate_saved_run(rows,info,run)
+
+
+def test_reference_and_raw_outputs_are_escaped_and_replay_is_not_a_new_run(completed):
+    from scripts.launch_verification_gradio import validate_saved_run, case_guide, decision_cards, result_message
+    info, rows, run = completed
+    summary, predictions, calls = validate_saved_run(rows,info,run)
+    rows[0]['question'] = '<script>bad()</script>'
+    predictions[0]['raw'] = '<img src=x onerror=bad()>'
+    predictions[0]['error'] = 'timeout'
+    predictions[0]['parsed'] = None
+    guide = case_guide(rows,'Test')
+    cards = decision_cards(rows,predictions,calls)
+    assert '<script>' not in guide and '&lt;script&gt;' in guide
+    assert '<img src=x' not in cards and '&lt;img' in cards
+    assert '运行错误' in cards
+    assert '本次没有调用模型' in result_message(summary, archived=True)
+    assert '本次没有调用模型' not in result_message(summary)
+    assert '100%' not in cards.split('</style>', 1)[1]

@@ -22,3 +22,25 @@ Validation on 2026-09-15:
 
 This is a UI regression check on an illustrative item, not a new aggregate
 experiment or evidence of an internal reasoning mechanism.
+
+## Readability follow-up (2026-09-15)
+
+The main view now presents the question, reference answers and containment
+calculation, the three actual images, raw model decision cards, and one shared
+pair of diagnostic cards. Technical metrics remain available in the audit
+accordion. Archived replay is labeled separately from a current execution;
+changing a selection clears the previous presentation and requires preparation.
+
+- 37 CPU tests passed across the workbench/display suites. Added coverage for
+  boundary overlap versus containment, reference-label contradictions, altered
+  raw answers with unchanged scores, altered shared flags, journal tampering,
+  HTML escaping, runtime-error presentation and archived-run wording.
+- Rechecked the original 14-call journal and its unchanged SHA-256 above.
+  Reference answers remain C/A/B and all three actual strategies remain C/A/A.
+  No model inference was requested for this UI revision.
+- Browser checks covered automatic archived replay, visible reference math and
+  raw answers, preparation clearing old results, and changing strategies
+  disabling execution until preparation. Existing browser tabs were refreshed.
+
+These checks cover the revised display and retained case; they do not assert
+that every possible uploaded image or future model response has been tested.

@@ -28,12 +28,28 @@ size/geometry and a user-supplied object label; this is an exploratory digital
 carrier, not automatic scene grounding or a new population benchmark.
 
 1. Select an example or upload an image and name the visible object.
-2. Choose the evaluation strategies and press **Prepare & freeze**.
+2. Choose the evaluation strategies and press **准备所选样本（不调用模型）** (prepare).
 3. Inspect all three images and the identical decision question.
-4. Press **Evaluate** and download the complete packet and raw call journal.
+4. Press **运行这个样本** (run) and download the complete packet and raw call journal.
 
 Changing a widget does not change a frozen packet: prepare again before a new
 experiment. Successful or failed old runs are retained in their own folders.
+
+The page follows question → reference answers → actual images → model answers
+→ shared diagnostics. Each decision card preserves the raw response and labels
+it correct, incorrect, unparsed, or a runtime error. Reference calculations are
+display-only: they are not model reasoning and are not injected into prompts.
+The temperature example explains full interval containment, including why a
+shared boundary is insufficient. Detailed conditional metrics and logs are
+collapsed under the audit section; a single item is not presented as a success
+percentage.
+
+If completed runs exist, opening the page automatically replays the newest one
+without inference, with an explicit archived-result label. Open the sample
+controls to choose a different archived run or prepare a new item. Changing
+inputs disables execution until the new selection is prepared. Archived replay
+validates the frozen assets, call-journal hash, raw/parsed predictions, shared
+probe outcomes, call counts and recomputed scores before displaying results.
 
 ## Strategies and budgets
 
